@@ -1,4 +1,5 @@
-# BUXE_OS v24.0 -- ZORK & HANGMAN
+# BUXE_OS v24.3 -- ZORK & HANGMAN (TUI)
+# Migriert auf TUI-Framework: Show-Scene + Read-GameChoice / Read-Host.
 
 try {
 
@@ -12,28 +13,78 @@ function zork {
     $inventory = @()
     $current = "Start"
     
+    Reset-RenderBuffer
+    $w = 50; $h = 16
+    
     while ($true) {
         $room = $rooms[$current]
-        Clear-Screen "ZORK"
-        Write-Host "`n  $($room.Desc)" -ForegroundColor Cyan
+        $exits = ($room.GetEnumerator() | Where-Object { $_.Key -in @('N','S','E','W') } | ForEach-Object { $_.Key }) -join ', '
+        
+        $s = New-Scene $w $h
+        Add-SceneFrame $s 0 0 $w $h "ZORK" 'Cyan' -Double
+        Add-SceneText $s 4 2 $room.Desc 'White'
         if ($room.Items.Count -gt 0) {
-            Write-Host "  Items hier: $($room.Items -join ', ')" -ForegroundColor Yellow
+            Add-SceneText $s 4 4 "Items hier: $($room.Items -join ', ')" 'Yellow'
         }
-        Write-Host "  Wege: $(($room.GetEnumerator() | Where-Object { $_.Key -in @('N','S','E','W') } | ForEach-Object { $_.Key }) -join ', ')" -ForegroundColor DarkGray
-        Write-Host "  Inventar: $($inventory -join ', ')" -ForegroundColor Green
-        $cmd = Read-Host "`n  Befehl [N/S/E/W/Take/Inv/Quit]"
-        switch ($cmd.ToUpper()) {
-            'N' { if ($room.N) { $current = $room.N } else { Write-Host "  Geht nicht!" -ForegroundColor Red } }
-            'S' { if ($room.S) { $current = $room.S } else { Write-Host "  Geht nicht!" -ForegroundColor Red } }
-            'E' { if ($room.E) { $current = $room.E } else { Write-Host "  Geht nicht!" -ForegroundColor Red } }
-            'W' { if ($room.W) { $current = $room.W } else { Write-Host "  Geht nicht!" -ForegroundColor Red } }
-            'TAKE' { if ($room.Items.Count -gt 0) { $inventory += $room.Items[0]; $room.Items = @(); Write-Host "  Aufgehoben!" -ForegroundColor Green } }
-            'INV' { Write-Host "  Inventar: $($inventory -join ', ')" -ForegroundColor Green }
-            'QUIT' { return }
-            default { Write-Host "  Unbekannter Befehl." -ForegroundColor Red }
+        Add-SceneText $s 4 6 "Wege: $exits" 'DarkGray'
+        Add-SceneText $s 4 7 "Inventar: $($inventory -join ', ')" 'Green'
+        Add-SceneText $s 4 9 "[N]ord  [S]ued  [O]st  [W]est" 'White'
+        Add-SceneText $s 4 10 "[T]ake  [I]nv   [Q]uit" 'White'
+        Show-Scene $s -Force
+        
+        $cmd = Read-GameChoice "" "^[NSOEWTIQ]$"
+        switch ($cmd) {
+            'N' { if ($room.N) { $current = $room.N } else { 
+                $err = New-Scene $w $h
+                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
+                Show-Scene $err -Force
+                Start-Sleep -Milliseconds 400
+            } }
+            'S' { if ($room.S) { $current = $room.S } else {
+                $err = New-Scene $w $h
+                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
+                Show-Scene $err -Force
+                Start-Sleep -Milliseconds 400
+            } }
+            'E' { if ($room.E) { $current = $room.E } else {
+                $err = New-Scene $w $h
+                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
+                Show-Scene $err -Force
+                Start-Sleep -Milliseconds 400
+            } }
+            'W' { if ($room.W) { $current = $room.W } else {
+                $err = New-Scene $w $h
+                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
+                Show-Scene $err -Force
+                Start-Sleep -Milliseconds 400
+            } }
+            'T' { if ($room.Items.Count -gt 0) { 
+                $inventory += $room.Items[0]; $room.Items = @()
+                $ok = New-Scene $w $h
+                Add-SceneFrame $ok 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $ok 4 5 "Aufgehoben!" 'Green'
+                Show-Scene $ok -Force
+                Start-Sleep -Milliseconds 400
+            } }
+            'I' {
+                $inv = New-Scene $w $h
+                Add-SceneFrame $inv 0 0 $w $h "ZORK" 'Cyan' -Double
+                Add-SceneText $inv 4 5 "Inventar: $($inventory -join ', ')" 'Green'
+                Show-Scene $inv -Force
+                Wait-Enter
+            }
+            'Q' { return }
         }
         if ($inventory -contains "Kristall") {
-            Write-Host "`n  Du hast den Kristall gefunden! Du gewinnst!" -ForegroundColor Magenta
+            $win = New-Scene $w $h
+            Add-SceneFrame $win 0 0 $w $h "ZORK" 'Cyan' -Double
+            Add-SceneText $win 4 5 "Du hast den Kristall gefunden!" 'Magenta'
+            Add-SceneText $win 4 6 "Du gewinnst!" 'Magenta'
+            Show-Scene $win -Force
             Unlock-Achievement "Zork Survivor"
             Wait-Enter; return
         }
@@ -57,45 +108,120 @@ function hangman {
         @("      ","      ","  O   "," /|\  "," / \  ","======")
     )
     
-    Clear-Screen "HANGMAN"
-    Write-Host "`n  Schwierigkeit: [1] Easy [2] Normal [3] Hard" -ForegroundColor White
-    $diff = Read-Host "  Waehle"
+    Reset-RenderBuffer
+    $w = 50; $h = 18
+    
+    # Difficulty selection
+    $sel = New-Scene $w $h
+    Add-SceneFrame $sel 0 0 $w $h "HANGMAN" 'Cyan' -Double
+    Add-SceneText $sel 4 2 "Schwierigkeit:" 'White'
+    Add-SceneText $sel 4 4 "[1] Easy       (0G, 12 Fehler)" 'Green'
+    Add-SceneText $sel 4 5 "[2] Normal     (10G, 7 Fehler)" 'Yellow'
+    Add-SceneText $sel 4 6 "[3] Hard       (25G, 5 Fehler)" 'Red'
+    Add-SceneText $sel 4 8 "[Q] Quit" 'DarkGray'
+    Show-Scene $sel -Force
+    
+    $diff = Read-GameChoice "" "^[123Q]$"
+    if ($diff -eq 'Q') { return }
     $diffMap = @{ "1" = @("easy",0,12); "2" = @("tech",10,7); "3" = @("cyberpunk",25,5) }
     $d = if ($diffMap[$diff]) { $diffMap[$diff] } else { @("tech",10,7) }
     $cat = $d[0]; $bet = $d[1]; $maxWrong = $d[2]
     
     Load-State
     $br = Confirm-Bust "Hangman"
-    if ($bet -gt $br) { Write-Host "  Nicht genug Gold!" -ForegroundColor Red; Wait-Enter; return }
+    if ($bet -gt $br) { 
+        $err = New-Scene $w $h
+        Add-SceneFrame $err 0 0 $w $h "HANGMAN" 'Cyan' -Double
+        Add-SceneText $err 4 5 "Nicht genug Gold!" 'Red'
+        Show-Scene $err -Force
+        Wait-Enter; return 
+    }
     if ($bet -gt 0) { Set-Bankroll (-$bet) -TrackCasino }
     
     $word = ($categories[$cat] | Get-Random).ToUpper()
     $guessed = @(); $wrong = 0
+    
     while ($wrong -lt $maxWrong) {
-        Clear-Screen "HANGMAN"
-        Write-Host "`n  Hangman -- Kategorie: $cat | Einsatz: $bet | Fehler: $wrong/$maxWrong" -ForegroundColor Cyan
-        foreach ($line in $gallows[[math]::Min($wrong,7)]) { Write-Host "  $line" -ForegroundColor Red }
+        $s = New-Scene $w $h
+        Add-SceneFrame $s 0 0 $w $h "HANGMAN" 'Cyan' -Double
+        Add-SceneText $s 4 1 "Kategorie: $cat | Einsatz: $bet | Fehler: $wrong/$maxWrong" 'Cyan'
+        
+        # Gallows
+        $gy = 3
+        foreach ($line in $gallows[[math]::Min($wrong,7)]) {
+            Add-SceneText $s 4 $gy $line 'Red'
+            $gy++
+        }
+        
+        # Word display
         $display = ""
         foreach ($c in $word.ToCharArray()) { if ($c -eq ' ') { $display += "  " } elseif ($guessed -contains $c) { $display += "$c " } else { $display += "_ " } }
-        Write-Host "`n  $display`n" -ForegroundColor White
-        Write-Host "  Geraten: $($guessed -join ', ')" -ForegroundColor DarkGray
+        Add-SceneText $s 4 12 $display 'White'
+        Add-SceneText $s 4 14 "Geraten: $($guessed -join ', ')" 'DarkGray'
+        
+        Show-Scene $s -Force
+        
         if ($display.Replace(' ','') -eq $word.Replace(' ','')) {
             $win = $bet * [math]::Floor(15 / $maxWrong)
-            if ($win -gt 0) { Set-Bankroll $win -TrackCasino; Write-Host "`n  GEWONNEN! $win G! Wort: $word" -ForegroundColor Green }
-            else { Write-Host "`n  GEWONNEN! Wort: $word" -ForegroundColor Green }
+            $rs = New-Scene $w $h
+            Add-SceneFrame $rs 0 0 $w $h "HANGMAN" 'Cyan' -Double
+            if ($win -gt 0) { Add-SceneText $rs 4 5 "GEWONNEN! $win G!" 'Green' }
+            else { Add-SceneText $rs 4 5 "GEWONNEN!" 'Green' }
+            Add-SceneText $rs 4 6 "Wort: $word" 'White'
+            Show-Scene $rs -Force
+            if ($win -gt 0) { Set-Bankroll $win -TrackCasino }
             Unlock-Achievement "Hangman Survivor"
             Wait-Enter; return
         }
+        
+        [Console]::CursorVisible = $true
         $g = (Read-Host "  Buchstabe raten").ToUpper()
-        if ($g.Length -ne 1 -or $g -notmatch '[A-Z]') { Write-Host "  Ungueltig." -ForegroundColor Red; Start-Sleep -Milliseconds 500; continue }
-        if ($guessed -contains $g) { Write-Host "  Bereits geraten!" -ForegroundColor Yellow; Start-Sleep -Milliseconds 500; continue }
+        [Console]::CursorVisible = $false
+        
+        if ($g.Length -ne 1 -or $g -notmatch '[A-Z]') { 
+            $err = New-Scene $w $h
+            Add-SceneFrame $err 0 0 $w $h "HANGMAN" 'Cyan' -Double
+            Add-SceneText $err 4 5 "Ungueltig." 'Red'
+            Show-Scene $err -Force
+            Start-Sleep -Milliseconds 500
+            continue 
+        }
+        if ($guessed -contains $g) { 
+            $err = New-Scene $w $h
+            Add-SceneFrame $err 0 0 $w $h "HANGMAN" 'Cyan' -Double
+            Add-SceneText $err 4 5 "Bereits geraten!" 'Yellow'
+            Show-Scene $err -Force
+            Start-Sleep -Milliseconds 500
+            continue 
+        }
         $guessed += $g
-        if ($word.Contains($g)) { Write-Host "  Richtig!" -ForegroundColor Green; Start-Sleep -Milliseconds 400 }
-        else { $wrong++; Write-Host "  Falsch! $wrong/$maxWrong" -ForegroundColor Red; Start-Sleep -Milliseconds 400 }
+        if ($word.Contains($g)) { 
+            $ok = New-Scene $w $h
+            Add-SceneFrame $ok 0 0 $w $h "HANGMAN" 'Cyan' -Double
+            Add-SceneText $ok 4 5 "Richtig!" 'Green'
+            Show-Scene $ok -Force
+            Start-Sleep -Milliseconds 400 
+        } else { 
+            $wrong++
+            $bad = New-Scene $w $h
+            Add-SceneFrame $bad 0 0 $w $h "HANGMAN" 'Cyan' -Double
+            Add-SceneText $bad 4 5 "Falsch! $wrong/$maxWrong" 'Red'
+            Show-Scene $bad -Force
+            Start-Sleep -Milliseconds 400 
+        }
     }
-    Clear-Screen "HANGMAN"
-    foreach ($line in $gallows[[math]::Min($wrong,7)]) { Write-Host "  $line" -ForegroundColor Red }
-    Write-Host "`n  GAME OVER! Das Wort war: $word`n" -ForegroundColor Red
+    
+    # Game over
+    $gs = New-Scene $w $h
+    Add-SceneFrame $gs 0 0 $w $h "HANGMAN" 'Cyan' -Double
+    $gy = 3
+    foreach ($line in $gallows[[math]::Min($wrong,7)]) {
+        Add-SceneText $gs 4 $gy $line 'Red'
+        $gy++
+    }
+    Add-SceneText $gs 4 12 "GAME OVER!" 'Red'
+    Add-SceneText $gs 4 13 "Das Wort war: $word" 'Yellow'
+    Show-Scene $gs -Force
     Wait-Enter
 }
 
