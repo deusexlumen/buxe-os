@@ -2,20 +2,6 @@
 
 try {
 
-$script:BPAttacks = @{
-    "Neural Overload" = @{ Dmg = 15; Acc = 95; Type = "ELEC" }
-    "Bit Crusher"     = @{ Dmg = 12; Acc = 100; Type = "NORM" }
-    "Debug Patch"     = @{ Dmg = 0;  Acc = 100; Type = "HEAL"; Heal = 30 }
-    "Plasma Lance"    = @{ Dmg = 22; Acc = 80;  Type = "FIRE" }
-    "System Purge"    = @{ Dmg = 30; Acc = 75;  Type = "VIRUS" }
-    "Overclock"       = @{ Dmg = 18; Acc = 90;  Type = "ELEC" }
-    "Zero-Day"        = @{ Dmg = 45; Acc = 55;  Type = "HACK" }
-    "Data Drain"      = @{ Dmg = 18; Acc = 85;  Type = "VIRUS" }
-    "Ice Spike"       = @{ Dmg = 20; Acc = 85;  Type = "ICE" }
-    "Water Cannon"    = @{ Dmg = 16; Acc = 90;  Type = "WATER" }
-    "Shadow Claw"     = @{ Dmg = 24; Acc = 80;  Type = "DARK" }
-    "Firewall"        = @{ Dmg = 0;  Acc = 100; Type = "HEAL"; Heal = 15 }
-}
 $script:BPStarters = @(
     @{ Name = "GLITCH_WOLF"; Type = "VIRUS"; HP = 100; ATK = 14; DEF = 7; SPD = 12; Color = "Magenta"; EvolveAt = 10 }
     @{ Name = "CYBER_RAPTOR"; Type = "ELEC"; HP = 80; ATK = 18; DEF = 5; SPD = 15; Color = "Cyan"; EvolveAt = 10 }
