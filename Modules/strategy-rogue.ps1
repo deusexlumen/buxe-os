@@ -1,4 +1,5 @@
-# BUXE_OS v24.0 -- ROGUE-LIKE DUNGEON
+# BUXE_OS v24.3 -- ROGUE-LIKE DUNGEON (TUI)
+# Migriert auf TUI-Framework: Show-Scene + Read-GameChoice.
 
 try {
 
@@ -6,21 +7,27 @@ function rogue {
     Load-State
     $stats = Get-StrategyStats "Rogue"
     
-    Clear-Screen "ROGUE DUNGEON"
-    Show-Bankroll
-    Write-Host "`n  Ueberlebe so viele Etagen wie moeglich!" -ForegroundColor Cyan
-    Write-Host "  [Enter] zum Starten..." -ForegroundColor DarkGray
-    Read-Host
+    Reset-RenderBuffer
+    $w = 56; $h = 20
+    
+    # Pre-game
+    $pre = New-Scene $w $h
+    Add-SceneFrame $pre 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+    Add-SceneText $pre 4 2 "Ueberlebe so viele Etagen wie moeglich!" 'Cyan'
+    Add-SceneText $pre 4 4 "[ENTER] Starten" 'Green'
+    Add-SceneText $pre 4 5 "[Q] Quit" 'DarkGray'
+    Show-Scene $pre -Force
+    
+    $act = Read-GameChoice "" "^[Q]$"
+    if ($act -eq 'Q') { return }
     
     $hero = @{ Name = "Hero"; HP = 100; MaxHP = 100; ATK = 15; DEF = 5; SPD = 10; Potions = 3; Level = 1; XP = 0 }
     $floor = 0; $maxFloor = 20
     
     while ($floor -lt $maxFloor -and $hero.HP -gt 0) {
         $floor++
-        Clear-Screen "ROGUE DUNGEON -- Etage $floor"
-        Write-Host "  HP: $($hero.HP)/$($hero.MaxHP) | ATK: $($hero.ATK) | DEF: $($hero.DEF) | Potions: $($hero.Potions)" -ForegroundColor Cyan
-        
         $room = @("Kampf", "Schatz", "Haendler", "Boss") | Get-Random
+        
         switch ($room) {
             "Kampf" {
                 $enemy = @{
@@ -28,85 +35,200 @@ function rogue {
                     HP = 20 + $floor * 5; MaxHP = 20 + $floor * 5
                     ATK = 8 + $floor * 2; DEF = 2 + $floor; SPD = 5 + $floor
                 }
-                Write-Host "`n  Ein $($enemy.Name) greift an!" -ForegroundColor Red
                 
                 while ($hero.HP -gt 0 -and $enemy.HP -gt 0) {
-                    Write-Host "`n  [1] Angriff [2] Heiltrank [3] Verteidigen" -ForegroundColor White
-                    $a = Read-Host "  Aktion"
+                    $cs = New-Scene $w $h
+                    Add-SceneFrame $cs 0 0 $w $h "ROGUE DUNGEON -- Etage $floor" 'Cyan' -Double
+                    
+                    # Hero stats
+                    Add-SceneText $cs 4 2 "Hero Lv.$($hero.Level)" 'Cyan'
+                    Add-SceneBar $cs 4 3 20 $hero.HP $hero.MaxHP 'Green' 'DarkGray'
+                    Add-SceneText $cs 26 3 "$($hero.HP)/$($hero.MaxHP) HP" 'White'
+                    Add-SceneText $cs 4 4 "ATK: $($hero.ATK) | DEF: $($hero.DEF) | Potions: $($hero.Potions)" 'DarkGray'
+                    
+                    # Enemy stats
+                    Add-SceneText $cs 4 6 "$($enemy.Name)" 'Red'
+                    Add-SceneBar $cs 4 7 20 $enemy.HP $enemy.MaxHP 'Red' 'DarkGray'
+                    Add-SceneText $cs 26 7 "$($enemy.HP)/$($enemy.MaxHP) HP" 'White'
+                    
+                    Add-SceneText $cs 4 10 "[1] Angriff   [2] Heiltrank   [3] Verteidigen" 'White'
+                    Add-SceneText $cs 4 11 "[Q] Quit" 'DarkGray'
+                    Show-Scene $cs -Force
+                    
+                    $a = Read-GameChoice "" "^[123Q]$"
+                    if ($a -eq 'Q') { return }
+                    
                     if ($a -eq '2' -and $hero.Potions -gt 0) {
                         $hero.Potions--; $heal = 30
                         $hero.HP = [math]::Min($hero.MaxHP, $hero.HP + $heal)
-                        Write-Host "  +$heal HP!" -ForegroundColor Green
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "+$heal HP!" 'Green'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
                     } elseif ($a -eq '3') {
-                        Write-Host "  Du verteidigst dich!" -ForegroundColor Blue
                         $hero.TempDEF = 5
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "Du verteidigst dich!" 'Blue'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
                     } else {
                         $dmg = [math]::Max(1, [math]::Round($hero.ATK - ($enemy.DEF * 0.3)))
                         $enemy.HP -= $dmg
-                        Write-Host "  Du machst $dmg Schaden!" -ForegroundColor Green
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "Du machst $dmg Schaden!" 'Green'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
                     }
+                    
                     if ($enemy.HP -gt 0) {
                         $edmg = [math]::Max(1, [math]::Round($enemy.ATK - ($hero.DEF * 0.3) - ($hero.TempDEF)))
                         $hero.HP -= $edmg
-                        Write-Host "  $($enemy.Name) macht $edmg Schaden!" -ForegroundColor Red
                         $hero.TempDEF = 0
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "$($enemy.Name) macht $edmg Schaden!" 'Red'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
                     }
                 }
+                
                 if ($hero.HP -gt 0) {
                     $reward = $floor * 10 + 20
                     Add-Gold $reward "Rogue"
                     $hero.XP += $floor * 5
-                    Write-Host "`n  Besiegt! +$reward G | +$($floor * 5) XP" -ForegroundColor Green
+                    $rs = New-Scene $w $h
+                    Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                    Add-SceneText $rs 4 5 "Besiegt! +$reward G | +$($floor * 5) XP" 'Green'
+                    Show-Scene $rs -Force
+                    Start-Sleep -Milliseconds 500
+                    
                     if ($hero.XP -ge $hero.Level * 50) {
                         $hero.XP -= $hero.Level * 50; $hero.Level++
-                        $hero.MaxHP += 10; $hero.ATK += 3; $hero.DEF += 2
-                        Write-Host "  LEVEL UP! Lv.$($hero.Level)" -ForegroundColor Magenta
+                        $hero.MaxHP += 10; $hero.HP += 10; $hero.ATK += 3; $hero.DEF += 2
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "LEVEL UP! Lv.$($hero.Level)" 'Magenta'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 500
                     }
                 }
             }
             "Schatz" {
-                $gold = Get-Random -Minimum 10 -Maximum 51
-                Add-Gold $gold "Rogue"
+                $tGold = Get-Random -Minimum 10 -Maximum 51
+                Add-Gold $tGold "Rogue"
                 $hero.Potions = [math]::Min(5, $hero.Potions + 1)
-                Write-Host "`n  Schatz gefunden! +$gold G | +1 Trank" -ForegroundColor Yellow
+                $rs = New-Scene $w $h
+                Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                Add-SceneText $rs 4 5 "Schatz gefunden!" 'Yellow'
+                Add-SceneText $rs 4 6 "+$tGold G | +1 Trank" 'Green'
+                Show-Scene $rs -Force
+                Start-Sleep -Milliseconds 600
             }
             "Haendler" {
-                Write-Host "`n  Haendler: HP +20 (30G) | ATK +3 (50G) | Potion (20G) | [Q] Weg" -ForegroundColor Cyan
-                $c = Read-Host "  Kauf"
-                if ($c -eq '1' -and (Get-Bankroll) -ge 30) { Spend-Gold 30 "Shop"; $hero.MaxHP += 20; $hero.HP += 20 }
-                elseif ($c -eq '2' -and (Get-Bankroll) -ge 50) { Spend-Gold 50 "Shop"; $hero.ATK += 3 }
-                elseif ($c -eq '3' -and (Get-Bankroll) -ge 20) { Spend-Gold 20 "Shop"; $hero.Potions++ }
+                while ($true) {
+                    $hs = New-Scene $w $h
+                    Add-SceneFrame $hs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                    Add-SceneText $hs 4 2 "Haendler" 'Cyan'
+                    Add-SceneText $hs 4 4 "[1] HP +20    (30G)" 'Green'
+                    Add-SceneText $hs 4 5 "[2] ATK +3    (50G)" 'Red'
+                    Add-SceneText $hs 4 6 "[3] Potion    (20G)" 'Yellow'
+                    Add-SceneText $hs 4 7 "Gold: $(Get-Bankroll) G" 'DarkGray'
+                    Add-SceneText $hs 4 9 "[Q] Weiter" 'DarkGray'
+                    Show-Scene $hs -Force
+                    
+                    $c = Read-GameChoice "" "^[123Q]$"
+                    if ($c -eq 'Q') { break }
+                    if ($c -eq '1' -and (Get-Bankroll) -ge 30) { 
+                        Spend-Gold 30 "Shop"; $hero.MaxHP += 20; $hero.HP += 20 
+                    } elseif ($c -eq '2' -and (Get-Bankroll) -ge 50) { 
+                        Spend-Gold 50 "Shop"; $hero.ATK += 3 
+                    } elseif ($c -eq '3' -and (Get-Bankroll) -ge 20) { 
+                        Spend-Gold 20 "Shop"; $hero.Potions++ 
+                    }
+                }
             }
             "Boss" {
-                $boss = @{ Name = "ETAGE $floor BOSS"; HP = 50 + $floor * 10; ATK = 12 + $floor * 3; DEF = 5 + $floor; SPD = 8 + $floor }
-                Write-Host "`n  BOSS KAMPF: $($boss.Name)!" -ForegroundColor Magenta -BackgroundColor DarkRed
+                $boss = @{ Name = "ETAGE $floor BOSS"; HP = 50 + $floor * 10; MaxHP = 50 + $floor * 10; ATK = 12 + $floor * 3; DEF = 5 + $floor; SPD = 8 + $floor }
+                
                 while ($hero.HP -gt 0 -and $boss.HP -gt 0) {
-                    Write-Host "`n  [1] Angriff [2] Heiltrank" -ForegroundColor White
-                    $a = Read-Host "  Aktion"
-                    if ($a -eq '2' -and $hero.Potions -gt 0) { $hero.Potions--; $hero.HP = [math]::Min($hero.MaxHP, $hero.HP + 30); Write-Host "  +30 HP!" -ForegroundColor Green }
-                    else { $dmg = [math]::Max(1, [math]::Round($hero.ATK - $boss.DEF * 0.3)); $boss.HP -= $dmg; Write-Host "  $dmg Schaden!" -ForegroundColor Green }
-                    if ($boss.HP -gt 0) { $edmg = [math]::Max(1, [math]::Round($boss.ATK - $hero.DEF * 0.3)); $hero.HP -= $edmg; Write-Host "  Boss macht $edmg Schaden!" -ForegroundColor Red }
+                    $bs = New-Scene $w $h
+                    Add-SceneFrame $bs 0 0 $w $h "ROGUE DUNGEON -- BOSS" 'Red' -Double
+                    
+                    Add-SceneText $bs 4 2 "Hero Lv.$($hero.Level)" 'Cyan'
+                    Add-SceneBar $bs 4 3 20 $hero.HP $hero.MaxHP 'Green' 'DarkGray'
+                    Add-SceneText $bs 26 3 "$($hero.HP)/$($hero.MaxHP)" 'White'
+                    
+                    Add-SceneText $bs 4 6 "$($boss.Name)" 'Magenta'
+                    Add-SceneBar $bs 4 7 20 $boss.HP $boss.MaxHP 'Red' 'DarkGray'
+                    Add-SceneText $bs 26 7 "$($boss.HP)/$($boss.MaxHP)" 'White'
+                    
+                    Add-SceneText $bs 4 10 "[1] Angriff   [2] Heiltrank" 'White'
+                    Show-Scene $bs -Force
+                    
+                    $a = Read-GameChoice "" "^[12]$"
+                    if ($a -eq '2' -and $hero.Potions -gt 0) { 
+                        $hero.Potions--; $hero.HP = [math]::Min($hero.MaxHP, $hero.HP + 30)
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "+30 HP!" 'Green'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
+                    } else { 
+                        $dmg = [math]::Max(1, [math]::Round($hero.ATK - $boss.DEF * 0.3))
+                        $boss.HP -= $dmg
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "$dmg Schaden!" 'Green'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
+                    }
+                    
+                    if ($boss.HP -gt 0) { 
+                        $edmg = [math]::Max(1, [math]::Round($boss.ATK - $hero.DEF * 0.3))
+                        $hero.HP -= $edmg
+                        $rs = New-Scene $w $h
+                        Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                        Add-SceneText $rs 4 5 "Boss macht $edmg Schaden!" 'Red'
+                        Show-Scene $rs -Force
+                        Start-Sleep -Milliseconds 400
+                    }
                 }
+                
                 if ($hero.HP -gt 0) {
                     $breward = $floor * 50
                     Add-Gold $breward "Boss"
-                    Write-Host "`n  BOSS BESIEGT! +$breward G" -ForegroundColor Magenta
+                    $rs = New-Scene $w $h
+                    Add-SceneFrame $rs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+                    Add-SceneText $rs 4 5 "BOSS BESIEGT! +$breward G" 'Magenta'
+                    Show-Scene $rs -Force
+                    Start-Sleep -Milliseconds 600
                 }
             }
         }
-        Start-Sleep -Milliseconds 600
     }
     
     if ($floor -ge $maxFloor) {
-        Write-Host "`n  DU HAST DEN DUNGEON GEKLAERT! Etage $floor" -ForegroundColor Magenta
+        $fs = New-Scene $w $h
+        Add-SceneFrame $fs 0 0 $w $h "ROGUE DUNGEON" 'Magenta' -Double
+        Add-SceneText $fs 4 5 "DU HAST DEN DUNGEON GEKLAERT!" 'Magenta'
+        Add-SceneText $fs 4 6 "Etage $floor" 'Green'
+        
         $insightMod = Get-StrategyInsightModifier
         $clearReward = [math]::Floor(500 * $insightMod)
         $bonus = $clearReward - 500
         Add-Gold $clearReward "Rogue Clear"
-        if ($bonus -gt 0) { Write-Host "  (+$bonus Strategy Insight)" -ForegroundColor Magenta }
+        Add-SceneText $fs 4 8 "+$clearReward G!" 'Green'
+        if ($bonus -gt 0) { Add-SceneText $fs 4 9 "(+$bonus Strategy Insight)" 'Magenta' }
+        Show-Scene $fs -Force
         Unlock-Achievement "Dungeon Master"
     } elseif ($hero.HP -le 0) {
-        Write-Host "`n  Gestorben auf Etage $floor" -ForegroundColor Red
+        $fs = New-Scene $w $h
+        Add-SceneFrame $fs 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+        Add-SceneText $fs 4 5 "Gestorben auf Etage $floor" 'Red'
+        Show-Scene $fs -Force
     }
     
     # StrategyInsight skill progression
@@ -116,7 +238,10 @@ function rogue {
         if ($cp.Skills.StrategyInsightRuns -ge 5) {
             $cp.Skills.StrategyInsight++
             $cp.Skills.StrategyInsightRuns = 0
-            Write-Host "  [SKILL UP] Strategy Insight ist jetzt Level $($cp.Skills.StrategyInsight)!" -ForegroundColor Magenta
+            $ss = New-Scene $w $h
+            Add-SceneFrame $ss 0 0 $w $h "ROGUE DUNGEON" 'Cyan' -Double
+            Add-SceneText $ss 4 5 "[SKILL UP] Strategy Insight Level $($cp.Skills.StrategyInsight)!" 'Magenta'
+            Show-Scene $ss -Force
             Save-CompanionState $cp
         }
     }
