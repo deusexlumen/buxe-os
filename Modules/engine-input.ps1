@@ -176,6 +176,27 @@ function Read-GameChoice($Prompt, $ValidPattern, $TimeoutSec = 0) {
     }
 }
 
+# === SOUND EFFECTS ===
+# Non-interactive safe beep wrapper.
+
+function Invoke-GameBeep($Frequency = 800, $Duration = 100) {
+    try { [Console]::Beep($Frequency, $Duration) } catch {}
+}
+
+function Invoke-GameSound($Type) {
+    switch ($Type) {
+        'LineClear'  { Invoke-GameBeep 1000 100 }
+        'GameOver'   { Invoke-GameBeep 200  300 }
+        'Reveal'     { Invoke-GameBeep 800  50 }
+        'Flag'       { Invoke-GameBeep 600  50 }
+        'Explosion'  { Invoke-GameBeep 150  200 }
+        'Win'        { Invoke-GameBeep 800  50; Start-Sleep -Milliseconds 30; Invoke-GameBeep 1200 100 }
+        'Error'      { Invoke-GameBeep 300  150 }
+        'Click'      { Invoke-GameBeep 900  30 }
+        default      { Invoke-GameBeep 800  50 }
+    }
+}
+
 } catch {
     Write-Host "[engine-input] CRITICAL ERROR: $_" -ForegroundColor Red
 }

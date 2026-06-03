@@ -291,6 +291,7 @@ function tetris {
                 Lock-TetrisPiece $board $piece
                 $cleared = Clear-TetrisLines $board
                 if ($cleared -gt 0) {
+                    Invoke-GameSound 'LineClear'
                     $lines += $cleared
                     $score += switch ($cleared) {
                         1 { 100 }
@@ -312,6 +313,7 @@ function tetris {
                 # Game over check
                 if (Test-TetrisCollision $board $piece $piece.X $piece.Y $piece.Rotation) {
                     $gameOver = $true
+                    Invoke-GameSound 'GameOver'
                 }
             }
             $lastDrop = $now
