@@ -1,0 +1,100 @@
+# BUXE_OS v24.0 -- SMOKE TEST
+
+$modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$modDir\engine-state.ps1"
+. "$modDir\engine-ui.ps1"
+. "$modDir\engine-game.ps1"
+. "$modDir\engine-aliases.ps1"
+. "$modDir\casino-engine.ps1"
+
+# Load Pet System v2.0
+$petModules = Get-ChildItem "$modDir\pet\*.ps1" | Sort-Object Name
+foreach ($pm in $petModules) { . $pm.FullName }
+
+try {
+
+$errors = 0; $tests = 0
+
+function Test-Assert($name, $condition) {
+    $script:tests++
+    if ($condition) { Write-Host "  [PASS] $name" -ForegroundColor Green }
+    else { Write-Host "  [FAIL] $name" -ForegroundColor Red; $script:errors++ }
+}
+
+Write-Host "`n  BUXE_OS v24.0 SMOKE TEST`n" -ForegroundColor Cyan
+
+# === ENGINE TESTS ===
+Write-Host "  Testing Engine..." -ForegroundColor Yellow
+$defaults = Get-StateDefaults
+Test-Assert "State defaults exist" ($defaults.Version -eq 24)
+Test-Assert "Bank defaults" ($defaults.Bank.Gold -eq 500)
+Test-Assert "Casino defaults" ($defaults.Casino.Blackjack.HandsPlayed -eq 0)
+
+$deck = New-CardDeck
+Test-Assert "Deck has 52 cards" ($deck.Count -eq 52)
+Test-Assert "Ace value" ((Get-CardValue "A") -eq 11)
+Test-Assert "Face card values" ((Get-CardValue "K") -eq 10)
+
+$bjHand = @(@{Rank="A";Suit="S"}, @{Rank="10";Suit="H"})
+Test-Assert "Blackjack hand value" ((Get-HandValue $bjHand) -eq 21)
+
+$baccHand = @(@{Rank="9";Suit="S"}, @{Rank="8";Suit="H"})
+Test-Assert "Baccarat value" ((Get-BaccaratValue $baccHand) -eq 7)
+
+$dice = New-DiceRoll 2 6
+Test-Assert "Dice roll count" ($dice.Count -eq 2)
+Test-Assert "Dice in range" ($dice[0] -ge 1 -and $dice[0] -le 6)
+
+Test-Assert "Fire strong vs Ice" ((Get-ElementModifier "FIRE" "ICE") -eq 1.5)
+Test-Assert "Fire weak vs Water" ((Get-ElementModifier "FIRE" "WATER") -eq 0.5)
+Test-Assert "Neutral matchup" ((Get-ElementModifier "NORM" "FIRE") -eq 1.0)
+
+$bar = Show-Bar 50 100 20
+Test-Assert "Show-Bar returns string" ($bar -is [string])
+Test-Assert "Show-Bar width" ($bar.Length -eq 20)
+
+# === PET SYSTEM v2.0 TESTS ===
+Write-Host "`n  Testing Pet System v2.0..." -ForegroundColor Yellow
+
+$petState = Get-PetState
+Test-Assert "Pet state loads" ($petState -ne $null)
+Test-Assert "Pet state has Meta" ($petState.Meta -ne $null)
+
+$defaults = Get-PetDefaults
+Test-Assert "Pet defaults exist" ($defaults.Meta -ne $null)
+Test-Assert "Pet default level 0" ($defaults.Meta.Level -eq 0)
+
+$testPet = @{ MaxHP = 100; ATK = 10; DEF = 5; SPD = 8; Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }; BonusMaxHP = 0; BonusATK = 0; BonusDEF = 0; BonusSPD = 0; CritBonus = 0; CritResist = 0 }
+$es = Get-EffectiveStats $testPet
+Test-Assert "Effective stats calc" ($es.MaxHP -eq 100 -and $es.ATK -eq 10)
+
+# Show-PetFrame uses Write-Host, so we just verify it doesn't throw
+Show-PetFrame "Test" | Out-Null
+Test-Assert "Show-PetFrame runs without error" ($? -eq $true)
+
+Test-Assert "Pet hub function exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
+
+# === STATE ACCESSORS ===
+Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
+Test-Assert "Get-Bankroll" ((Get-Bankroll) -ge 0)
+Test-Assert "Load-State" ($script:BuxeState.Version -eq 24)
+
+# === MODULE LOAD TEST ===
+Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1")
+$loadOk = 0
+foreach ($m in $allMods) {
+    try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}
+}
+Test-Assert "All modules load" ($loadOk -eq $allMods.Count)
+
+# === SUMMARY ===
+Write-Host "`n  ========================================" -ForegroundColor Cyan
+Write-Host "  Tests: $tests | Passed: $($tests - $errors) | Failed: $errors" -ForegroundColor $(if ($errors -eq 0) { "Green" } else { "Red" })
+Write-Host "  ========================================" -ForegroundColor Cyan
+if ($errors -eq 0) { Write-Host "`n  ALL TESTS PASSED! BUXE_OS v24 ready.`n" -ForegroundColor Green }
+else { Write-Host "`n  $errors TEST(S) FAILED.`n" -ForegroundColor Red }
+
+} catch {
+    Write-Host "  [CRITICAL] Smoke test crashed: $_" -ForegroundColor Red -BackgroundColor DarkRed
+}

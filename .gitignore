@@ -1,0 +1,23 @@
+# Empfohlene .gitignore fuer das PowerShell-Projekt
+.companion_save.json
+*.log
+__pycache__/
+
+# Externe PowerShell-Module (Drittanbieter, nicht eigener Code)
+Modules/Pester/
+Modules/PSFzf/
+Modules/Terminal-Icons/
+Modules/InstalledScriptInfos/
+Scripts/InstalledScriptInfos/
+
+# Alte Backups, Archive und korrupte Dateien
+*.backup*
+*.corrupted*
+Modules_v23_archive/
+
+# Lokale State-Dateien und persoenliche Notizen
+achievements.json
+SESSION_NOTES.md
+
+# Temporaere Dateien
+*.tmp
