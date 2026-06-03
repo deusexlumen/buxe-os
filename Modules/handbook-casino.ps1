@@ -3,7 +3,7 @@
 try {
 
 function Show-HBCasino {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "CASINO" -Double | Out-Null
     Write-Host ""
     Write-Host "  6 Spiele verfuegbar. Alle nutzen dein Bank-Guthaben." -ForegroundColor DarkGray

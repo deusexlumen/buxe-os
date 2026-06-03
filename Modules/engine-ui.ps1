@@ -104,9 +104,9 @@ function Show-Animation($Frames, $DelayMs = 100) {
         Write-Host $frame -ForegroundColor Magenta
         Start-Sleep -Milliseconds $DelayMs
         if ($Frames.IndexOf($frame) -lt $Frames.Count - 1) {
-            [Console]::SetCursorPosition(0, [Console]::CursorTop - 1)
+            try { [Console]::SetCursorPosition(0, [Console]::CursorTop - 1) } catch {}
             Write-Host (" " * $frame.Length)
-            [Console]::SetCursorPosition(0, [Console]::CursorTop - 1)
+            try { [Console]::SetCursorPosition(0, [Console]::CursorTop - 1) } catch {}
         }
     }
 }
@@ -124,7 +124,7 @@ function Show-SlotSpin($symbols, $colors, $final, $spins = 10) {
         Write-Host " | " -NoNewline
         Write-Host $r3 -ForegroundColor $colors[$r3] -NoNewline
         Write-Host " |" -NoNewline
-        [Console]::SetCursorPosition(0, [Console]::CursorTop)
+        try { [Console]::SetCursorPosition(0, [Console]::CursorTop) } catch {}
         Start-Sleep -Milliseconds (80 + ($i * 40))
     }
     Write-Host "  | $($final[0]) | $($final[1]) | $($final[2]) |`n" -ForegroundColor White
@@ -183,7 +183,7 @@ function Show-DiceRoll($count = 2, $sides = 6, $delay = 300) {
 
 # === CLEAR SCREEN WRAPPER ===
 function Clear-Screen($Title) {
-    Clear-Host
+    try { Clear-Host } catch {}
     if ($Title) { Show-Frame $Title -Double | Out-Null }
 }
 
@@ -224,7 +224,7 @@ function Invoke-DialogueTree {
         $node = $Nodes | Where-Object { $_.Id -eq $currentId } | Select-Object -First 1
         if (-not $node) { break }
         
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-Frame $node.Speaker -Double | Out-Null
         Write-Host ""
         Write-Host "  $($node.Text)" -ForegroundColor White

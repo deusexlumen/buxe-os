@@ -36,7 +36,7 @@ function pet {
     while ($true) {
         $pet = Get-PetState
         $cp = $pet.Companion
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "BUXE_PET OS v2.0 — HUB" -Double | Out-Null
         Write-Host ""
         if ($cp) {
@@ -195,7 +195,7 @@ function Get-HubGreeting($Companion, $PetState) {
 
 function Show-PetHubStatus {
     $pet = Get-PetState
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "STATUS OVERVIEW" -Double | Out-Null
     Write-Host ""
     if ($pet.Companion) {

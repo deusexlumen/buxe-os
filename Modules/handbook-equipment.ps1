@@ -3,7 +3,7 @@
 try {
 
 function Show-HBEquipment {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "EQUIPMENT" -Double | Out-Null
     Write-Host ""
     Write-Host "  Jedes Pet kann 3 Ausruestungsslots tragen:" -ForegroundColor DarkGray

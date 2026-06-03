@@ -17,7 +17,7 @@ function Start-PetRaid {
     if (-not $pet.Pet.RaidTokens) { $pet.Pet.RaidTokens = 0 }
     if (-not $pet.Pet.RaidBest) { $pet.Pet.RaidBest = 0 }
     while ($true) {
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "RAID DUNGEON" -Double | Out-Null
         Write-Host "`n  Tokens: $($pet.Pet.RaidTokens) | Beste Phase: $($pet.Pet.RaidBest)" -ForegroundColor Yellow
         if ($pet.Pet.RaidCleared -eq $today) { Write-Host "  [Heute bereits versucht]" -ForegroundColor Red }
@@ -39,14 +39,14 @@ function Invoke-PetRaidBattle($pet, $p) {
         $boss = $script:PetRaidBosses[$phase - 1]
         $sc = 1 + ($p.Level - 1) * 0.15
         $enemy = @{ Name = $boss.Name; HP = [math]::Round($boss.HP * $sc); MaxHP = [math]::Round($boss.HP * $sc); ATK = [math]::Round($boss.ATK * $sc); DEF = [math]::Round($boss.DEF * $sc); SPD = [math]::Round($boss.SPD * $sc) }
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "RAID PHASE $phase" -Double | Out-Null
         Write-Host "`n  $($enemy.Name) erscheint!" -ForegroundColor Red
         Start-Sleep -Milliseconds 500
         $round = 0
         while ($p.HP -gt 0 -and $enemy.HP -gt 0) {
             $round++; $stats = Get-EffectiveStats $p
-            Clear-Host
+    try { Clear-Host } catch {}
             Show-PetFrame "RAID $phase — Runde $round" -Double | Out-Null
             Write-Host "`n  [$($p.Name)] HP: $($p.HP)/$($stats.MaxHP) | [$($enemy.Name)] HP: $($enemy.HP)/$($enemy.MaxHP)" -ForegroundColor White
             if ($cp -and $healsUsed -lt $healCount -and $p.HP -lt ($stats.MaxHP * 0.5)) {

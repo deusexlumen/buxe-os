@@ -23,7 +23,7 @@ function Invoke-PetRivalBattle {
     $pet = Get-PetState
     $cp = $pet.Companion
     $rn = $pet.Meta.RivalName
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "RIVAL ENCOUNTER" -Double | Out-Null
     Write-Host "`n  Ein Rivale namens $rn fordert dich heraus!" -ForegroundColor Red
     Write-Host "  3 Runden. A > V > S > A" -ForegroundColor DarkGray

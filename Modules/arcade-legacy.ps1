@@ -174,9 +174,9 @@ function hangman {
             Wait-Enter; return
         }
         
-        [Console]::CursorVisible = $true
+        try { [Console]::CursorVisible = $true } catch {}
         $g = (Read-Host "  Buchstabe raten").ToUpper()
-        [Console]::CursorVisible = $false
+        try { [Console]::CursorVisible = $false } catch {}
         
         if ($g.Length -ne 1 -or $g -notmatch '[A-Z]') { 
             $err = New-Scene $w $h

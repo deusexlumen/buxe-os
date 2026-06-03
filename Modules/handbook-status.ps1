@@ -3,7 +3,7 @@
 try {
 
 function Show-HBStatus {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "STATUS-EFFEKTE" -Double | Out-Null
     Write-Host ""
     Write-Host "  Status-Effekte werden am Anfang jeder Runde verarbeitet." -ForegroundColor DarkGray

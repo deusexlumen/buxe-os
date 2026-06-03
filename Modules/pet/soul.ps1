@@ -12,7 +12,7 @@ function Invoke-SoulLink {
         Show-CompanionDialog $cp "Wir sind bereits verbunden. Fuehlst du es nicht?"
         Wait-Enter; return
     }
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "SOUL LINK" -Double | Out-Null
     Write-Host ""
     Show-CompanionDialog $cp "Wir sind nicht mehr zwei Dateien. Wir sind ein... Programm?" $false

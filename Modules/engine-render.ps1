@@ -129,7 +129,7 @@ function Render-Frame($Frame, [switch]$ForceFull) {
     
     if ($ForceFull -or -not $script:LastRenderedFrame) {
         # Full render
-        [Console]::CursorVisible = $false
+        try { [Console]::CursorVisible = $false } catch {}
         try { [Console]::SetCursorPosition(0, 0) } catch {}
         for ($y = 0; $y -lt $Frame.Height; $y++) {
             $line = ""

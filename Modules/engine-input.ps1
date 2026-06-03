@@ -4,6 +4,16 @@
 
 try {
 
+# === MOCK INPUT ( fuer E2E-Tests ) ===
+$script:MockInputEnabled = $false
+$script:MockInputQueue = @()
+
+function Enable-MockInput { $script:MockInputEnabled = $true; $script:MockInputQueue = @() }
+function Disable-MockInput { $script:MockInputEnabled = $false; $script:MockInputQueue = @() }
+function Queue-MockInput($chars) {
+    foreach ($c in $chars.ToCharArray()) { $script:MockInputQueue += $c.ToString().ToUpper() }
+}
+
 # === INPUT EVENTS ===
 # Normalisiert ConsoleKeyInfo zu einem einfachen Objekt.
 
@@ -41,8 +51,8 @@ function Invoke-GameLoop {
     # Init
     if ($Init) { & $Init }
     
-    $oldCursorVisible = [Console]::CursorVisible
-    [Console]::CursorVisible = $false
+    $oldCursorVisible = $true
+    try { $oldCursorVisible = [Console]::CursorVisible; [Console]::CursorVisible = $false } catch {}
     
     try {
         while ($running) {
@@ -50,15 +60,31 @@ function Invoke-GameLoop {
             
             # --- INPUT POLLING ---
             $inputEvents = @()
-            while ([Console]::KeyAvailable) {
-                $keyInfo = [Console]::ReadKey($true)
-                $evt = New-InputEvent $keyInfo
-                $inputEvents += $evt
-                
-                # Global quit handler
-                if ($evt.IsQuit) {
-                    $running = $false
-                    break
+            if ($script:MockInputEnabled -and $script:MockInputQueue.Count -gt 0) {
+                $char = $script:MockInputQueue[0]
+                $script:MockInputQueue = $script:MockInputQueue | Select-Object -Skip 1
+                $inputEvents += @{
+                    Key = if ($char -eq ' ') { 'Spacebar' } else { $char }
+                    Char = $char
+                    Modifiers = ""
+                    IsQuit = ($char -eq 'Q')
+                    IsEnter = ($char -eq "`r")
+                    IsArrow = $false
+                    IsNumber = ($char -match '^[0-9]$')
+                    NumberValue = if ($char -match '^[0-9]$') { [int]$char } else { $null }
+                }
+                if ($char -eq 'Q') { $running = $false; break }
+            } else {
+                while ([Console]::KeyAvailable) {
+                    $keyInfo = [Console]::ReadKey($true)
+                    $evt = New-InputEvent $keyInfo
+                    $inputEvents += $evt
+                    
+                    # Global quit handler
+                    if ($evt.IsQuit) {
+                        $running = $false
+                        break
+                    }
                 }
             }
             
@@ -97,7 +123,7 @@ function Invoke-GameLoop {
     } catch {
         Write-Host "`n[GameLoop] CRITICAL: $_" -ForegroundColor Red
     } finally {
-        [Console]::CursorVisible = $oldCursorVisible
+        try { [Console]::CursorVisible = $oldCursorVisible } catch {}
         if ($Cleanup) {
             try { & $Cleanup } catch { Write-Host "[GameLoop] Cleanup error: $_" -ForegroundColor DarkRed }
         }
@@ -108,6 +134,11 @@ function Invoke-GameLoop {
 # Fuer Menues die kein Game Loop brauchen.
 
 function Read-GameChoice($Prompt, $ValidPattern, $TimeoutSec = 0) {
+    if ($script:MockInputEnabled -and $script:MockInputQueue.Count -gt 0) {
+        $char = $script:MockInputQueue[0]
+        $script:MockInputQueue = $script:MockInputQueue | Select-Object -Skip 1
+        return $char
+    }
     if ($TimeoutSec -gt 0) {
         $start = Get-Date
         while (((Get-Date) - $start).TotalSeconds -lt $TimeoutSec) {

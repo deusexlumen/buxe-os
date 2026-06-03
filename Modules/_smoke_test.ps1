@@ -128,6 +128,28 @@ $script:BuxeStateLoadedAt = $null
 Load-State
 Test-Assert "Original state restored" ($script:BuxeState.Version -eq 24)
 
+# === BACKUP ROTATION ===
+Write-Host "`n  Testing Backup Rotation..." -ForegroundColor Yellow
+$bakPattern = "$script:BuxeStateFile.bak*"
+Remove-Item $bakPattern -Force -ErrorAction SilentlyContinue
+# Save 6 times to trigger rotation
+for ($i = 1; $i -le 6; $i++) {
+    $script:BuxeState.Bank.Gold = 500 + $i
+    Save-State
+    Start-Sleep -Milliseconds 50
+}
+Test-Assert "bak1 exists" (Test-Path "$script:BuxeStateFile.bak1")
+Test-Assert "bak5 exists" (Test-Path "$script:BuxeStateFile.bak5")
+Test-Assert "bak6 does not exist" (-not (Test-Path "$script:BuxeStateFile.bak6"))
+# Verify chain: bak5 should have gold=501 (oldest backup after 6 saves)
+$bak5Content = Get-Content "$script:BuxeStateFile.bak5" -Raw | ConvertFrom-Json
+Test-Assert "bak5 has oldest data" ($bak5Content.Bank.Gold -eq 501)
+# Cleanup backups
+Remove-Item $bakPattern -Force -ErrorAction SilentlyContinue
+# Restore state
+$script:BuxeState.Bank.Gold = 500
+Save-State
+
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
 $allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1")

@@ -11,7 +11,7 @@ function Start-PetPvP {
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     $rankIdx = $script:PetRanks.IndexOf($pet.Pet.Rank)
     if ($rankIdx -lt 0) { $rankIdx = 0; $pet.Pet.Rank = "Bronze" }
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "PVP ARENA [$($pet.Pet.Rank)]" -Double | Out-Null
     Write-Host "`n  Punkte: $($pet.Pet.PvPPoints) | Siege: $($pet.Pet.PvPWins)" -ForegroundColor Yellow
     Write-Host "  [1] Kaempfen | [Q] Zurueck" -ForegroundColor White
@@ -31,7 +31,7 @@ function Start-PetPvP {
     $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
     $ps = 0; $es = 0
     for ($r = 1; $r -le 3; $r++) {
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "PVP — Runde $r/3" -Double | Out-Null
         Write-Host "`n  [$($p.Name)] HP: $($p.HP)/$($stats.MaxHP) | [$($enemy.Name)] HP: $($enemy.HP)/$($enemy.MaxHP)" -ForegroundColor White
         if ($pet.Companion -and $pet.Companion.Bond -ge 30) {
@@ -57,7 +57,7 @@ function Start-PetPvP {
         }
         Start-Sleep -Milliseconds 500
     }
-    Clear-Host
+    try { Clear-Host } catch {}
     if ($ps -gt $es) {
         $gain = 20 + $rankIdx * 10; $pet.Pet.PvPPoints += $gain; $pet.Pet.PvPWins++
         $gold = Get-Random -Minimum 10 -Maximum 26

@@ -17,7 +17,7 @@ function Invoke-PetLevelUp($oldLevel, $newLevel) {
         }
     }
     if ($newFeatures.Count -eq 0) { return }
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "SYSTEM NOTIFICATION" -Double | Out-Null
     Write-Host ""
     Write-Host "  LEVEL UP! $oldLevel -> $newLevel" -ForegroundColor Yellow

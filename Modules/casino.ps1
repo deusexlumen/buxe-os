@@ -4,7 +4,7 @@ try {
 
 function Show-CasinoStats {
     Load-State
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "CASINO STATS" -Double | Out-Null
     Write-Host ""
     $cs = $script:BuxeState.Casino

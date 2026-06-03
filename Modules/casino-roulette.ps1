@@ -63,9 +63,9 @@ function roulette {
                 Add-SceneFrame $sub 0 0 $w $h "EUROPEAN ROULETTE" 'Cyan' -Double
                 Add-SceneText $sub 4 2 "Zahl (0-36):" 'White'
                 Show-Scene $sub -Force
-                [Console]::CursorVisible = $true
+                try { [Console]::CursorVisible = $true } catch {}
                 $numBet = [int](Read-Host "  ")
-                [Console]::CursorVisible = $false
+                try { [Console]::CursorVisible = $false } catch {}
                 $payout = 36
             }
             "4" {
@@ -87,9 +87,9 @@ function roulette {
                 Add-SceneFrame $sub 0 0 $w $h "EUROPEAN ROULETTE" 'Cyan' -Double
                 Add-SceneText $sub 4 2 "Street Startzahl (1,4,7,10,13,16,19,22,25,28,31,34):" 'White'
                 Show-Scene $sub -Force
-                [Console]::CursorVisible = $true
+                try { [Console]::CursorVisible = $true } catch {}
                 $strBet = [int](Read-Host "  ")
-                [Console]::CursorVisible = $false
+                try { [Console]::CursorVisible = $false } catch {}
                 $payout = 12
             }
         }

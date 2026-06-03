@@ -3,7 +3,7 @@
 try {
 
 function Show-HBCombat {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "KAMPFSYSTEM" -Double | Out-Null
     Write-Host ""
     Write-Host "  TURN ORDER" -ForegroundColor Cyan

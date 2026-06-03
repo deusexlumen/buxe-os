@@ -19,15 +19,16 @@ function monkeytype {
     Add-SceneText $s 4 8 "[Q] Quit" 'DarkGray'
     Show-Scene $s -Force
     
-    $act = Read-GameChoice "" "^[Q]$"
+    $act = Read-GameChoice "" "^[
+Q]$"
     if ($act -eq 'Q') { return }
     
     # Input phase
-    [Console]::CursorVisible = $true
+    try { [Console]::CursorVisible = $true } catch {}
     $start = Get-Date
     $input = Read-Host "  >"
     $elapsed = (Get-Date) - $start
-    [Console]::CursorVisible = $false
+    try { [Console]::CursorVisible = $false } catch {}
     $seconds = $elapsed.TotalSeconds
     
     # Result scene

@@ -22,7 +22,7 @@ function Start-PetShop {
     $p = $pet.Pet
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     while ($true) {
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "SCHWARZMARKT" -Double | Out-Null
         Write-Host "`n  Gold: $($pet.Economy.Gold) G" -ForegroundColor Yellow
         Write-Host "  Aktiv: $($p.Name) [Lv.$($p.Level)]" -ForegroundColor $p.Color
@@ -51,7 +51,7 @@ function Start-PetCook {
     $cp = $pet.Companion
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "COMPANION KUECHE" -Double | Out-Null
     Write-Host "`n  Waehle ein Gericht fuer $($p.Name):" -ForegroundColor White
     Write-Host ""

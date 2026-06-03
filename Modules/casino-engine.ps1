@@ -63,7 +63,7 @@ function Invoke-CasinoGame {
         
         # Update stats
         if ($result.Stats) {
-            foreach ($key in $result.Stats.Keys) {
+            foreach ($key in @($result.Stats.Keys)) {
                 $stats[$key] = $result.Stats[$key]
             }
             Set-CasinoStats $StatsKey $stats

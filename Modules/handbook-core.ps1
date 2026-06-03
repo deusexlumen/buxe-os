@@ -4,7 +4,7 @@ try {
 
 function handbook {
     while ($true) {
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-Frame "BUXE_OS HANDBUCH" -Double | Out-Null
         Write-Host ""
         Write-Host "  [1] Kampfsystem    [2] Elemente      [3] Status-Effekte" -ForegroundColor White

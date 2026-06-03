@@ -3,7 +3,7 @@
 try {
 
 function Show-HBCommands {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "COMMANDS" -Double | Out-Null
     Write-Host ""
     Write-Host "  CORE" -ForegroundColor Cyan

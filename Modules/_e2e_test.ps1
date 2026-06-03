@@ -13,7 +13,7 @@ try {
 
 Write-Output ""
 Write-Output "=== VERIFYING FUNCTIONS ==="
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
 $missing = @()
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing += $fn }
@@ -46,6 +46,65 @@ if ($script:SessionStart) {
     Write-Output "SessionStart NOT SET!"
     exit 1
 }
+
+Write-Output ""
+Write-Output "=== GAME FLOW TESTS ==="
+
+# Test Zork (quit immediately)
+Enable-MockInput
+Queue-MockInput "Q"
+try { zork } catch { Write-Output "ZORK FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "ZORK: PASSED"
+
+# Test Rogue (quit immediately)
+Enable-MockInput
+Queue-MockInput "Q"
+try { rogue } catch { Write-Output "ROGUE FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "ROGUE: PASSED"
+
+# Helper: mock Read-Bet to return bet once then 0
+function Mock-ReadBetOnce($bet) {
+    $global:_MockBetCount = 0
+    $global:_MockBetValue = $bet
+    Set-Item function:Read-Bet {
+        $global:_MockBetCount++
+        if ($global:_MockBetCount -eq 1) { return $global:_MockBetValue }
+        return 0
+    }
+}
+
+# Test Hi-Lo with mocked bet + cashout
+$origReadBet = (Get-Command Read-Bet).ScriptBlock
+$origWaitEnter = (Get-Command Wait-Enter).ScriptBlock
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "C"
+try { hilo } catch { Write-Output "HILO FAILED: $_"; Write-Output "STACK: $($_.ScriptStackTrace)"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "HILO: PASSED"
+
+# Test Slot with mocked bet + spin + quit
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput " "
+try { slot } catch { Write-Output "SLOT FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "SLOT: PASSED"
+
+# Test Minesweeper (quit immediately)
+Enable-MockInput
+Queue-MockInput "Q"
+try { minesweeper } catch { Write-Output "MINESWEEPER FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "MINESWEEPER: PASSED"
 
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

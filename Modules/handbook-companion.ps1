@@ -3,7 +3,7 @@
 try {
 
 function Show-HBCompanion {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "COMPANION" -Double | Out-Null
     Write-Host ""
     Write-Host "  5 Girls zur Auswahl. Jede hat eine einzigartige Persoenlichkeit." -ForegroundColor DarkGray

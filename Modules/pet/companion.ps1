@@ -3,7 +3,7 @@
 try {
 
 function New-Companion {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "COMPANION INITIALISIERUNG" -Double | Out-Null
     Write-Host ""
     for ($i = 0; $i -lt $script:CPNames.Count; $i++) {
@@ -126,7 +126,7 @@ function Invoke-CompanionAction($action) {
 function Show-CompanionStatus($cp) {
     if (-not $cp) { return }
     $bar = Show-Bar $cp.Bond 100 20
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "$($cp.Name) -- $($cp.Role)" -Double | Out-Null
     Write-Host ""
     Write-Host "  Bond: [$bar] $($cp.Bond)/100" -ForegroundColor White

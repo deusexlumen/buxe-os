@@ -28,9 +28,9 @@ function wordle {
         Add-SceneText $s 4 ($y + 1) "Versuch $($attempts+1)/${maxAttempts}:" 'White'
         Show-Scene $s -Force
         
-        [Console]::CursorVisible = $true
+        try { [Console]::CursorVisible = $true } catch {}
         $guess = (Read-Host "  ").ToUpper()
-        [Console]::CursorVisible = $false
+        try { [Console]::CursorVisible = $false } catch {}
         
         if ($guess -eq 'Q') { return }
         if ($guess.Length -ne $target.Length) {

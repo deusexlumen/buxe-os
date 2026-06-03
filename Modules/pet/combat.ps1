@@ -21,7 +21,7 @@ $script:BPEnemies = @(
 )
 
 function New-Pet {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "BATTLEPET INITIALISIERUNG" -Double | Out-Null
     Write-Host ""
     for ($i = 0; $i -lt $script:BPStarters.Count; $i++) {
@@ -78,7 +78,7 @@ function Start-PetFight {
     $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
     $playerScore = 0; $rivalScore = 0
     for ($round = 1; $round -le 3; $round++) {
-        Clear-Host
+    try { Clear-Host } catch {}
         Show-PetFrame "KAMPF — Runde $round/3" -Double | Out-Null
         Write-Host "`n  [$($p.Name)] HP: $($p.HP)/$($stats.MaxHP) | [$($enemy.Name)] HP: $($enemy.HP)/$($enemy.MaxHP)" -ForegroundColor White
         Write-Host "`n  [A]ngriff [V]erteidigung [S]pecial" -ForegroundColor White
@@ -100,7 +100,7 @@ function Start-PetFight {
         }
         Start-Sleep -Milliseconds 600
     }
-    Clear-Host
+    try { Clear-Host } catch {}
     if ($playerScore -gt $rivalScore) {
         $xp = if ($isBoss) { 50 } else { 20 + ($p.Level * 5) }
         $gold = Get-Random -Minimum 5 -Maximum 16

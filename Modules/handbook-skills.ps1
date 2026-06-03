@@ -3,7 +3,7 @@
 try {
 
 function Show-HBSkills {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "SKILLS" -Double | Out-Null
     Write-Host ""
     Write-Host "  Passive Skills werden automatisch im Kampf angewendet." -ForegroundColor DarkGray

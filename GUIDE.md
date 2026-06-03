@@ -23,37 +23,65 @@ Oh My Posh zeigt Icons an, die normale Fonts nicht haben. Du brauchst einen **Ne
 
 ---
 
-## Architektur v24.0 (Engine-First)
+## Architektur v24.3 (Engine-First)
 
-BUXE_OS ist jetzt in **18 Module** aufgeteilt, organisiert nach dem Prinzip:
+BUXE_OS ist jetzt in **40+ Module** aufgeteilt, organisiert nach dem Prinzip:
 **Engine zuerst, dann Games.**
 
 **Core Engines (werden zuerst geladen):**
 - `engine-state.ps1` -- Einheitlicher State-Manager. Alle Daten in einer Datei: `%LOCALAPPDATA%\buxe\buxe_state_v24.json`
-- `engine-ui.ps1` -- Shared UI: Frames, Progress-Bars, Menus, Animationen
+- `engine-ui.ps1` -- Shared UI: Frames, Progress-Bars, Menus, Animationen, DialogueTree
 - `engine-game.ps1` -- Game-Mechanics: Karten, Wuerfel, Element-System, Kampf-Logik
-- `engine-aliases.ps1` -- Terminal-Aliase, Git, System, BUXE-Core-Commands
+- `engine-aliases.ps1` + 4 Sub-Module -- Terminal-Aliase, Git, System, BUXE-Core-Commands
+- `engine-input.ps1` -- Polling-Input-Handler, Mock-Input fuer Tests
+- `engine-render.ps1` -- Frame-basiertes Double-Buffering (kein Flicker)
+- `engine-scene.ps1` -- Deklarative Scenes (`New-Scene`, `Add-SceneText`, etc.)
+
+**TUI Framework:**
+- Spiele rendern in einem virtuellen Framebuffer (`New-Frame`, `Render-Frame`)
+- Delta-Rendering: nur geaenderte Zeichen werden neu gezeichnet
+- Kein `Clear-Host`-Flackern mehr
+- Unicode-Box-Drawing fuer Rahmen und Menues
 
 **Casino Framework:**
 - `casino-engine.ps1` -- Shared Casino-Wrapper (Bet-Handling, Bust-Check, Companion-Comments)
-- `casino-blackjack.ps1`, `casino-roulette.ps1`, `casino-craps.ps1`, `casino-hilo.ps1`, `casino-baccarat.ps1`, `casino-slot.ps1` -- 6 Spiele
+- `casino-blackjack.ps1`, `casino-roulette.ps1`, `casino-craps.ps1`, `casino-hilo.ps1`, `casino-baccarat.ps1`, `casino-slot.ps1` -- 6 Spiele (alle TUI)
 - `casino.ps1` -- Casino-Hub Router
 
 **Arcade & Strategy:**
-- `arcade.ps1` -- Snake, Monkeytype, Wordle, Zork, Hangman
-- `strategy-poker.ps1` -- Texas Hold'em
-- `strategy-td.ps1` -- Tower Defense
-- `strategy-rogue.ps1` -- Dungeon Crawler
+- `arcade-snake.ps1`, `arcade-monkeytype.ps1`, `arcade-wordle.ps1`, `arcade-legacy.ps1` (Zork, Hangman) -- 5 Spiele (alle TUI)
+- `arcade.ps1` -- Thin Arcade-Hub Router
+- `strategy-poker.ps1` -- Texas Hold'em (TUI)
+- `strategy-td.ps1` -- Tower Defense (TUI)
+- `strategy-rogue.ps1` -- Dungeon Crawler (TUI)
 
-**Companion & Battlepet:**
-- `companion.ps1` -- Companion v6 (dekompliziert)
-- `battlepet.ps1` -- Battlepet v24 (Full RPG)
-- `hub.ps1` -- Unified `pet` Command Router
+**Pet System v2.0 (`Modules/pet/`):**
+- `_init.ps1` -- State, Schema, Meta-Progression, XP/Level-System
+- `_ui.ps1` -- Dialog-Engine, LucasArts-Frames, Easter-Egg-Checker
+- `_unlock.ps1` -- Progressive Feature-Unlocks
+- `companion.ps1` -- Bond, Mood, Talk, Gift, Date, Work, Train, Punish
+- `combat.ps1` -- Kampf-Engine (RPS-Logik), Enemy-Gen, Level-Up
+- `economy.ps1` -- Shop, Cooking
+- `events.ps1` -- "While you were away", Random Events
+- `hub.ps1` -- Dynamic Menu, zentraler Entry Point `pet`
+- `pvp.ps1` -- Arena mit Rank-System
+- `raid.ps1` -- 3-Phasen Dungeon
+- `breed.ps1` -- Genetik-Labor
+- `rival.ps1` -- Rivale mit Mood-abhaengigem Spawn
+- `soul.ps1` -- Soul Link Endgame
 
 **Boot & Fun:**
-- `boot.ps1` -- Boot-Sequenz mit ASCII-Art
+- `boot.ps1` -- Boot-Sequenz mit Companion-Gruß, Time-Capsel-Check, Random Tips
 - `fun.ps1` -- APIs, TTS, Entertainment
 - `ralph-loop.ps1` -- Kimi CLI Wrapper
+
+**Handbook:**
+- `handbook.ps1` + 9 Sub-Module -- In-Game Hilfe (`h` Command)
+
+**Tests:**
+- `_smoke_test.ps1` -- 34 Unit-Tests (Engines, State, Spiele)
+- `_integration_test.ps1` -- 18 Integration-Tests (Pet System, Module-Load)
+- `_e2e_test.ps1` -- End-to-End (Profile-Load + Game-Flows)
 
 **State Migration:**
 Beim ersten Start werden alte v23 JSON-Dateien automatisch in das neue unified Format migriert und nach `v23_archive/` verschoben.
@@ -136,7 +164,7 @@ Beim ersten Start werden alte v23 JSON-Dateien automatisch in das neue unified F
 
 ---
 
-## Casino Suite (6 Spiele)
+## Casino Suite (6 Spiele, alle TUI)
 
 | Command | Beschreibung |
 |---------|-------------|
@@ -148,13 +176,15 @@ Beim ersten Start werden alte v23 JSON-Dateien automatisch in das neue unified F
 | `slot` | 3-Walzen mit Animation. Jackpot/Match/Pair Payouts. |
 
 Alle Casino-Spiele nutzen das shared `casino-engine.ps1` Framework:
+- **TUI-Rendering**: Unicode-Frames, keine Flicker, Delta-Render
 - Automatische Bank-Checks (Bust bei 0G -> Reset auf 100G)
 - Companion reagiert auf grosse Gewinne/Verluste
 - Automatisches Speichern nach jeder Runde
+- Casino-Luck-Bonus (Skill-System): Bonus-Gold bei Wins
 
 ---
 
-## Arcade
+## Arcade (5 Spiele, alle TUI)
 
 | Command | Beschreibung |
 |---------|-------------|
@@ -163,10 +193,11 @@ Alle Casino-Spiele nutzen das shared `casino-engine.ps1` Framework:
 | `wordle` | 5-Buchstaben-Raetsel. 6 Versuche. Farb-Feedback. |
 | `zork` | Text-Adventure mit Raeumen, Items, Inventory. |
 | `hangman` | Galgenmaennchen mit 3 Schwierigkeitsstufen und Wetten. |
+| `minesweeper` | 10x10 Minenfeld. WASD + E/F/Q. Timer + Win/Loss Stats. |
 
 ---
 
-## Strategy
+## Strategy (3 Spiele, alle TUI)
 
 | Command | Beschreibung |
 |---------|-------------|
@@ -176,7 +207,11 @@ Alle Casino-Spiele nutzen das shared `casino-engine.ps1` Framework:
 
 ---
 
-## Companion v6
+## Pet System v2.0
+
+Companion + Battlepet in einem unified System. Der `pet` Command ist der zentrale Einstieg.
+
+### Companion
 
 Deine Netrunner-Girl. Lebt im Terminal. Reagiert auf deine Actions.
 
@@ -187,45 +222,48 @@ Deine Netrunner-Girl. Lebt im Terminal. Reagiert auf deine Actions.
 - **LUNA** (Medic, Green) - Fuersorglich, mutterlich
 - **IVY** (Stealth, DarkGray) - Geheimnisvoll, kalt
 
-**Relationship Levels:**
-Stranger (0-14) -> Acquaintance (15-29) -> Friend (30-49) -> Close Friend (50-69) -> Partner (70-89) -> Soulmate (90-99) -> Spouse (100)
+**Progressive Unlock-System:**
+Neue Features werden durch Meta-XP freigeschaltet (nicht sofort verfuegbar):
+1. Talk + Companion-Erstellung (sofort)
+2. Gift (Meta-Level 1)
+3. Combat (Meta-Level 2)
+4. Work (Meta-Level 3)
+5. Shop + Cooking (Meta-Level 4)
+6. PvP Arena (Meta-Level 5)
+7. Raid (Meta-Level 6)
+8. Breed (Meta-Level 7)
+9. Rival (Meta-Level 8)
+10. Soul Link (Meta-Level 9)
 
-**Commands (via `pet` Hub oder direkt):**
-- `pet talk` -- Chat, +2 Bond
+**Commands (via `pet` Hub):**
+- `pet talk` -- Chat mit Typewriter-Effekt, +2 Bond
 - `pet gift` -- Geschenk, +5 Bond
-- `pet train` -- Training, +3 Bond
-- `pet story` -- Geschichte, +2 Bond
-- `pet headpat` -- Headpat, +1 Bond
 - `pet date` -- Date, +4 Bond (ab 30 Bond)
 - `pet work` -- Sie arbeitet, verdient 10-40 Gold
-- `pet outfit` -- 4 Outfits wechseln
+- `pet train` -- Training, +3 Bond
+- `pet headpat` -- Headpat, +1 Bond
+- `pet punish` -- Strafe (wenn sie versagt)
 - `pet status` -- Full Status mit Skills, Quests, Cooking, Memories, Rival
 - `pet sleep` -- Schlaf-Animation
-- `pet petcare` -- Haustier versorgen (Haustier-System)
-- `pet confess` -- True Love Ending (ab 100 Bond)
-- `pet marry` -- Heirat! (ab 100 Bond)
 
 **Mood-System:**
-Dynamisch basierend auf Uhrzeit, Bond, Verlusten, Eifersucht.
+Dynamisch basierend auf Uhrzeit, Bond, Verlusten.
 - Sleepy (22:00 - 06:00)
 - Disappointed (bei 3+ Verlusten)
 - Excited (ab 80 Bond)
 - Cold (unter 20 Bond)
 - Happy (Default)
 
+**Easter Eggs:**
+- Chance-basierte Kommentare (Coffee, No-Life, Midnight Snack, Workaholic, etc.)
+- Meta-Kommentare im Hub-Menue (Companion reagiert auf Menuewahl)
+- Spezielle Dialoge bei 3am-Login, 42x pet-Aufruf, etc.
+
 **Cooking:**
 Sie kann Buff-Food kochen: Ramen, Energy Drink, Sushi Platter.
 Cooking-Buffs geben temporaere Casino-Luck oder Combat-Boosts.
 
-**Rival-System:**
-Ein Rival taucht auf mit HP, ATK, DEF. Kann besiegt werden fuer Belohnungen.
-
-**Quests:**
-Taegliche Quests mit Gold/XP-Belohnungen.
-
----
-
-## Battlepet v24
+### Battlepet
 
 Dein Monster, das du leveln und mit dem du kaempfen kannst.
 
@@ -238,14 +276,12 @@ Dein Monster, das du leveln und mit dem du kaempfen kannst.
 
 **Commands (via `pet` Hub):**
 - `pet fight` -- Zufaelliger Gegner oder Boss
-- `pet status` -- Stats + Titel + Equipment + Elemente
-- `pet shop` -- Potions, Stat-Boosts, Equipment
-- `pet breed` -- Pet Breeding (Companion Bond 50+, 50 Gold)
 - `pet pvp` -- Shadow Arena (Ranked: Bronze -> Master)
 - `pet raid` -- Taeglicher 3-Phasen-Raid-Boss
-- `pet tournament` -- Woechentliches Turnier
-- `pet adventure` -- Pet auf zeitbegrenzte Quest schicken
-- `pet switch` -- Zwischen mehreren Pets wechseln
+- `pet breed` -- Genetik-Labor (Companion Bond 50+, 50 Gold)
+- `pet shop` -- Potions, Stat-Boosts, Equipment
+- `pet rival` -- Rivale mit Mood-abhaengigem Spawn
+- `pet soul` -- Soul Link Endgame (ab Meta-Level 9)
 
 **Element-System:**
 Fire > Ice > Elec > Water > Fire (1.5x Schaden)
@@ -257,28 +293,10 @@ BURN, POISON, STUN, REGEN, BUFF
 **Titel-System (basierend auf Wins):**
 Rookie (0) -> Veteran (5) -> Elite (15) -> Master (30) -> Legend (50) -> Net God (100)
 
-**Multi-Pet System:**
-Du kannst mehrere Pets besitzen und mit `pet switch` wechseln.
-
----
-
-## Unified Pet Hub
-
-Der `pet` Command ist der zentrale Einstieg fuer Companion und Battlepet:
-
-```
-pet          -- Zeigt Hub-Menu
-pet talk     -- Mit Companion reden
-pet fight    -- Battlepet Kampf starten
-pet status   -- Beide Status anzeigen
-pet daily    -- Taegliche Challenges
-```
-
-**Intelligente Routing:**
-- `pet fight` -> Battlepet Kampf
-- `pet talk` -> Companion Dialog
-- `pet status` -> Beide Systeme anzeigen
-- `pet daily` -> Daily Challenges fuer beide
+**Skills (aktiviert durch Meta-Progression):**
+- `CombatBoost`: +2G pro Win pro Level
+- `CasinoLuck`: Bonus-Gold bei Casino-Wins, levelbar via `pet work`
+- `StrategyInsight`: Bonus-XP bei Poker/TD/Rogue-Wins, levelbar via `pet train`
 
 ---
 
@@ -360,11 +378,23 @@ Das Profil ist selbstbewusst. Es trackt:
 - Spaete Nacht (ab 3 Uhr): Kommentar zur Schlafenszeit
 - Unpushed Git Commits: "You have unpushed commits. Stop procrastinating."
 
+**Boot Tips:**
+Bei jedem Login wird ein zufaelliger Tipp angezeigt:
+- `daily` fuer taeglichen Bonus
+- `pet status` fuer Companion + Battlepet
+- `bank` fuer Finanzhistorie
+- Jede 5. Runde im Kampf ist ein Boss
+- `h` listet ALLE Commands
+- Und mehr...
+
 **Achievements:**
 Freischaltbar durch Events:
 - "Pet Evolution" (Battlepet Lv.10)
 - "Week Streak" (7 Tage Daily)
 - "Month Streak" (30 Tage Daily)
+- "HiLo Legend" (5x richtig bei Hi-Lo)
+- "Jackpot" (Slot Machine Jackpot)
+- "Blackjack Pro" (Blackjack mit 21)
 - Und mehr...
 
 ---
@@ -388,10 +418,21 @@ Freischaltbar durch Events:
 - Backup wird erstellt: `buxe_state_v24.json.corrupt.<timestamp>`
 - Frischer Start mit Defaults wird initiiert.
 
-**Unicode/Encoding-Probleme?**
-- BUXE_OS v24.0 verwendet **reines ASCII** in allen Dateien.
-- Keine Umlaute, keine Emojis, keine Box-Drawing-Chars.
-- Das verhindert Parser-Fehler bei verschiedenen Encoding-Einstellungen.
+**Audit-Log:**
+Jede Gold-Transaktion wird in `buxe_audit.log` protokolliert:
+- Format: `Timestamp | Action | Amount | Balance`
+- Actions: `EARN`, `SPEND`, `BANKROLL`
+
+**State-Transaktionen:**
+- `Start-StateTransaction` -- Backup erstellen
+- `Complete-StateTransaction` -- Speichern (bei Depth=0)
+- `Rollback-StateTransaction` -- Backup wiederherstellen
+- Atomare Saves: `.tmp` -> `Move-Item`
+
+**Unicode/Encoding:**
+- Die meisten Module verwenden **reines ASCII** (keine Umlaute, keine Emojis).
+- `pet/*.ps1` Dateien verwenden **UTF-8 BOM** fuer Unicode-Box-Drawing-Zeichen.
+- Alle anderen Dateien sind UTF-8 ohne BOM.
 
 ---
 
@@ -405,14 +446,33 @@ Freischaltbar durch Events:
 | `%LOCALAPPDATA%\buxe\buxe_state_v24.json` | Unified State File |
 | `%LOCALAPPDATA%\buxe\v23_archive\` | Alte v23 Dateien (nach Migration) |
 
-**Module (18 total):**
+**Module (40+ total):**
 ```
+# Core Engines
 engine-state.ps1, engine-ui.ps1, engine-game.ps1, engine-aliases.ps1
+engine-aliases-buxe.ps1, engine-aliases-git.ps1, engine-aliases-nav.ps1, engine-aliases-sys.ps1
+engine-input.ps1, engine-render.ps1, engine-scene.ps1
+
+# Casino
 casino-engine.ps1, casino-blackjack.ps1, casino-roulette.ps1, casino-craps.ps1,
 casino-hilo.ps1, casino-baccarat.ps1, casino-slot.ps1, casino.ps1
-arcade.ps1, strategy-poker.ps1, strategy-td.ps1, strategy-rogue.ps1
-companion.ps1, battlepet.ps1, hub.ps1, boot.ps1, fun.ps1, ralph-loop.ps1
-_smoke_test.ps1
+
+# Arcade
+arcade.ps1, arcade-snake.ps1, arcade-monkeytype.ps1, arcade-wordle.ps1, arcade-legacy.ps1
+
+# Strategy
+strategy-poker.ps1, strategy-td.ps1, strategy-rogue.ps1
+
+# Pet System (Modules/pet/)
+_init.ps1, _ui.ps1, _unlock.ps1, companion.ps1, combat.ps1, economy.ps1,
+events.ps1, hub.ps1, pvp.ps1, raid.ps1, breed.ps1, rival.ps1, soul.ps1
+
+# Boot, Fun, Handbook, Tests
+boot.ps1, fun.ps1, ralph-loop.ps1
+handbook.ps1, handbook-casino.ps1, handbook-combat.ps1, handbook-commands.ps1,
+handbook-companion.ps1, handbook-core.ps1, handbook-elements.ps1,
+handbook-equipment.ps1, handbook-skills.ps1, handbook-status.ps1
+_smoke_test.ps1, _integration_test.ps1, _e2e_test.ps1
 ```
 
 **Smoke Test:**

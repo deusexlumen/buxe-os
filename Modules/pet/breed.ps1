@@ -8,7 +8,7 @@ function Start-PetBreed {
     $cp = $pet.Companion
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     if (-not $cp -or $cp.Bond -lt 50) { Write-Host "Bond 50+ noetig!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-PetFrame "GENETIK-LABOR" -Double | Out-Null
     Write-Host "`n  Aktiv: $($p.Name) [Lv.$($p.Level)]" -ForegroundColor $p.Color
     Write-Host "`n  [B] Partner kaufen (100G) | [Q] Zurueck" -ForegroundColor White

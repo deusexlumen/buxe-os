@@ -5,7 +5,7 @@ try {
 function bank {
     Load-State
     $b = $script:BuxeState.Bank
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "GLOBAL BANK" -Double | Out-Null
     Write-Host "`n  Kontostand: $($b.Gold) G" -ForegroundColor Yellow
     Write-Host "  Verdient: $($b.TotalEarned) G | Ausgegeben: $($b.TotalSpent) G" -ForegroundColor DarkGray
@@ -56,7 +56,7 @@ function ego {
 
 function status {
     Load-State
-    Clear-Host
+    try { Clear-Host } catch {}
     $bot = Show-Frame "BUXE_OS STATUS  v24.0" -Double
     $elapsed = (Get-Date) - $script:SessionStart
     Write-Host "  Session: $([math]::Floor($elapsed.TotalHours))h $([math]::Floor($elapsed.TotalMinutes % 60))m" -ForegroundColor DarkGray
@@ -137,7 +137,7 @@ function capsule {
 }
 
 function h {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "BUXE_OS v24.0 COMMANDS" -Double | Out-Null
     Write-Host ""
     

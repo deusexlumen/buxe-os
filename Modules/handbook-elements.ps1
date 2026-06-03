@@ -3,7 +3,7 @@
 try {
 
 function Show-HBElements {
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-Frame "ELEMENTE" -Double | Out-Null
     Write-Host ""
     Write-Host "  Elemente bestimmen den Schadensmultiplikator im Kampf." -ForegroundColor DarkGray

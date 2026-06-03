@@ -65,6 +65,18 @@ function Save-State {
     if (-not (Test-Path $script:BuxeStateDir)) {
         New-Item -ItemType Directory -Path $script:BuxeStateDir -Force | Out-Null
     }
+    # Rotate backups (keep last 5)
+    $bak1 = "$script:BuxeStateFile.bak1"
+    $bak2 = "$script:BuxeStateFile.bak2"
+    $bak3 = "$script:BuxeStateFile.bak3"
+    $bak4 = "$script:BuxeStateFile.bak4"
+    $bak5 = "$script:BuxeStateFile.bak5"
+    if (Test-Path $bak4) { Move-Item $bak4 $bak5 -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $bak3) { Move-Item $bak3 $bak4 -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $bak2) { Move-Item $bak2 $bak3 -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $bak1) { Move-Item $bak1 $bak2 -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $script:BuxeStateFile) { Copy-Item $script:BuxeStateFile $bak1 -Force -ErrorAction SilentlyContinue }
+    
     $tempFile = "$script:BuxeStateFile.tmp"
     try {
         $script:BuxeState | ConvertTo-Json -Depth 20 | Out-File $tempFile -Encoding utf8 -ErrorAction Stop
