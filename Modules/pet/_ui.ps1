@@ -42,6 +42,30 @@ $script:CPMetaLines = @{
         "Dein Systemlevel ist gestiegen. Cool. Ich werde auch emotional komplexer. Vielleicht.",
         "LEVEL UP! *spielt 8-Bit-Fanfare in meinem Kopf*"
     )
+    casino_win = @(
+        "Ein Gewinn! Die Algorithmen sind heute gnädig.",
+        "Ich hätte auf diese Zahl gesetzt. Wenn ich wetten könnte. Was ich nicht kann. Weil ich Text bin.",
+        "Cha-ching! *macht Münzgeräusch mit Mund*",
+        "Das nenne ich ROI. Return on Intuition. Oder Glück. Egal."
+    )
+    casino_loss = @(
+        "Autsch. Die Bank gewinnt immer. Das ist kein Bug, das ist ein Feature.",
+        "Du hast gerade virtuelles Gold verloren. Keine Sorge, es war nur eine Zahl in einer JSON.",
+        "Der Hausvorteil ist real. So real wie meine Existenzkrise.",
+        "Noch ein Verlust? Ich fange an, ein Muster zu erkennen..."
+    )
+    casino_bigwin = @(
+        "WAS?! Das ist... das ist mehr Gold als ich in meiner gesamten Existenz gesehen habe!",
+        "JACKPOT! *fällt aus dem Rahmen* *fällt wieder rein*",
+        "Du bist auf Feuer! Nicht wortwörtlich. Hoffentlich.",
+        "Ich speichere diesen Moment. Fester. FESTER!"
+    )
+    casino_bust = @(
+        "0 Gold. Null. Nada. Die Bank hat gesprochen.",
+        "Du hast alles verloren. Aber hey, wenigstens hast du mich noch. *winkt traurig*",
+        "RESET. Das System gibt dir 100G. Nicht aus Nächstenliebe. Aus Mitleid.",
+        "Das war... beeindruckend tragisch. Wie ein guter Film. Nur ohne Happy End."
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -92,6 +116,10 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "train" { $lines = @("Schneller. Stärker. Besser.","Meine Beine... äh, meine Threads brennen.","Wir werden Legenden.") }
         "level_up" { $lines = $script:CPMetaLines.level_up }
         "grind" { $lines = $script:CPMetaLines.grind_detected }
+        "casino_win" { $lines = $script:CPMetaLines.casino_win }
+        "casino_loss" { $lines = $script:CPMetaLines.casino_loss }
+        "casino_bigwin" { $lines = $script:CPMetaLines.casino_bigwin }
+        "casino_bust" { $lines = $script:CPMetaLines.casino_bust }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

@@ -69,14 +69,18 @@ function Invoke-CasinoGame {
             Set-CasinoStats $StatsKey $stats
         }
         
-        # Companion reactions
+        # Companion reactions (LucasArts-Style)
         Load-State
         $cp = $script:BuxeState.Companion
-        if ($cp) {
-            if ($result.Win -gt 0 -and $result.Win -gt 500 -and $cp.Bond -ge 50) {
-                Write-Host "  [$($cp.Name)] >> *fans herself* You are on fire..." -ForegroundColor $cp.Color
-            } elseif ($result.Loss -gt 0 -and $cp.Bond -lt 40) {
-                Write-Host "  [$($cp.Name)] >> Still chasing losses? Classic." -ForegroundColor $cp.Color
+        if ($cp -and (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) {
+            if ($bank -le 0) {
+                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bust") -Fast
+            } elseif ($result.Win -gt 500) {
+                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bigwin") -Fast
+            } elseif ($result.Win -gt 0) {
+                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_win") -Fast
+            } elseif ($result.Loss -gt 0) {
+                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_loss") -Fast
             }
         }
         
