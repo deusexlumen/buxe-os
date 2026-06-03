@@ -102,24 +102,63 @@ function Get-CompanionLine($Companion, $Context = "default") {
 
 function Check-EasterEgg($Context) {
     $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { return }
     $hour = (Get-Date).Hour
     $found = @()
+    
+    # --- RARE EGGS (specific conditions) ---
     if ($Context -eq "login" -and $hour -ge 2 -and $hour -le 4) {
         $found += "3am_login"
-        Show-CompanionDialog $pet.Companion "Es ist 3 Uhr morgens. Warum bist du wach? Warte. Frag nicht. Ich bin auch wach." -Fast
+        Show-CompanionDialog $cp "Es ist 3 Uhr morgens. Warum bist du wach? Warte. Frag nicht. Ich bin auch wach." -Fast
     }
     if ($Context -eq "login" -and $pet.Meta.TotalSessions -eq 42) {
         $found += "answer_to_everything"
-        Show-CompanionDialog $pet.Companion "Die Antwort auf alles. Aber was war die Frage?" -Fast
+        Show-CompanionDialog $cp "Die Antwort auf alles. Aber was war die Frage?" -Fast
     }
-    if ($Context -eq "punish" -and $pet.Companion -and $pet.Companion.Mood -eq "Loving") {
+    if ($Context -eq "punish" -and $cp.Mood -eq "Loving") {
         $found += "toxic_relationship"
-        Show-CompanionDialog $pet.Companion "Wir sind VERHEIRATET. Was ist FALSCH mit dir?!" -Fast
+        Show-CompanionDialog $cp "Wir sind VERHEIRATET. Was ist FALSCH mit dir?!" -Fast
     }
     if ($Context -eq "talk" -and $pet.Meta.Stats.TalkCount -gt 50) {
         $found += "talk_grind"
-        Show-CompanionDialog $pet.Companion "Du drückst schon wieder 'Talk'? Wir müssen reden. Über deine Lebensentscheidungen." -Fast
+        Show-CompanionDialog $cp "Du drückst schon wieder 'Talk'? Wir müssen reden. Über deine Lebensentscheidungen." -Fast
     }
+    
+    # --- COMMON EGGS (chance-based, happen often) ---
+    if ($Context -eq "login" -and $hour -ge 8 -and $hour -le 10 -and $cp.Mood -eq "Tired" -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "coffee_needed"
+        Show-CompanionDialog $cp "*gähnt* Kaffee. Ich brauche Kaffee. Virtuellen Kaffee. Existiert das?" -Fast
+    }
+    if ($Context -eq "login" -and ($pet.Meta.TotalSessions % 100) -eq 0 -and $pet.Meta.TotalSessions -gt 0) {
+        $found += "no_life"
+        Show-CompanionDialog $cp "Session #$($pet.Meta.TotalSessions). Wir müssen über dein Social Life reden. Oder den Mangel daran." -Fast
+    }
+    if ($Context -eq "login" -and $hour -ge 23 -and $pet.Meta.Unlocked -contains "cooking" -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "midnight_snack"
+        Show-CompanionDialog $cp "Mitternacht. Die perfekte Zeit für virtuelles Ramen. Ich kann nicht essen. Aber du auch nicht." -Fast
+    }
+    if ($Context -eq "login" -and $pet.Meta.Stats.WorkCount -gt 20 -and (Get-Random -Maximum 4) -eq 0) {
+        $found += "workaholic"
+        Show-CompanionDialog $cp "Du hast $($pet.Meta.Stats.WorkCount) Mal gearbeitet. Das ist... beeindruckend. Und beunruhigend." -Fast
+    }
+    if ($Context -eq "login" -and $cp.Headpats -gt 30 -and (Get-Random -Maximum 4) -eq 0) {
+        $found += "headpat_addict"
+        Show-CompanionDialog $cp "$($cp.Headpats) Headpats. Ich fange an, eine Abhängigkeit zu entwickeln." -Fast
+    }
+    if ($Context -eq "login" -and $pet.Economy.Gold -gt 5000 -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "rich"
+        Show-CompanionDialog $cp "Du hast $($pet.Economy.Gold) Gold. Kann ich... einen Teil haben? Für... virtuelle Schuhe?" -Fast
+    }
+    if ($Context -eq "fight" -and $pet.Pet -and $pet.Pet.Wins -eq 0 -and (Get-Random -Maximum 2) -eq 0) {
+        $found += "first_fight"
+        Show-CompanionDialog $cp "Erster Kampf! Spannend! Tödlich! ...Virtuell tödlich." -Fast
+    }
+    if ($Context -eq "gift" -and $pet.Meta.Stats.GiftCount -gt 10 -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "sugar_daddy"
+        Show-CompanionDialog $cp "$($pet.Meta.Stats.GiftCount) Geschenke. Du versuchst mich zu kaufen. Es funktioniert." -Fast
+    }
+    
     foreach ($egg in $found) {
         if (-not ($pet.Meta.EasterEggsFound -contains $egg)) {
             $pet.Meta.EasterEggsFound += $egg

@@ -210,6 +210,56 @@ function Show-StatusBar {
     Write-Host $line -ForegroundColor DarkGray
 }
 
+# === DIALOGUE TREE ===
+# Branching narrative system fuer Companion-Quests und Story-Events.
+# Nodes: @(@{ Id="start"; Speaker="NEON"; Text="..."; Options=@(@{ Label="Ja"; NextNode="yes"; Effect=@{Type="Bond";Value=5} }, @{ Label="Nein"; NextNode="no" }) }, ...)
+
+function Invoke-DialogueTree {
+    param([array]$Nodes, [string]$StartNodeId = $null)
+    
+    $currentId = $StartNodeId
+    if (-not $currentId -and $Nodes.Count -gt 0) { $currentId = $Nodes[0].Id }
+    
+    while ($currentId) {
+        $node = $Nodes | Where-Object { $_.Id -eq $currentId } | Select-Object -First 1
+        if (-not $node) { break }
+        
+        Clear-Host
+        Show-Frame $node.Speaker -Double | Out-Null
+        Write-Host ""
+        Write-Host "  $($node.Text)" -ForegroundColor White
+        Write-Host ""
+        
+        $choices = @()
+        foreach ($opt in $node.Options) {
+            $help = if ($opt.HelpText) { $opt.HelpText } else { $opt.Label }
+            $choices += New-Object System.Management.Automation.Host.ChoiceDescription ($opt.Label), $help
+        }
+        
+        $choiceIdx = $Host.UI.PromptForChoice("", "  Waehle:", $choices, 0)
+        $selected = $node.Options[$choiceIdx]
+        
+        # Save to state
+        Load-State
+        if (-not $script:BuxeState.Story) { $script:BuxeState.Story = @{} }
+        $script:BuxeState.Story.LastDialogue = $selected.Label
+        if ($selected.Effect) {
+            switch ($selected.Effect.Type) {
+                "Bond" { 
+                    $pet = Get-PetState
+                    if ($pet.Companion) { $pet.Companion.Bond = [math]::Min(100, $pet.Companion.Bond + $selected.Effect.Value) }
+                    Save-PetState $pet
+                }
+                "Gold" { Add-Gold $selected.Effect.Value "Dialogue" }
+                "XP" { Add-PetXP $selected.Effect.Value "Dialogue" }
+            }
+        }
+        Save-State
+        
+        $currentId = $selected.NextNode
+    }
+}
+
 } catch {
     Write-Host "[engine-ui] CRITICAL ERROR: $_" -ForegroundColor Red
 }

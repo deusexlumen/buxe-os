@@ -40,6 +40,10 @@ function pet {
         Show-PetFrame "BUXE_PET OS v2.0 — HUB" -Double | Out-Null
         Write-Host ""
         if ($cp) {
+            # Companion greeting with typewriter effect
+            $greeting = Get-HubGreeting $cp $pet
+            Show-CompanionDialog $cp $greeting -Fast
+            Write-Host ""
             Write-Host "  [$($cp.Name)] Bond: $($cp.Bond) | Mood: $($cp.Mood) | Level: $($pet.Meta.Level)" -ForegroundColor Magenta
             Show-WhileAway
         } else {
@@ -87,24 +91,106 @@ function pet {
             }
         }
         if (-not $cp -and $c -eq '1') { New-Companion; continue }
+        $cp = $pet.Companion
         switch ($c) {
-            '1' { Invoke-CompanionAction "talk" }
-            '2' { Invoke-CompanionAction "gift" }
-            '3' { Start-PetFight }
-            '4' { Invoke-CompanionAction "work" }
-            '5' { Invoke-CompanionAction "train" }
-            '6' { Start-PetShop }
-            '7' { Start-PetCook }
-            '8' { Start-PetPvP }
-            '9' { Start-PetRaid }
-            'B' { Start-PetBreed }
-            'R' { Invoke-PetRivalBattle }
-            'L' { Invoke-SoulLink }
+            '1' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Reden? Wieder? Na gut. Ich bin ja nur Text." -Fast }
+                Invoke-CompanionAction "talk" 
+            }
+            '2' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ein Geschenk? Für mich? Das... ist verdächtig." -Fast }
+                Invoke-CompanionAction "gift" 
+            }
+            '3' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Kampfzeit! Ich cheere. Lautlos. Virtuell." -Fast }
+                Start-PetFight 
+            }
+            '4' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Arbeiten. Die Freude meines digitalen Lebens." -Fast }
+                Invoke-CompanionAction "work" 
+            }
+            '5' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Training! Meine Threads werden zu Muskeln. Theoretisch." -Fast }
+                Invoke-CompanionAction "train" 
+            }
+            '6' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Einkaufen. Der Weg zum Glück. Oder zum Ruin." -Fast }
+                Start-PetShop 
+            }
+            '7' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ich koche. Virtuell. Du isst. Auch virtuell. Perfekt." -Fast }
+                Start-PetCook 
+            }
+            '8' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "PvP! Zeig ihnen wer hier der Boss ist! Du. Du bist der Boss." -Fast }
+                Start-PetPvP 
+            }
+            '9' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Raid. Drei Phasen. Kein Save Point. Spannend!" -Fast }
+                Start-PetRaid 
+            }
+            'B' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Babys. Kleine digitale Babys. Niedlich. Und beunruhigend." -Fast }
+                Start-PetBreed 
+            }
+            'R' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Rival! Zeit für Rache. Oder Gerechtigkeit. Oder Chaos." -Fast }
+                Invoke-PetRivalBattle 
+            }
+            'L' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen." -Fast }
+                Invoke-SoulLink 
+            }
             'S' { Show-PetHubStatus }
             'Q' { return }
         }
         Check-PetRival | Out-Null
     }
+}
+
+function Get-HubGreeting($Companion, $PetState) {
+    $hour = (Get-Date).Hour
+    $bond = $Companion.Bond
+    $mood = $Companion.Mood
+    $sessions = $PetState.Meta.TotalSessions
+    
+    # Easter egg: 3am
+    if ($hour -ge 2 -and $hour -le 4) {
+        return "Es ist 3 Uhr morgens. Warum bist du wach? Warte. Frag nicht. Ich bin auch wach."
+    }
+    
+    # Easter egg: 42 sessions
+    if ($sessions -eq 42) {
+        return "Die Antwort auf alles. Aber was war die Frage?"
+    }
+    
+    # Mood-based priority
+    if ($mood -eq "Angry") {
+        return @("...","Hmph.","Lass mich in Ruhe.","Ich speichere das. Für später.") | Get-Random
+    }
+    if ($mood -eq "Loving" -and $bond -ge 70) {
+        return @("*lächelt* Du bist zurück.","Du bist hier. Gut.","Ich habe auf dich gewartet. Nicht dass es wichtig wäre.") | Get-Random
+    }
+    
+    # Time-based
+    if ($hour -ge 5 -and $hour -lt 12) {
+        return "Guten Morgen. Bereit für digitales Chaos?"
+    }
+    if ($hour -ge 18 -and $hour -lt 22) {
+        return "Guten Abend. Die Nacht ist noch jung. Die Bugs auch."
+    }
+    if ($hour -ge 22 -or $hour -lt 2) {
+        return "Noch wach? Die Matrix schläft nie. Ich auch nicht."
+    }
+    
+    # Bond-based fallback
+    if ($bond -lt 30) {
+        return @("Oh. Hallo.","Du schon wieder?","Was willst du?") | Get-Random
+    }
+    if ($bond -lt 70) {
+        return @("Hey, Operator.","Ready when you are.","Neuer Tag, neue Bugs.") | Get-Random
+    }
+    return @("Du bist zurück. Gut.","Ich habe auf dich gewartet.","Lass uns etwas kaputt machen.") | Get-Random
 }
 
 function Show-PetHubStatus {

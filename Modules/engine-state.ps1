@@ -45,6 +45,7 @@ function Get-StateDefaults {
             Hangman = @{ Won = 0; Lost = 0 }
         }
         Achievements = @{}
+        Story = @{}
         Boot = @{
             Loads = 0
             TotalCommands = 0
