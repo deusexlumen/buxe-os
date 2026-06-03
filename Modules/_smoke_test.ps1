@@ -79,6 +79,55 @@ Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
 Test-Assert "Get-Bankroll" ((Get-Bankroll) -ge 0)
 Test-Assert "Load-State" ($script:BuxeState.Version -eq 24)
 
+# === AUDIT LOG ===
+Write-Host "`n  Testing Audit Log..." -ForegroundColor Yellow
+$auditExists = Test-Path $script:BuxeAuditFile
+Test-Assert "Audit log file exists" ($auditExists -eq $true)
+if ($auditExists) {
+    $auditLines = Get-Content $script:BuxeAuditFile -ErrorAction SilentlyContinue
+    Test-Assert "Audit log has entries" ($auditLines.Count -gt 0)
+}
+
+# === STATE TRANSACTIONS ===
+Write-Host "`n  Testing State Transactions..." -ForegroundColor Yellow
+$txGoldBefore = Get-Bankroll
+Start-StateTransaction
+Add-Gold 999 "TestTransaction"
+Test-Assert "Transaction active (depth > 0)" ($script:BuxeStateTransactionDepth -gt 0)
+Rollback-StateTransaction
+Test-Assert "Rollback restores gold" ((Get-Bankroll) -eq $txGoldBefore)
+Test-Assert "Transaction depth reset" ($script:BuxeStateTransactionDepth -eq 0)
+
+Start-StateTransaction
+Add-Gold 111 "TestTransaction"
+Complete-StateTransaction
+Test-Assert "Commit persists gold" ((Get-Bankroll) -eq $txGoldBefore + 111)
+# Cleanup: remove the test gold
+Start-StateTransaction
+$script:BuxeState.Bank.Gold = $txGoldBefore
+Complete-StateTransaction
+
+# === CORRUPT JSON RECOVERY ===
+Write-Host "`n  Testing Corrupt JSON Recovery..." -ForegroundColor Yellow
+$origState = Get-Content $script:BuxeStateFile -Raw
+$corruptBackupPattern = "$script:BuxeStateFile.corrupt.*"
+$preBackups = Get-ChildItem $corruptBackupPattern -ErrorAction SilentlyContinue
+
+# Corrupt the file
+"THIS IS NOT JSON {{{" | Out-File $script:BuxeStateFile -Encoding utf8 -Force
+$script:BuxeStateLoadedAt = $null
+Load-State
+
+$postBackups = Get-ChildItem $corruptBackupPattern -ErrorAction SilentlyContinue
+Test-Assert "Corrupt backup created" ($postBackups.Count -gt $preBackups.Count)
+Test-Assert "Defaults restored after corruption" ($script:BuxeState.Version -eq 24)
+
+# Restore original state
+$origState | Out-File $script:BuxeStateFile -Encoding utf8 -Force
+$script:BuxeStateLoadedAt = $null
+Load-State
+Test-Assert "Original state restored" ($script:BuxeState.Version -eq 24)
+
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
 $allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1")
