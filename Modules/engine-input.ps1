@@ -7,11 +7,15 @@ try {
 # === MOCK INPUT ( fuer E2E-Tests ) ===
 $script:MockInputEnabled = $false
 $script:MockInputQueue = @()
+$script:MockStringQueue = @()
 
-function Enable-MockInput { $script:MockInputEnabled = $true; $script:MockInputQueue = @() }
-function Disable-MockInput { $script:MockInputEnabled = $false; $script:MockInputQueue = @() }
+function Enable-MockInput { $script:MockInputEnabled = $true; $script:MockInputQueue = @(); $script:MockStringQueue = @() }
+function Disable-MockInput { $script:MockInputEnabled = $false; $script:MockInputQueue = @(); $script:MockStringQueue = @() }
 function Queue-MockInput($chars) {
     foreach ($c in $chars.ToCharArray()) { $script:MockInputQueue += $c.ToString().ToUpper() }
+}
+function Queue-MockString($string) {
+    $script:MockStringQueue += $string
 }
 
 # === INPUT EVENTS ===
@@ -132,6 +136,15 @@ function Invoke-GameLoop {
 
 # === BLOCKING INPUT (Legacy Fallback) ===
 # Fuer Menues die kein Game Loop brauchen.
+
+function Read-GameInput($Prompt) {
+    if ($script:MockInputEnabled -and $script:MockStringQueue.Count -gt 0) {
+        $input = $script:MockStringQueue[0]
+        $script:MockStringQueue = $script:MockStringQueue | Select-Object -Skip 1
+        return $input
+    }
+    return Read-Host $Prompt
+}
 
 function Read-GameChoice($Prompt, $ValidPattern, $TimeoutSec = 0) {
     if ($script:MockInputEnabled -and $script:MockInputQueue.Count -gt 0) {

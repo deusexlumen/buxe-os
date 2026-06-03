@@ -64,7 +64,7 @@ function roulette {
                 Add-SceneText $sub 4 2 "Zahl (0-36):" 'White'
                 Show-Scene $sub -Force
                 try { [Console]::CursorVisible = $true } catch {}
-                $numBet = [int](Read-Host "  ")
+                $numBet = [int](Read-GameInput "  ")
                 try { [Console]::CursorVisible = $false } catch {}
                 $payout = 36
             }
@@ -88,7 +88,7 @@ function roulette {
                 Add-SceneText $sub 4 2 "Street Startzahl (1,4,7,10,13,16,19,22,25,28,31,34):" 'White'
                 Show-Scene $sub -Force
                 try { [Console]::CursorVisible = $true } catch {}
-                $strBet = [int](Read-Host "  ")
+                $strBet = [int](Read-GameInput "  ")
                 try { [Console]::CursorVisible = $false } catch {}
                 $payout = 12
             }

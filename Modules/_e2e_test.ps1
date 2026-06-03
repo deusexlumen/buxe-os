@@ -135,5 +135,61 @@ try { td } catch { Write-Output "TD FAILED: $_"; exit 1 }
 Disable-MockInput
 Write-Output "TD: PASSED"
 
+# Test Roulette with mocked bet + red/black + quit
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "1Q"
+try { roulette } catch { Write-Output "ROULETTE FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "ROULETTE: PASSED"
+
+# Test Craps with mocked bet + pass + quit
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "PQ"
+try { craps } catch { Write-Output "CRAPS FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "CRAPS: PASSED"
+
+# Test Baccarat with mocked bet + banker + quit
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "BQ"
+try { baccarat } catch { Write-Output "BACCARAT FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "BACCARAT: PASSED"
+
+# Test Snake (quit immediately)
+Enable-MockInput
+Queue-MockInput "Q"
+try { snake } catch { Write-Output "SNAKE FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "SNAKE: PASSED"
+
+# Test Wordle (quit on first guess)
+Enable-MockInput
+Queue-MockString "Q"
+try { wordle } catch { Write-Output "WORDLE FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "WORDLE: PASSED"
+
+# Test Monkeytype (quit on pre-game screen)
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "Q"
+try { monkeytype } catch { Write-Output "MONKEYTYPE FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "MONKEYTYPE: PASSED"
+
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

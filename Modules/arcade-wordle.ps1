@@ -29,7 +29,7 @@ function wordle {
         Show-Scene $s -Force
         
         try { [Console]::CursorVisible = $true } catch {}
-        $guess = (Read-Host "  ").ToUpper()
+        $guess = (Read-GameInput "  ").ToUpper()
         try { [Console]::CursorVisible = $false } catch {}
         
         if ($guess -eq 'Q') { return }

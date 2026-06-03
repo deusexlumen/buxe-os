@@ -26,7 +26,7 @@ Q]$"
     # Input phase
     try { [Console]::CursorVisible = $true } catch {}
     $start = Get-Date
-    $input = Read-Host "  >"
+    $input = Read-GameInput "  >"
     $elapsed = (Get-Date) - $start
     try { [Console]::CursorVisible = $false } catch {}
     $seconds = $elapsed.TotalSeconds
