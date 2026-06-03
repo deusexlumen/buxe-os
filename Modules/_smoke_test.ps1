@@ -128,6 +128,31 @@ $script:BuxeStateLoadedAt = $null
 Load-State
 Test-Assert "Original state restored" ($script:BuxeState.Version -eq 24)
 
+# === TETRIS ENGINE ===
+Write-Host "`n  Testing Tetris Engine..." -ForegroundColor Yellow
+# Load tetris module explicitly for tests
+$modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$modDir\arcade-tetris.ps1" 2>$null
+$tb = New-TetrisBoard 10 20
+Test-Assert "Tetris board is 20 rows" ($tb.Count -eq 20)
+Test-Assert "Tetris board row is 10 cols" ($tb[0].Count -eq 10)
+Test-Assert "Tetris board cell is empty" ($tb[5][5] -eq '.')
+
+# Test collision with wall
+$tp = @{ Type = 'O'; X = -1; Y = 0; Rotation = 0 }
+Test-Assert "Tetris collision left wall" (Test-TetrisCollision $tb $tp -1 0 0)
+
+# Test lock piece (O-Piece at X=4,Y=17 -> blocks at (5,18) and (5,19))
+$tp2 = @{ Type = 'O'; X = 4; Y = 17; Rotation = 0 }
+Lock-TetrisPiece $tb $tp2
+Test-Assert "Tetris lock piece" ($tb[18][5] -eq '#')
+
+# Test line clear
+for ($x = 0; $x -lt 10; $x++) { $tb[19][$x] = '#' }
+$cleared = Clear-TetrisLines $tb
+Test-Assert "Tetris clear line" ($cleared -eq 1)
+Test-Assert "Tetris top row empty after clear" ($tb[0][0] -eq '.')
+
 # === BACKUP ROTATION ===
 Write-Host "`n  Testing Backup Rotation..." -ForegroundColor Yellow
 $bakPattern = "$script:BuxeStateFile.bak*"
