@@ -84,6 +84,11 @@ function Invoke-CasinoGame {
             }
         }
         
+        # Easter Eggs
+        if (Get-Command Check-EasterEgg -ErrorAction SilentlyContinue) {
+            Check-EasterEgg "casino"
+        }
+        
         # Achievements
         if ($result.Achievement) { Unlock-Achievement $result.Achievement }
         

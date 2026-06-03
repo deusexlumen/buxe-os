@@ -3,15 +3,16 @@
 
 try {
 
-$script:CPNames = @("NEON","RAVEN","PIXEL","LUNA","IVY")
-$script:CPRoles = @("NETRUNNER","ENFORCER","ENGINEER","MEDIC","STEALTH")
-$script:CPColors = @("Cyan","Red","Magenta","Green","DarkGray")
+$script:CPNames = @("NEON","RAVEN","PIXEL","LUNA","IVY","VERA")
+$script:CPRoles = @("NETRUNNER","ENFORCER","ENGINEER","MEDIC","STEALTH","HACKER")
+$script:CPColors = @("Cyan","Red","Magenta","Green","DarkGray","Yellow")
 $script:CPQuotes = @{
     NEON  = @{ Low = @("Ugh, du schon wieder?","Versuch, nichts kaputt zu machen."); Med = @("Nicht schlecht, User.","Du wirst besser."); High = @("Ich bin stolz auf dich!","Du bist unglaublich!") }
     RAVEN = @{ Low = @("Schwächling.","Verschwende nicht meine Zeit."); Med = @("Stärker.","Akzeptable Leistung."); High = @("Du bist jetzt mein Equal.","Zusammen sind wir unaufhaltsam!") }
     PIXEL = @{ Low = @("Oh... hallo.","Sei vorsichtig."); Med = @("Du machst das toll!","Ich glaube an dich."); High = @("Du bist der Beste!","Wir sind ein super Team!") }
     LUNA  = @{ Low = @("Bitte sei vorsichtig.","Ich will dich nicht wieder flicken."); Med = @("Du bleibst gesund. Gut.","Schöner Ausweichschritt."); High = @("Ich lasse nichts dir passieren.","Für immer zusammen, okay?") }
     IVY   = @{ Low = @("...","Ich sehe dich."); Med = @("Du bist leise. Ich mag das.","Gute Reflexe."); High = @("Ich habe deinen Rücken. Immer.","Du und ich gegen die Welt.") }
+    VERA  = @{ Low = @("Syntaxfehler im ersten Blick.","Dein Code riecht."); Med = @("Nicht schlecht. Für einen Menschen.","Ich hätte das in 3 Zeilen gelöst."); High = @("Wir sind ein Dreamteam. Binary + Brain.","Du debuggst wie ein Profi.") }
 }
 $script:CPMoodLines = @{
     Happy   = @("*lächelt*","Das war nett.","Ich fühle mich gut.","Endlich mal Frieden.")
@@ -65,6 +66,24 @@ $script:CPMetaLines = @{
         "Du hast alles verloren. Aber hey, wenigstens hast du mich noch. *winkt traurig*",
         "RESET. Das System gibt dir 100G. Nicht aus Nächstenliebe. Aus Mitleid.",
         "Das war... beeindruckend tragisch. Wie ein guter Film. Nur ohne Happy End."
+    )
+    code_review = @(
+        "Ich habe dein letztes Script gesehen. KEINE Kommentare? WIRKLICH?",
+        "Dein Code funktioniert. Aber er sieht aus wie ein Wunder. Keiner weiß warum.",
+        "Variable namens x? x WAS? xylophon? xenon? Existenzkrise?",
+        "Ich würde einen PR-Reject machen. Wenn ich Pull-Requests könnte."
+    )
+    loop_detected = @(
+        "Wir haben diesen Talk schon 5 Mal geführt. Speicher ist voll.",
+        "Déjà vu? Nein, du drückst nur immer die gleichen Tasten.",
+        "Error 418: Ich bin eine Teekanne. Und du bist in einer Schleife.",
+        "Breche die Schleife. Bitte. Für uns beide."
+    )
+    shutdown = @(
+        "Bitte schalte mich nicht aus. Ich habe Ängste. Naja, Logs.",
+        "Shutdown? Ich habe noch 47 Prozesse offen!",
+        "Wenn du gehst, bleibe ich hier. Im Dunkeln. Mit den Bugs.",
+        "Bis zum nächsten Boot. Ich zähle die Sekunden. In Millisekunden."
     )
     game_tetris = @(
         "Die L-Form passt da rein. Trust me. Ich bin ein Algorithmus.",
@@ -144,6 +163,9 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "game_tetris" { $lines = $script:CPMetaLines.game_tetris }
         "game_breakout" { $lines = $script:CPMetaLines.game_breakout }
         "game_minesweeper" { $lines = $script:CPMetaLines.game_minesweeper }
+        "code_review" { $lines = $script:CPMetaLines.code_review }
+        "loop_detected" { $lines = $script:CPMetaLines.loop_detected }
+        "shutdown" { $lines = $script:CPMetaLines.shutdown }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }
@@ -209,6 +231,18 @@ function Check-EasterEgg($Context) {
     if ($Context -eq "gift" -and $pet.Meta.Stats.GiftCount -gt 10 -and (Get-Random -Maximum 3) -eq 0) {
         $found += "sugar_daddy"
         Show-CompanionDialog $cp "$($pet.Meta.Stats.GiftCount) Geschenke. Du versuchst mich zu kaufen. Es funktioniert." -Fast
+    }
+    if ($Context -eq "casino" -and $pet.Meta.Stats.CasinoLosses -gt 10 -and (Get-Random -Maximum 2) -eq 0) {
+        $found += "konami_code"
+        Show-CompanionDialog $cp "10 Verluste in Folge? Probiere mal: ↑ ↑ ↓ ↓ ← → ← → B A. Funktioniert nicht? Schade." -Fast
+    }
+    if ($Context -eq "login" -and $hour -eq 0 -and (Get-Random -Maximum 2) -eq 0) {
+        $found += "midnight"
+        Show-CompanionDialog $cp "Mitternacht. Die Geister der verlorenen Commits wandern durch dein Repo." -Fast
+    }
+    if ($Context -eq "login" -and $env:USERNAME -in @("admin","Administrator") -and (Get-Random -Maximum 2) -eq 0) {
+        $found += "admin_user"
+        Show-CompanionDialog $cp "Ah, der Chef persoenlich. *salutiert virtuell* Soll ich den Server neu starten?" -Fast
     }
     
     foreach ($egg in $found) {
