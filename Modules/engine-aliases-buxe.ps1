@@ -164,7 +164,7 @@ function h {
     Write-Host "  [PET]      pet (Companion + Battlepet Hub)" -ForegroundColor Magenta
     Write-Host "  [BANK]     bank daily" -ForegroundColor DarkGray
     Write-Host "  [STATS]    status achievements ego" -ForegroundColor DarkGray
-    Write-Host "  [FUN]      genact parrot pomodoro roast sneakers uwu rig bs sudo-insult" -ForegroundColor DarkGray
+    Write-Host "  [FUN]      pomodoro roast" -ForegroundColor DarkGray
     Write-Host "  [API]      chuck cat dog btc bored kanye dadjoke zen" -ForegroundColor DarkGray
     Write-Host "  [VOICE]    voices | svoice EN|ML # | Say 'text' [-Wait] | clip-say" -ForegroundColor DarkGray
     Write-Host "  [RALPH]    kimir kimia kimix kimis" -ForegroundColor DarkGray

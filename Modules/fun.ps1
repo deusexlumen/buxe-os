@@ -10,13 +10,7 @@ function stop-say { Get-Process -Name "ffplay" -ErrorAction SilentlyContinue | S
 function voices { Write-Host "Stimmen: edge-tts + ffplay (falls installiert), Fallback: System.Speech" -ForegroundColor Cyan }
 
 # === GAGS ===
-function genact { try { curl -s https://raw.githubusercontent.com/svenstaro/genact/master/web/genact.js | node - } catch { Write-Host "genact nicht verfuegbar." -ForegroundColor DarkGray } }
-function parrot { try { curl parrot.live } catch { Write-Host "parrot.live nicht erreichbar." -ForegroundColor DarkGray } }
-function sneakers { Write-Host "SNEAKERS SNEAKERS SNEAKERS" -ForegroundColor Cyan }
-function uwu { param($t); if (-not $t) { $t = Read-Host "Text" }; $t = $t -replace 'r','w' -replace 'l','w' -replace 'R','W' -replace 'L','W'; Write-Host $t -ForegroundColor Magenta }
-function rig { param($t); if (-not $t) { $t = Read-Host "Befehl" }; Write-Host "  [RIGGED] $t executed with 420% more style." -ForegroundColor Green }
-function bs { Write-Host "  Bullshit detected. Filtering... done." -ForegroundColor Yellow }
-function sudo-insult { $insults = @("You are not in the sudoers file. This incident will be reported.","What do you think this is, Linux?","Nice try, user.","Permission denied. As always."); Write-Host ($insults | Get-Random) -ForegroundColor Red }
+# (Entfernt: genact, parrot, sneakers, uwu, rig, bs, sudo-insult)
 
 # === APIs ===
 function chuck { try { $r = Invoke-RestMethod "https://api.chucknorris.io/jokes/random" -TimeoutSec 5; Write-Host "`n  $($r.value)`n" -ForegroundColor Yellow } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
