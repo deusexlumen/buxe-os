@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","handbook","boot","fun","ralph-loop")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","handbook","boot","fun","ralph-loop")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0

@@ -1,7 +1,9 @@
 # BUXE_OS v24.0 -- SMOKE TEST
 
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-. "$modDir\engine-state.ps1"
+. "$modDir\engine-state-core.ps1"
+. "$modDir\engine-state-migration.ps1"
+. "$modDir\engine-state-advanced.ps1"
 . "$modDir\engine-ui.ps1"
 . "$modDir\engine-game.ps1"
 . "$modDir\engine-aliases.ps1"

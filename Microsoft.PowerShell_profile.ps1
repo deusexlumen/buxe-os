@@ -12,7 +12,10 @@ Remove-Item alias:sl -Force -ErrorAction SilentlyContinue
 
 # === LOAD v24 ENGINE ===
 $modulesDir = Join-Path $PSScriptRoot "modules"
-. "$modulesDir\engine-state.ps1"
+. "$modulesDir\engine-state-core.ps1"
+. "$modulesDir\engine-state-migration.ps1"
+. "$modulesDir\engine-state-advanced.ps1"
+Load-State
 . "$modulesDir\engine-ui.ps1"
 . "$modulesDir\engine-game.ps1"
 . "$modulesDir\engine-render.ps1"
