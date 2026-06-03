@@ -155,6 +155,25 @@ $cleared = Clear-TetrisLines $tb
 Test-Assert "Tetris clear line" ($cleared -eq 1)
 Test-Assert "Tetris top row empty after clear" ($tb[0][0] -eq '.')
 
+# === BREAKOUT ENGINE ===
+Write-Host "`n  Testing Breakout Engine..." -ForegroundColor Yellow
+$modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$modDir\engine-input.ps1" 2>$null
+. "$modDir\arcade-breakout.ps1" 2>$null
+$bg = New-BreakoutLevel 1
+Test-Assert "Breakout bricks created" ($bg.Bricks.Count -eq 40)
+Test-Assert "Breakout paddle in bounds" ($bg.PaddleX -ge 0)
+Test-Assert "Breakout ball moving" ($bg.BallDY -lt 0)
+$bg.Bricks[0].Active = $true
+$bg.Bricks[0].Strength = 1
+$bg.BallX = $bg.Bricks[0].X
+$bg.BallY = $bg.Bricks[0].Y
+$bg.BallDX = 0
+$bg.BallDY = 0.5
+Update-Breakout $bg
+Test-Assert "Breakout brick hit" ($bg.Bricks[0].Active -eq $false)
+Test-Assert "Breakout score increased" ($bg.Score -gt 0)
+
 # === BACKUP ROTATION ===
 Write-Host "`n  Testing Backup Rotation..." -ForegroundColor Yellow
 $bakPattern = "$script:BuxeStateFile.bak*"

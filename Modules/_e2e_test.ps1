@@ -13,7 +13,7 @@ try {
 
 Write-Output ""
 Write-Output "=== VERIFYING FUNCTIONS ==="
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
 $missing = @()
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing += $fn }
@@ -198,6 +198,13 @@ Queue-MockInput "Q"
 try { tetris } catch { Write-Output "TETRIS FAILED: $_"; exit 1 }
 Disable-MockInput
 Write-Output "TETRIS: PASSED"
+
+# Test Breakout (quit on start screen)
+Enable-MockInput
+Queue-MockInput "Q"
+try { breakout } catch { Write-Output "BREAKOUT FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "BREAKOUT: PASSED"
 
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

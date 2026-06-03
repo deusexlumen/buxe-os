@@ -9,3 +9,4 @@ $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$modDir\arcade-legacy.ps1"
 . "$modDir\arcade-minesweeper.ps1"
 . "$modDir\arcade-tetris.ps1"
+. "$modDir\arcade-breakout.ps1"
