@@ -1,4 +1,4 @@
-# BUXE_OS v24.0 -- GAME ENGINE
+# BUXE_OS v24.3 -- GAME ENGINE
 # Wiederverwendbare Game-Logik: Karten, Wuerfel, Kampf.
 
 try {
@@ -7,13 +7,27 @@ try {
 $script:CardSuits = @("S","H","D","C")
 $script:CardRanks = @("2","3","4","5","6","7","8","9","10","J","Q","K","A")
 
+# Pre-allocate cached deck to avoid repeated allocations
+$script:_CachedDeck = $null
+
 function New-CardDeck {
-    $deck = [System.Collections.ArrayList]::new()
+    if ($script:_CachedDeck) {
+        # In-place Fisher-Yates shuffle on cached deck (no allocation)
+        $deck = $script:_CachedDeck
+        for ($i = $deck.Count - 1; $i -gt 0; $i--) {
+            $j = Get-Random -Minimum 0 -Maximum ($i + 1)
+            $temp = $deck[$i]; $deck[$i] = $deck[$j]; $deck[$j] = $temp
+        }
+        return $deck
+    }
+    # First time: create and cache
+    $deck = [System.Collections.ArrayList]::new(52)
     foreach ($s in $script:CardSuits) {
         foreach ($r in $script:CardRanks) {
             [void]$deck.Add(@{ Suit = $s; Rank = $r })
         }
     }
+    $script:_CachedDeck = $deck
     for ($i = $deck.Count - 1; $i -gt 0; $i--) {
         $j = Get-Random -Minimum 0 -Maximum ($i + 1)
         $temp = $deck[$i]; $deck[$i] = $deck[$j]; $deck[$j] = $temp
@@ -31,14 +45,15 @@ function Draw-Card($deck, [ref]$pos) {
     return $card
 }
 
+# Card value lookup cache (avoids switch overhead)
+$script:_CardValueCache = @{
+    "2" = 2; "3" = 3; "4" = 4; "5" = 5; "6" = 6; "7" = 7
+    "8" = 8; "9" = 9; "10" = 10; "J" = 10; "Q" = 10; "K" = 10
+}
+
 function Get-CardValue($rank, [switch]$AcesHigh = $true) {
-    switch ($rank) {
-        "A" { if ($AcesHigh) { return 11 } else { return 1 } }
-        "K" { return 10 }
-        "Q" { return 10 }
-        "J" { return 10 }
-        default { return [int]$_ }
-    }
+    if ($rank -eq "A") { return $(if ($AcesHigh) { 11 } else { 1 }) }
+    return $script:_CardValueCache[$rank]
 }
 
 function Get-HandValue($hand, [switch]$AcesHigh = $true) {
@@ -52,20 +67,26 @@ function Get-HandValue($hand, [switch]$AcesHigh = $true) {
     return $total
 }
 
+# Baccarat value lookup cache
+$script:_BaccaratValueCache = @{
+    "J" = 0; "Q" = 0; "K" = 0; "A" = 1
+    "2" = 2; "3" = 3; "4" = 4; "5" = 5; "6" = 6
+    "7" = 7; "8" = 8; "9" = 9; "10" = 10
+}
+
 function Get-BaccaratValue($hand) {
     $total = 0
     foreach ($c in $hand) {
-        $v = if ($c.Rank -in @("J","Q","K")) { 0 } elseif ($c.Rank -eq "A") { 1 } else { [int]$c.Rank }
-        $total += $v
+        $total += $script:_BaccaratValueCache[$c.Rank]
     }
     return $total % 10
 }
 
 # === DICE ===
 function New-DiceRoll($count = 2, $sides = 6) {
-    $results = @()
+    $results = [int[]]::new($count)
     for ($i = 0; $i -lt $count; $i++) {
-        $results += (Get-Random -Minimum 1 -Maximum ($sides + 1))
+        $results[$i] = Get-Random -Minimum 1 -Maximum ($sides + 1)
     }
     return $results
 }
@@ -103,24 +124,43 @@ function Get-ElementEffectivenessText($modifier) {
 }
 
 # === COMPANION SKILL MODIFIERS ===
+# Cached with TTL to avoid repeated JSON parsing
+$script:_ModifierCache = @{
+    CasinoLuck = @{ Value = $null; TS = 0 }
+    StrategyInsight = @{ Value = $null; TS = 0 }
+}
+$script:_ModifierCacheTTL = 5
+
 function Get-CasinoLuckModifier {
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    $cache = $script:_ModifierCache.CasinoLuck
+    if ($cache.Value -ne $null -and ($now - $cache.TS) -lt $script:_ModifierCacheTTL) {
+        return $cache.Value
+    }
     $pet = Get-PetState
     $cp = if ($pet) { $pet.Companion } else { $null }
     if (-not $cp) { $cp = Load-CompanionState }
-    if (-not $cp -or -not $cp.Skills) { return 1.0 }
+    if (-not $cp -or -not $cp.Skills) { $cache.Value = 1.0; $cache.TS = $now; return 1.0 }
     $lvl = $cp.Skills.CasinoLuck
-    if (-not $lvl -or $lvl -le 0) { return 1.0 }
-    return 1.0 + ($lvl * 0.03)
+    $result = if (-not $lvl -or $lvl -le 0) { 1.0 } else { 1.0 + ($lvl * 0.03) }
+    $cache.Value = $result; $cache.TS = $now
+    return $result
 }
 
 function Get-StrategyInsightModifier {
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    $cache = $script:_ModifierCache.StrategyInsight
+    if ($cache.Value -ne $null -and ($now - $cache.TS) -lt $script:_ModifierCacheTTL) {
+        return $cache.Value
+    }
     $pet = Get-PetState
     $cp = if ($pet) { $pet.Companion } else { $null }
     if (-not $cp) { $cp = Load-CompanionState }
-    if (-not $cp -or -not $cp.Skills) { return 1.0 }
+    if (-not $cp -or -not $cp.Skills) { $cache.Value = 1.0; $cache.TS = $now; return 1.0 }
     $lvl = $cp.Skills.StrategyInsight
-    if (-not $lvl -or $lvl -le 0) { return 1.0 }
-    return 1.0 + ($lvl * 0.03)
+    $result = if (-not $lvl -or $lvl -le 0) { 1.0 } else { 1.0 + ($lvl * 0.03) }
+    $cache.Value = $result; $cache.TS = $now
+    return $result
 }
 
 # === LEVEL UP ENGINE (DEPRECATED — pet/combat.ps1 hat eigene Logik) ===
