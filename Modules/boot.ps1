@@ -6,7 +6,7 @@ $script:SessionStart = Get-Date
 
 function Invoke-BootSequence {
     try {
-        Clear-Host
+        try { Clear-Host } catch {}
         Load-State
         $b = $script:BuxeState.Boot
         $b.Loads++

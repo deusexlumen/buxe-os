@@ -130,7 +130,7 @@ function Render-Frame($Frame, [switch]$ForceFull) {
     if ($ForceFull -or -not $script:LastRenderedFrame) {
         # Full render
         [Console]::CursorVisible = $false
-        [Console]::SetCursorPosition(0, 0)
+        try { [Console]::SetCursorPosition(0, 0) } catch {}
         for ($y = 0; $y -lt $Frame.Height; $y++) {
             $line = ""
             $currentColor = $null
@@ -163,7 +163,7 @@ function Render-Frame($Frame, [switch]$ForceFull) {
                 $cell = $Frame.Cells[$y][$x]
                 $last = $script:LastRenderedFrame.Cells[$y][$x]
                 if ($cell.Char -ne $last.Char -or $cell.Color -ne $last.Color -or $cell.BgColor -ne $last.BgColor) {
-                    [Console]::SetCursorPosition($x, $y)
+                    try { [Console]::SetCursorPosition($x, $y) } catch {}
                     Write-Host $cell.Char -NoNewline -ForegroundColor $cell.Color
                 }
             }
