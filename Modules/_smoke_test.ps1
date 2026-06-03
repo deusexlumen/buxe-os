@@ -8,6 +8,8 @@ $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$modDir\engine-game.ps1"
 . "$modDir\engine-aliases.ps1"
 . "$modDir\casino-engine.ps1"
+. "$modDir\adventure-engine.ps1"
+. "$modDir\adventure-world.ps1"
 
 # Load Pet System v2.0
 $petModules = Get-ChildItem "$modDir\pet\*.ps1" | Sort-Object Name
@@ -130,6 +132,44 @@ $script:BuxeStateLoadedAt = $null
 Load-State
 Test-Assert "Original state restored" ($script:BuxeState.Version -eq 24)
 
+# === ADVENTURE ENGINE ===
+Write-Host "`n  Testing Adventure Engine..." -ForegroundColor Yellow
+$script:AdvState = Get-AdventureDefaults
+Test-Assert "Adventure defaults exist" ($script:AdvState.Version -eq 1)
+Test-Assert "Adventure default room" ($script:AdvState.CurrentRoom -eq "hangar")
+
+$room = Get-Room "hangar"
+Test-Assert "Hangar room exists" ($room -ne $null)
+Test-Assert "Hangar has name" ($room.Name -eq "HANGAR BAY 7")
+Test-Assert "Hangar has exits" ($room.Exits.Count -gt 0)
+
+# Parser tests
+$cmd = Parse-AdventureCommand "go north"
+Test-Assert "Parser: go north" ($cmd.Verb -eq "go" -and $cmd.Noun -eq "north")
+$cmd = Parse-AdventureCommand "take card"
+Test-Assert "Parser: take card" ($cmd.Verb -eq "take" -and $cmd.Noun -eq "card")
+$cmd = Parse-AdventureCommand "look at terminal"
+Test-Assert "Parser: look at terminal" ($cmd.Verb -eq "examine" -and $cmd.Noun -eq "terminal")
+$cmd = Parse-AdventureCommand "n"
+Test-Assert "Parser: n shortcut" ($cmd.Verb -eq "go" -and $cmd.Noun -eq "north")
+$cmd = Parse-AdventureCommand "i"
+Test-Assert "Parser: i shortcut" ($cmd.Verb -eq "inventory")
+
+# Inventory tests
+$script:AdvState.Inventory = @()
+Add-ToInventory "card" "Zugangskarte"
+Test-Assert "Add to inventory" (Has-Item "card")
+Remove-FromInventory "card"
+Test-Assert "Remove from inventory" (-not (Has-Item "card"))
+
+# Use handler test
+$script:AdvState.Flags = @{}
+$script:AdvState.Inventory = @("card")
+$script:AdvState.CurrentRoom = "corridor"
+$result = Invoke-UseHandler "card" "" (Get-Room "corridor")
+Test-Assert "Use card on corridor terminal" ($result.Success -eq $true)
+Test-Assert "Bridge unlocked flag" ($script:AdvState.Flags["bridge_unlocked"] -eq $true)
+
 # === TETRIS ENGINE ===
 Write-Host "`n  Testing Tetris Engine..." -ForegroundColor Yellow
 # Load tetris module explicitly for tests
@@ -198,7 +238,7 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}

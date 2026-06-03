@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","handbook","boot","fun","ralph-loop")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure","handbook","boot","fun","ralph-loop")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0
@@ -106,6 +106,41 @@ Test-Assert "Pet shop items" ($script:PetShopItems.Count -ge 3)
 
 # Test 14: Pet hub function
 Test-Assert "Pet hub exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
+
+# Test 15: Adventure engine loads
+Test-Assert "Adventure engine loaded" ((Get-Command Invoke-Adventure -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Adventure alias 'adv' exists" ((Get-Command adv -ErrorAction SilentlyContinue) -ne $null)
+
+# Test 16: Adventure state roundtrip
+$script:AdvState = Get-AdventureDefaults
+$script:AdvState.CurrentRoom = "lab"
+$script:AdvState.Inventory = @("card", "battery")
+Save-AdventureState
+Load-AdventureState
+Test-Assert "Adventure state save/load" ($script:AdvState.CurrentRoom -eq "lab" -and $script:AdvState.Inventory -contains "card")
+
+# Test 17: Adventure room connectivity
+$hangar = Get-Room "hangar"
+Test-Assert "Hangar connects to corridor" ($hangar.Exits["north"] -eq "corridor")
+Test-Assert "Corridor has bridge exit (locked by default)" ((Get-Room "corridor").Exits["north"] -eq $null)
+
+# Test 18: Adventure parser coverage
+$parseTests = @(
+    @{ In = "go north"; V = "go"; N = "north" },
+    @{ In = "n"; V = "go"; N = "north" },
+    @{ In = "take card"; V = "take"; N = "card" },
+    @{ In = "look at box"; V = "examine"; N = "box" },
+    @{ In = "talk to drone"; V = "talk"; N = "drone" },
+    @{ In = "use key on chest"; V = "use"; N = "key" },
+    @{ In = "i"; V = "inventory"; N = "" },
+    @{ In = "l"; V = "look"; N = "" }
+)
+$parseOk = 0
+foreach ($t in $parseTests) {
+    $c = Parse-AdventureCommand $t.In
+    if ($c.Verb -eq $t.V -and $c.Noun -eq $t.N) { $parseOk++ }
+}
+Test-Assert "Adventure parser coverage (8/8)" ($parseOk -eq 8)
 
 # Summary
 Write-Host "`n  ========================================" -ForegroundColor Cyan

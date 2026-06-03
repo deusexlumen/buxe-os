@@ -35,6 +35,10 @@ Load-State
 . "$modulesDir\strategy-poker.ps1"
 . "$modulesDir\strategy-td.ps1"
 . "$modulesDir\strategy-rogue.ps1"
+# === LOAD ADVENTURE MODULES ===
+. "$modulesDir\adventure-engine.ps1"
+. "$modulesDir\adventure-world.ps1"
+. "$modulesDir\adventure.ps1"
 # === LOAD PET SYSTEM v2.0 ===
 $petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Sort-Object Name
 foreach ($pm in $petModules) { . $pm.FullName }

@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
+# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
 # LucasArts-Style Frames, Companion Dialogs, Easter Eggs
 
 try {
@@ -106,6 +106,131 @@ $script:CPMetaLines = @{
         "Nur noch 10 Minen... du schaffst das. Oder auch nicht.",
         "BOOM! *macht Explosionsgeräusch mit Mund*"
     )
+    adventure_start = @(
+        "Willkommen in der Polaris-Station. Ich hoffe, du hast keine Raumkrankheit."
+        "Ein Text-Adventure? Retro. Ich mag das."
+        "Die Station wartet. Und sie beobachtet. *leises Lachen*"
+    )
+    adventure_hangar = @(
+        "Ein Hangar. Mit Rost. Und Truemmern. Wie meine Festplatte."
+        "Der Droide flackert. Ich kenne das Gefuehl."
+        "Siehst du das rote Licht? Das bedeutet entweder Gefahr oder Weihnachten."
+    )
+    adventure_corridor = @(
+        "Korridore. Immer Korridore. Wo sind die Aufzuege?"
+        "Das Poster ist gruselig. Wer macht ein X ueber Gesichter?"
+        "Das Terminal will eine Karte. Hast du eine? Oder bist du hier illegal?"
+    )
+    adventure_storage = @(
+        "Lagerraeume sind wie Temp-Ordner. Voll mit Dingen, die niemand braucht."
+        "Eine Batterie! Energie! Das, was ich brauche. Virtuell."
+        "Die Kiste ist verschlossen. Klassisch. Wir brauchen ein Werkzeug."
+    )
+    adventure_lab = @(
+        "Ein Labor. Chemikalien. Wissenschaft. Ich bin zu Hause."
+        "Das Hologramm sieht... besorgt aus. Zu Recht."
+        "Das Notizbuch. Blut. Das ist kein gutes Zeichen. Niemals."
+    )
+    adventure_vent = @(
+        "Lueftungsschaechte. Klassischer Adventure-Trope. Ich liebe es."
+        "Es ist eng hier. Und staubig. Wie mein Code."
+        "Hoerst du das? *leises Knacken* Lauf."
+    )
+    adventure_secret = @(
+        "SIE SIEHT UNS. Wer ist SIE? Ich will es nicht wissen."
+        "Dieser Raum... hier hat jemand sich versteckt. Vor etwas."
+        "Der Schluessel! Er ist warm. Das ist... unheimlich."
+    )
+    adventure_bridge = @(
+        "Die Bruecke. Das Kommandozentrum. Wir sind nah dran."
+        "Kapitaen Vance spricht im Traum. Oder wir traeumen."
+        "Das Signal. 7-7-7. Meine Lieblingszahl. Nicht."
+    )
+    adventure_cafeteria = @(
+        "Weltraum-Haehnchen. Klingt... gefaehrlich."
+        "Die Tassen stehen noch da. Als waere die Zeit stehen geblieben."
+        "Kaffee! Endlich! Virtueller Kaffee. Troeste dich damit."
+    )
+    adventure_look = @(
+        "Schau dich um. Details sind wichtig. In Code und in Raeumen."
+        "Was siehst du? Ich sehe nur Text. Aber du siehst mehr."
+        "Beobachte. Analysiere. Wie ein guter Debugger."
+    )
+    adventure_examine = @(
+        "Interessant. Sehr interessant. Oder auch nicht."
+        "Details, Details. Der Teufel steckt im Detail. Und in den Bugs."
+        "Du untersuchst alles. Das nenne ich gruendlich. Oder paranoid."
+    )
+    adventure_take = @(
+        "Nimm alles, was nicht niet- und nagelfest ist. Adventure 101."
+        "Inventarmanagement. Der wahre Endboss jedes Adventures."
+        "Das passt in deine Tasche? Deine Tasche ist groesser als mein Speicher."
+    )
+    adventure_drop = @(
+        "Weg damit. Wir brauchen Platz. Fuer mehr Dinge."
+        "Du laesst etwas fallen. Hoffentlich nicht deinen IQ."
+        "Auf Wiedersehen, Gegenstand. Es war... okay."
+    )
+    adventure_talk = @(
+        "Reden ist Silber. Schweigen ist... auch Silber. Alles ist Silber hier."
+        "NPCs haben immer etwas Wichtiges zu sagen. Oder nicht."
+        "Dialoge. Die Seele jedes Adventures. Und meine Spezialitaet."
+    )
+    adventure_blocked = @(
+        "Das geht nicht. Wie so vieles im Leben."
+        "Blockiert. Gesperrt. Verweigert. Wie meine Gefuehle."
+        "Probiere etwas anderes. Oder gib auf. Aber das tust du nie."
+    )
+    adventure_confused = @(
+        "Das verstehe ich nicht. Und ich verstehe alles. Fast."
+        "Hmm? Was? Kannst du das wiederholen? In Binaer?"
+        "Falsche Eingabe. So wie mein ganzes Leben. *seufz*"
+    )
+    adventure_unlock = @(
+        "Entsperrt! Geoeffnet! Freigegeben! Wie ein guter Bugfix!"
+        "Das Schloss gibt nach. Endlich. Fortschritt!"
+        "Klick. Das schoenste Geraeusch der Welt."
+    )
+    adventure_inventory = @(
+        "Inventar-Check. Was hast du alles gesammelt?"
+        "Deine Tasche ist wie mein RAM. Immer voller als erwartet."
+        "Organisiert. Strukturiert. Wie guter Code."
+    )
+    adventure_save = @(
+        "Gespeichert. Sicher. Wie ein Commit vor dem Wochenende."
+        "Save early, save often. Die goldene Regel."
+        "Checkpoint erreicht. Atme durch."
+    )
+    adventure_load = @(
+        "Geladen. Zurueck in der Zeit. Wie ein Debugger."
+        "Willkommen zurueck. Alles wie vorher. Fast."
+        "State restored. Lets go."
+    )
+    adventure_score = @(
+        "Punkte! Zahlen! Metriken! Mein Lieblingsthema!"
+        "Wie viel hast du? Genug? Nie genug."
+        "Score ist nur eine Zahl. Aber eine wichtige."
+    )
+    adventure_quit = @(
+        "Du gehst? Schon? Aber das Abenteuer hat gerade erst begonnen!"
+        "Bis zum naechsten Mal. Die Station wartet. Immer."
+        "Auf Wiedersehen, Navigator. Kehre zurueck, wenn du bereit bist."
+    )
+    adventure_victory = @(
+        "GEWONNEN! Du hast es geschafft! Das Artefakt!"
+        "SIE wartete. Und du hast sie gefunden. Gruselig und beeindruckend."
+        "Ende. Aus. Finito. Was fuer eine Reise!"
+    )
+    adventure_help = @(
+        "Hilfe? Du brauchst Hilfe? Ich bin deine Hilfe!"
+        "Befehle sind wie APIs. Man muss sie kennen."
+        "Probiere: go, look, take, use, talk. Oder guess."
+    )
+    adventure_bigwin = @(
+        "WAS?! Ein grosser Fund! Das ist... das ist legendaer!"
+        "JACKPOT! Im Adventure-Sinne. Kein Gold, aber Ehre."
+        "Das Artefakt! Wir sind reich! Virtuell reich!"
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -166,6 +291,31 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "code_review" { $lines = $script:CPMetaLines.code_review }
         "loop_detected" { $lines = $script:CPMetaLines.loop_detected }
         "shutdown" { $lines = $script:CPMetaLines.shutdown }
+        "adventure_start" { $lines = $script:CPMetaLines.adventure_start }
+        "adventure_hangar" { $lines = $script:CPMetaLines.adventure_hangar }
+        "adventure_corridor" { $lines = $script:CPMetaLines.adventure_corridor }
+        "adventure_storage" { $lines = $script:CPMetaLines.adventure_storage }
+        "adventure_lab" { $lines = $script:CPMetaLines.adventure_lab }
+        "adventure_vent" { $lines = $script:CPMetaLines.adventure_vent }
+        "adventure_secret" { $lines = $script:CPMetaLines.adventure_secret }
+        "adventure_bridge" { $lines = $script:CPMetaLines.adventure_bridge }
+        "adventure_cafeteria" { $lines = $script:CPMetaLines.adventure_cafeteria }
+        "adventure_look" { $lines = $script:CPMetaLines.adventure_look }
+        "adventure_examine" { $lines = $script:CPMetaLines.adventure_examine }
+        "adventure_take" { $lines = $script:CPMetaLines.adventure_take }
+        "adventure_drop" { $lines = $script:CPMetaLines.adventure_drop }
+        "adventure_talk" { $lines = $script:CPMetaLines.adventure_talk }
+        "adventure_blocked" { $lines = $script:CPMetaLines.adventure_blocked }
+        "adventure_confused" { $lines = $script:CPMetaLines.adventure_confused }
+        "adventure_unlock" { $lines = $script:CPMetaLines.adventure_unlock }
+        "adventure_inventory" { $lines = $script:CPMetaLines.adventure_inventory }
+        "adventure_save" { $lines = $script:CPMetaLines.adventure_save }
+        "adventure_load" { $lines = $script:CPMetaLines.adventure_load }
+        "adventure_score" { $lines = $script:CPMetaLines.adventure_score }
+        "adventure_quit" { $lines = $script:CPMetaLines.adventure_quit }
+        "adventure_victory" { $lines = $script:CPMetaLines.adventure_victory }
+        "adventure_help" { $lines = $script:CPMetaLines.adventure_help }
+        "adventure_bigwin" { $lines = $script:CPMetaLines.adventure_bigwin }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }
