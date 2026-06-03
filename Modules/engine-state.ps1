@@ -5,7 +5,10 @@ try {
 
 $script:BuxeStateDir = Join-Path $env:LOCALAPPDATA "buxe"
 $script:BuxeStateFile = Join-Path $script:BuxeStateDir "buxe_state_v24.json"
+$script:BuxeAuditFile = Join-Path $script:BuxeStateDir "buxe_audit.log"
 $script:BuxeStateVersion = 24
+$script:BuxeStateTransactionDepth = 0
+$script:BuxeStateTransactionBackup = $null
 
 # === SCHEMA DEFAULTS ===
 function Get-StateDefaults {
@@ -58,6 +61,7 @@ function Get-StateDefaults {
 
 # === ATOMIC SAVE / LOAD ===
 function Save-State {
+    if ($script:BuxeStateTransactionDepth -gt 0) { return }
     if (-not (Test-Path $script:BuxeStateDir)) {
         New-Item -ItemType Directory -Path $script:BuxeStateDir -Force | Out-Null
     }
@@ -73,6 +77,7 @@ function Save-State {
 }
 
 function Load-State {
+    if ($script:BuxeStateTransactionDepth -gt 0) { return }
     # Optimization: skip reload if state file hasn't changed since last load
     if (Test-Path $script:BuxeStateFile) {
         $currentWriteTime = (Get-Item $script:BuxeStateFile).LastWriteTime
@@ -102,6 +107,30 @@ function Load-State {
     $script:BuxeStateLoadedAt = $null
     Migrate-v23Tov24
     Save-State
+}
+
+function Start-StateTransaction {
+    if ($script:BuxeStateTransactionDepth -eq 0) {
+        Load-State
+        $script:BuxeStateTransactionBackup = Convert-PSObjectToHashtable ($script:BuxeState | ConvertTo-Json -Depth 20 | ConvertFrom-Json)
+    }
+    $script:BuxeStateTransactionDepth++
+}
+
+function Complete-StateTransaction {
+    if ($script:BuxeStateTransactionDepth -le 0) { throw "No active state transaction" }
+    $script:BuxeStateTransactionDepth--
+    if ($script:BuxeStateTransactionDepth -eq 0) {
+        Save-State
+        $script:BuxeStateTransactionBackup = $null
+    }
+}
+
+function Rollback-StateTransaction {
+    if ($script:BuxeStateTransactionDepth -le 0) { throw "No active state transaction" }
+    $script:BuxeState = $script:BuxeStateTransactionBackup
+    $script:BuxeStateTransactionDepth = 0
+    $script:BuxeStateTransactionBackup = $null
 }
 
 # === EXPORT / IMPORT ===
@@ -335,22 +364,34 @@ function Get-Bankroll {
     return $script:BuxeState.Bank.Gold
 }
 
-function Set-Bankroll($delta, [switch]$TrackCasino) {
+function Write-AuditLog($Action, $Amount, $BalanceBefore, $BalanceAfter, $Reason) {
+    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "$ts | $Action | $Amount | $BalanceBefore | $BalanceAfter | $Reason"
+    Add-Content -Path $script:BuxeAuditFile -Value $line -Encoding utf8 -ErrorAction SilentlyContinue
+}
+
+function Set-Bankroll($delta, [switch]$TrackCasino, $Reason = "Bankroll") {
     Load-State
+    $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold += $delta
+    $after = $script:BuxeState.Bank.Gold
     if ($TrackCasino) {
         if ($delta -gt 0) { $script:BuxeState.Bank.CasinoWinnings += $delta }
         elseif ($delta -lt 0) { $script:BuxeState.Bank.CasinoLosses += [math]::Abs($delta) }
     }
     if ($delta -gt 0) { $script:BuxeState.Bank.TotalEarned += $delta }
     if ($delta -lt 0) { $script:BuxeState.Bank.TotalSpent += [math]::Abs($delta) }
+    Write-AuditLog -Action "BANKROLL" -Amount $delta -BalanceBefore $before -BalanceAfter $after -Reason $Reason
     Save-State
 }
 
 function Add-Gold($amount, $source) {
     Load-State
+    $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold += $amount
     $script:BuxeState.Bank.TotalEarned += $amount
+    $after = $script:BuxeState.Bank.Gold
+    Write-AuditLog -Action "EARN" -Amount $amount -BalanceBefore $before -BalanceAfter $after -Reason $source
     Save-State
     # Update companion quest progress for gold earned
     if (Get-Command Update-CPQuestProgress -ErrorAction SilentlyContinue) {
@@ -360,8 +401,11 @@ function Add-Gold($amount, $source) {
 
 function Spend-Gold($amount, $reason) {
     Load-State
+    $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold -= $amount
     $script:BuxeState.Bank.TotalSpent += $amount
+    $after = $script:BuxeState.Bank.Gold
+    Write-AuditLog -Action "SPEND" -Amount (-$amount) -BalanceBefore $before -BalanceAfter $after -Reason $reason
     Save-State
 }
 
