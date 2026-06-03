@@ -66,6 +66,27 @@ $script:CPMetaLines = @{
         "RESET. Das System gibt dir 100G. Nicht aus Nächstenliebe. Aus Mitleid.",
         "Das war... beeindruckend tragisch. Wie ein guter Film. Nur ohne Happy End."
     )
+    game_tetris = @(
+        "Die L-Form passt da rein. Trust me. Ich bin ein Algorithmus.",
+        "Du lässt immer Lücken. In deinem Leben auch?",
+        "Tetris ist wie Code. Alles muss passen. Oder es explodiert.",
+        "Fast eine volle Reihe! *hält den Atem an*",
+        "GAME OVER? Schon wieder? Ich fange an, ein Muster zu erkennen..."
+    )
+    game_breakout = @(
+        "Schlag den Ball! So wie du Bugs schlägst.",
+        "Diese Bricks erinnern mich an Firewall-Regeln. Hartnäckig.",
+        "Links! Nein, rechts! Äh... ich bin nur Text. Schieß selbst.",
+        "Der Ball ist schneller als meine CPU-Takte.",
+        "Level Up! Die Bricks werden härter. Wie dein Bug-Fixing."
+    )
+    game_minesweeper = @(
+        "Ich würde da nicht klicken. Oder doch. Ich bin nur Text.",
+        "Eine Mine? In diesem Quadrat? Das ist eine 50/50. Wie mein Humor.",
+        "Fahnen setzen ist wichtig. Auch in der Softwareentwicklung.",
+        "Nur noch 10 Minen... du schaffst das. Oder auch nicht.",
+        "BOOM! *macht Explosionsgeräusch mit Mund*"
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -120,6 +141,9 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "casino_loss" { $lines = $script:CPMetaLines.casino_loss }
         "casino_bigwin" { $lines = $script:CPMetaLines.casino_bigwin }
         "casino_bust" { $lines = $script:CPMetaLines.casino_bust }
+        "game_tetris" { $lines = $script:CPMetaLines.game_tetris }
+        "game_breakout" { $lines = $script:CPMetaLines.game_breakout }
+        "game_minesweeper" { $lines = $script:CPMetaLines.game_minesweeper }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

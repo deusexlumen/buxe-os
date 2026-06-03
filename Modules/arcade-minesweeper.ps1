@@ -85,8 +85,8 @@ function minesweeper {
             'E' {
                 $c = $grid[$cy][$cx]
                 if (-not $c.Revealed -and -not $c.Flagged) {
-                    if ($c.Mine) { $state = "LOSE"; Invoke-GameSound 'Explosion' }
-                    else { Flood-Reveal $cx $cy; Invoke-GameSound 'Reveal' }
+                    if ($c.Mine) { $state = "LOSE"; Invoke-GameSound 'Explosion'; Show-GameCompanionComment 'game_minesweeper' }
+                    else { Flood-Reveal $cx $cy; Invoke-GameSound 'Reveal'; if ((Get-Random -Maximum 5) -eq 0) { Show-GameCompanionComment 'game_minesweeper' } }
                 }
             }
             'F' {
@@ -111,6 +111,7 @@ function minesweeper {
     Add-SceneFrame $rs 0 0 46 18 "MINESWEEPER" 'Cyan' -Double
     if ($state -eq "WIN") {
         Invoke-GameSound 'Win'
+        Show-GameCompanionComment 'game_minesweeper'
         Add-SceneText $rs 4 5 "GEWONNEN! Alle Minen entschaerft." 'Green'
         Add-SceneText $rs 4 6 "Zeit: $elapsed Sekunden" 'Yellow'
         Load-State; $stats = Get-ArcadeStats "Minesweeper"; $stats.Won++; Set-ArcadeStats "Minesweeper" $stats

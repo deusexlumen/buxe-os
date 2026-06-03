@@ -49,6 +49,21 @@ function Add-SceneBlock($Scene, $X, $Y, $Width, $Height, $Char = ' ', $Color = '
     $Scene.Elements += @{ Type = 'block'; X = $X; Y = $Y; Width = $Width; Height = $Height; Content = $Char; Color = $Color }
 }
 
+# === COMPANION COMMENT ===
+# Zeigt einen kurzen LucasArts-Style Kommentar unter dem Spiel-Screen.
+
+function Show-GameCompanionComment($Context) {
+    try {
+        Load-State
+        $cp = $script:BuxeState.Companion
+        if (-not $cp -or -not (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue)) { return }
+        $line = Get-CompanionLine $cp $Context
+        $color = if ($script:CPColors) { $script:CPColors[$script:CPNames.IndexOf($cp.Name)] } else { "Cyan" }
+        if (-not $color -or $color -eq "") { $color = "Cyan" }
+        Write-Host "  [$($cp.Name)] >> $line" -ForegroundColor $color
+    } catch {}
+}
+
 # === RENDER SCENE TO FRAME ===
 # Baut alle Elemente in einen Frame und rendert ihn.
 

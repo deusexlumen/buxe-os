@@ -88,6 +88,7 @@ function Update-Breakout($game) {
                 $brick.Active = $false
                 $game.Score += 10 * $game.Level
                 Invoke-GameSound 'LineClear'
+                if ((Get-Random -Maximum 4) -eq 0) { Show-GameCompanionComment 'game_breakout' }
             } else {
                 Invoke-GameSound 'Click'
             }
@@ -108,6 +109,7 @@ function Update-Breakout($game) {
     if ($activeBricks -eq 0) {
         $game.State = "LEVEL_UP"
         Invoke-GameSound 'Win'
+        Show-GameCompanionComment 'game_breakout'
         return
     }
     
@@ -117,6 +119,7 @@ function Update-Breakout($game) {
         if ($game.Lives -le 0) {
             $game.State = "GAME_OVER"
             Invoke-GameSound 'GameOver'
+            Show-GameCompanionComment 'game_breakout'
         } else {
             $game.BallX = [math]::Floor($script:BreakoutWidth / 2)
             $game.BallY = 18
