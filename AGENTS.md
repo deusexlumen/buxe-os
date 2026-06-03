@@ -26,7 +26,9 @@ Documents\PowerShell\
 ├── GUIDE.md                              # Benutzer-Handbuch (deutsch, vollstaendig)
 ├── AGENTS.md                             # Diese Datei
 └── Modules\
-    ├── engine-state.ps1                  # Zentraler State-Store v24 (atomic save/load, migration, backup rotation)
+    ├── engine-state-core.ps1             # State-Core: Defaults, Save/Load, Accessors, Audit
+    ├── engine-state-migration.ps1        # State-Migration: v23->v24, Export/Import
+    ├── engine-state-advanced.ps1         # State-Advanced: Transactions
     ├── engine-ui.ps1                     # UI-Framework: Frames, Bars, Animationen, klassisches Input
     ├── engine-render.ps1                 # TUI Render Engine: Double-Buffering, Delta-Render, kein Clear-Host
     ├── engine-scene.ps1                  # TUI Scene Engine: Deklarative Screen-Komposition
@@ -49,6 +51,7 @@ Documents\PowerShell\
     ├── arcade.ps1                        # Arcade Wrapper (laedt alle Arcade-Submodul)
     ├── arcade-legacy.ps1                 # Zork & Hangman (TUI-migriert)
     ├── arcade-minesweeper.ps1            # Minesweeper 10x10 (TUI, WASD+E/F/Q)
+    ├── arcade-tetris.ps1                 # Tetris (TUI, WASD+Q)
     ├── arcade-monkeytype.ps1             # Monkeytype WPM-Test
     ├── arcade-snake.ps1                  # Snake (TUI)
     ├── arcade-wordle.ps1                 # Wordle
@@ -67,7 +70,7 @@ Documents\PowerShell\
     ├── handbook-status.ps1               # Kapitel 9: Status-Effekte
     ├── handbook-commands.ps1             # Komplett-Befehlsliste
     ├── ralph-loop.ps1                    # Kimi CLI Aliase (kimir, kimia, kimix, kimis)
-    ├── _smoke_test.ps1                   # Unit/Engine Smoke Test (38 Tests)
+    ├── _smoke_test.ps1                   # Unit/Engine Smoke Test (45 Tests)
     ├── _integration_test.ps1             # Integrationstest (18 Checks)
     ├── _e2e_test.ps1                     # End-to-End Game-Flow Tests (8 Spiele)
     └── pet\                              # PET SYSTEM v2.0 (13 Module)
@@ -116,7 +119,7 @@ Documents\PowerShell\
 
 Laedt externe Module und sourcet alle eigenen Module via Dot-Sourcing in einer festen Reihenfolge:
 
-1. **Engine-Module** (muessen zuerst geladen werden): `engine-state`, `engine-ui`, `engine-render`, `engine-scene`, `engine-input`, `engine-game`, `engine-aliases`
+1. **Engine-Module** (muessen zuerst geladen werden): `engine-state-core`, `engine-state-migration`, `engine-state-advanced`, `engine-ui`, `engine-render`, `engine-scene`, `engine-input`, `engine-game`, `engine-aliases`
 2. **Boot**: `boot.ps1`
 3. **Casino-Engine**: `casino-engine.ps1`
 4. **Casino-Games** (einzeln): blackjack, roulette, craps, hilo, baccarat, slot
@@ -135,7 +138,9 @@ Jedes Modul ist in einem `try { ... } catch { }` Block gewrappt, damit ein defek
 
 | Modul | Zweck |
 |-------|-------|
-| `engine-state.ps1` | Einheitlicher State-Store. Alle Daten in einer JSON-Datei. Automatische Migration v23 -> v24. Export/Import. Corrupt-Backup. Backup-Rotation (5 Backups). |
+| `engine-state-core.ps1` | State-Defaults, Save/Load, Backup-Rotation, Accessors, Audit-Log. |
+| `engine-state-migration.ps1` | v23 -> v24 Migration, Export/Import. |
+| `engine-state-advanced.ps1` | State-Transaktionen (Start/Complete/Rollback). |
 | `engine-ui.ps1` | `Show-Frame`, `Show-Bar`, `Show-Menu`, `Wait-Enter`, `Read-Choice`, `Read-Bet`, `Confirm-Bust`, `Show-Animation`, `Show-SlotSpin`, `Show-CardHand`, `Show-DiceRoll`, `Clear-Screen`, `Show-Bankroll`, `Show-StatusBar` |
 | `engine-render.ps1` | Double-Buffered Rendering. `Show-Buffer`, `Render-SceneDelta`. Kein `Clear-Host` — nur geaenderte Zeilen werden neu geschrieben. |
 | `engine-scene.ps1` | Deklarative Scenes. `New-Scene`, `Add-ToScene`, `Show-Scene`. Spiele definieren WAS, nicht WIE. |
@@ -143,7 +148,7 @@ Jedes Modul ist in einem `try { ... } catch { }` Block gewrappt, damit ein defek
 | `engine-game.ps1` | `New-CardDeck`, `Draw-Card`, `Get-CardValue`, `Get-HandValue`, `Get-BaccaratValue`, `New-DiceRoll`, `Get-ElementModifier`, `Get-CasinoLuckModifier`, `Get-StrategyInsightModifier` |
 | `engine-aliases.ps1` | Laedt Sub-Module: `engine-aliases-git.ps1`, `engine-aliases-nav.ps1`, `engine-aliases-sys.ps1`, `engine-aliases-buxe.ps1` |
 
-### TUI Framework (v24.3)
+### TUI Framework (v24.4)
 
 Das TUI-Framework besteht aus drei Engine-Modulen, die zusammenarbeiten:
 
@@ -161,7 +166,7 @@ Das TUI-Framework besteht aus drei Engine-Modulen, die zusammenarbeiten:
 
 **Spiele, die TUI verwenden:** Minesweeper, Snake, Tower Defense, Rogue, Zork, Hangman
 
-### Unified State (`engine-state.ps1`)
+### Unified State (`engine-state-core.ps1`)
 
 Alle Savegame-Daten leben in **einer** Datei:
 - `%LOCALAPPDATA%\buxe\buxe_state_v24.json`
@@ -249,7 +254,7 @@ Das TTS-System lebt direkt im `Microsoft.PowerShell_profile.ps1` (nicht in `fun.
 | `%LOCALAPPDATA%\buxe\buxe_export_*.json` | Manuelle Export-Backups |
 | `%USERPROFILE%\.kimi\tts-config.json` | TTS-Stimmen-Einstellung |
 
-**State-Accessors** (aus `engine-state.ps1`):
+**State-Accessors** (aus `engine-state-core.ps1`):
 - `Get-Bankroll`, `Set-Bankroll`, `Add-Gold`, `Spend-Gold`
 - `Load-CompanionState`, `Save-CompanionState`
 - `Load-BattlepetState`, `Save-BattlepetState`
@@ -278,7 +283,7 @@ profile   # oeffnet Notepad mit dem Hauptprofil
 & "$PSScriptRoot\Modules\_smoke_test.ps1"
 ```
 
-Testet (38 Tests):
+Testet (45 Tests):
 - State Defaults (Version 24, Bank, Casino)
 - Kartendeck-Generatoren (52 Karten)
 - Hand-Evaluation (Blackjack 21, Baccarat 7)
@@ -308,7 +313,7 @@ Testet (18 Checks):
 & "$PSScriptRoot\Modules\_e2e_test.ps1"
 ```
 
-Testet (8 Game-Flows):
+Testet (16 Game-Flows):
 - Komplettes Laden des Profils (`Microsoft.PowerShell_profile.ps1`)
 - Verfuegbarkeit aller 35 required Functions
 - State-File Existenz und Groesse
@@ -322,6 +327,13 @@ Testet (8 Game-Flows):
   - Blackjack (`Q`)
   - Poker (`F` zum Fold)
   - Tower Defense (`Q`)
+  - Roulette (Rot/Schwarz + `Q`)
+  - Craps (Pass + `Q`)
+  - Baccarat (Banker + `Q`)
+  - Snake (`Q`)
+  - Wordle (`Q` auf erstem Guess)
+  - Monkeytype (`Q` auf Pre-Game)
+  - Tetris (`Q` auf Start-Screen)
 
 ### Manuelles Modul-Reload
 ```powershell
@@ -341,7 +353,7 @@ Testet (8 Game-Flows):
 ### Datei-Header
 Jede Datei beginnt mit einer Versionszeile:
 ```powershell
-# BUXE_OS v24.3 -- MODULNAME
+# BUXE_OS v24.4 -- MODULNAME
 ```
 
 ### Error Handling
@@ -415,7 +427,7 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 
 1. **Neues Modul**: `.ps1`-Datei in `Modules\` (oder `Modules\pet\`) erstellen und in `Microsoft.PowerShell_profile.ps1` eintragen
 2. **Neue Commands**: In das passende Modul einfuegen (siehe GUIDE.md fuer Kategorien)
-3. **Neue Persistenz**: Im `Get-StateDefaults` von `engine-state.ps1` registrieren
+3. **Neue Persistenz**: Im `Get-StateDefaults` von `engine-state-core.ps1` registrieren
 4. **Neue Achievements**: `Unlock-Achievement "Name"` aufrufen; die Unlock-Logik prueft automatisch auf Duplikate
 5. **UI**: `Show-Frame`, `Show-Bar`, `Wait-Enter` verwenden
 6. **TUI-Spiel**: `New-Scene`, `Add-ToScene`, `Show-Scene` verwenden; Input via `Read-GameChoice`
@@ -429,7 +441,9 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 | Datei | Warum wichtig |
 |-------|---------------|
 | `Microsoft.PowerShell_profile.ps1` | Entry point, Modul-Loader, TTS-System |
-| `Modules/engine-state.ps1` | Zentraler State-Store, Migration, Export/Import, Backup-Rotation |
+| `Modules/engine-state-core.ps1` | Zentraler State-Store, Backup-Rotation, Accessors |
+| `Modules/engine-state-migration.ps1` | Migration, Export/Import |
+| `Modules/engine-state-advanced.ps1` | Transaktionen |
 | `Modules/engine-ui.ps1` | UI-Framework fuer ALLE interaktiven Module |
 | `Modules/engine-render.ps1` | TUI Render Engine (Double-Buffering, Delta-Render) |
 | `Modules/engine-scene.ps1` | TUI Scene Engine (Deklarative Screens) |
@@ -437,7 +451,8 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 | `Modules/engine-game.ps1` | Karten, Wuerfel, Element-System |
 | `Modules/engine-aliases.ps1` | Alle Terminal-Commands, Git, System, Bank |
 | `Modules/casino-engine.ps1` | Shared Casino-Wrapper |
-| `Modules/arcade-minesweeper.ps1` | Neuestes TUI-Spiel (Referenz-Implementierung) |
+| `Modules/arcade-tetris.ps1` | Tetris TUI-Spiel (Referenz-Implementierung) |
+| `Modules/arcade-minesweeper.ps1` | Minesweeper TUI-Spiel |
 | `Modules/pet/_init.ps1` | Pet System Schema und Meta-Progression |
 | `Modules/pet/hub.ps1` | Pet Hub Router mit dynamischem Menu |
 | `Modules/pet/companion.ps1` | Companion-Datenmodell und Actions |
@@ -453,7 +468,7 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 ## Version History Convention
 
 Versionen werden in Datei-Headern und der Boot-Sequence angezeigt:
-- Hauptprofil: v24.3
+- Hauptprofil: v24.4
 - Pet System: v24.2
 - Module tragen ihre eigene Versionsnummer im Header
 - Die `status`-Funktion zeigt die aktuelle Version an
