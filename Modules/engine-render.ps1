@@ -104,17 +104,56 @@ function Draw-Bar($Frame, $X, $Y, $Width, $Current, $Max, $Color = 'Green', $Emp
 }
 
 # === RENDERER ===
-# Double-buffered: wir speichern den letzten Frame und rendern nur Deltas.
+# Double-buffered: wir speichern Zeilen-Hashes und rendern nur geaenderte Zeilen.
 # Falls der Terminal resized wurde, rendern wir komplett neu.
 
-$script:LastRenderedFrame = $null
+$script:LastRenderedHashes = @()
 $script:LastTerminalWidth = 0
 $script:LastTerminalHeight = 0
 
 function Reset-RenderBuffer {
-    $script:LastRenderedFrame = $null
+    $script:LastRenderedHashes = @()
     $script:LastTerminalWidth = 0
     $script:LastTerminalHeight = 0
+}
+
+# === ROW HASH ===
+# Erzeugt einen Hash-String fuer eine Zeile mit StringBuilder (schnell).
+
+function Get-FrameRowHash($Frame, $y) {
+    $sb = New-Object System.Text.StringBuilder ($Frame.Width * 4)
+    $row = $Frame.Cells[$y]
+    for ($x = 0; $x -lt $Frame.Width; $x++) {
+        $c = $row[$x]
+        [void]$sb.Append($c.Char)
+        [void]$sb.Append($c.Color)
+        if ($c.BgColor) { [void]$sb.Append($c.BgColor) }
+    }
+    return $sb.ToString()
+}
+
+# === ROW RENDER ===
+# Rendert eine einzelne Zeile mit Farbwechsel-Optimierung.
+
+function Render-FrameRow($Frame, $y, $termWidth) {
+    $line = ""
+    $currentColor = $null
+    $currentBg = $null
+    $row = $Frame.Cells[$y]
+    for ($x = 0; $x -lt $Frame.Width; $x++) {
+        $cell = $row[$x]
+        if ($cell.Color -ne $currentColor -or $cell.BgColor -ne $currentBg) {
+            if ($line -ne "") { Write-Host $line -NoNewline -ForegroundColor $currentColor }
+            $currentColor = $cell.Color
+            $currentBg = $cell.BgColor
+            $line = ""
+        }
+        $line += $cell.Char
+    }
+    if ($line -ne "") { Write-Host $line -NoNewline -ForegroundColor $currentColor }
+    if ($Frame.Width -lt $termWidth) {
+        Write-Host (" " * ($termWidth - $Frame.Width)) -NoNewline
+    }
 }
 
 function Render-Frame($Frame, [switch]$ForceFull) {
@@ -127,29 +166,15 @@ function Render-Frame($Frame, [switch]$ForceFull) {
     $script:LastTerminalWidth = $termWidth
     $script:LastTerminalHeight = $termHeight
     
-    if ($ForceFull -or -not $script:LastRenderedFrame) {
+    # Hash array height mismatch -> full render
+    if ($script:LastRenderedHashes.Count -ne $Frame.Height) { $ForceFull = $true }
+    
+    if ($ForceFull -or $script:LastRenderedHashes.Count -eq 0) {
         # Full render
         try { [Console]::CursorVisible = $false } catch {}
         try { [Console]::SetCursorPosition(0, 0) } catch {}
         for ($y = 0; $y -lt $Frame.Height; $y++) {
-            $line = ""
-            $currentColor = $null
-            $currentBg = $null
-            for ($x = 0; $x -lt $Frame.Width; $x++) {
-                $cell = $Frame.Cells[$y][$x]
-                if ($cell.Color -ne $currentColor -or $cell.BgColor -ne $currentBg) {
-                    if ($line -ne "") { Write-Host $line -NoNewline -ForegroundColor $currentColor }
-                    $currentColor = $cell.Color
-                    $currentBg = $cell.BgColor
-                    $line = ""
-                }
-                $line += $cell.Char
-            }
-            if ($line -ne "") { Write-Host $line -NoNewline -ForegroundColor $currentColor }
-            # Clear rest of line
-            if ($Frame.Width -lt $termWidth) {
-                Write-Host (" " * ($termWidth - $Frame.Width)) -NoNewline
-            }
+            Render-FrameRow $Frame $y $termWidth
             if ($y -lt $Frame.Height - 1) { Write-Host "" }
         }
         # Clear remaining lines
@@ -157,28 +182,20 @@ function Render-Frame($Frame, [switch]$ForceFull) {
             if ($y -lt $termHeight - 1) { Write-Host "" }
         }
     } else {
-        # Delta render
+        # Delta render: nur geaenderte Zeilen, Cursor pro Zeile
         for ($y = 0; $y -lt $Frame.Height; $y++) {
-            for ($x = 0; $x -lt $Frame.Width; $x++) {
-                $cell = $Frame.Cells[$y][$x]
-                $last = $script:LastRenderedFrame.Cells[$y][$x]
-                if ($cell.Char -ne $last.Char -or $cell.Color -ne $last.Color -or $cell.BgColor -ne $last.BgColor) {
-                    try { [Console]::SetCursorPosition($x, $y) } catch {}
-                    Write-Host $cell.Char -NoNewline -ForegroundColor $cell.Color
-                }
+            $hash = Get-FrameRowHash $Frame $y
+            if ($hash -ne $script:LastRenderedHashes[$y]) {
+                try { [Console]::SetCursorPosition(0, $y) } catch {}
+                Render-FrameRow $Frame $y $termWidth
             }
         }
     }
     
-    # Deep-copy frame for next delta comparison
-    $script:LastRenderedFrame = @{ Width = $Frame.Width; Height = $Frame.Height; Cells = @() }
+    # Store hashes for next frame (kein Deep-Copy mehr noetig)
+    $script:LastRenderedHashes = @()
     for ($y = 0; $y -lt $Frame.Height; $y++) {
-        $row = @()
-        for ($x = 0; $x -lt $Frame.Width; $x++) {
-            $c = $Frame.Cells[$y][$x]
-            $row += @{ Char = $c.Char; Color = $c.Color; BgColor = $c.BgColor }
-        }
-        $script:LastRenderedFrame.Cells += ,$row
+        $script:LastRenderedHashes += (Get-FrameRowHash $Frame $y)
     }
 }
 
