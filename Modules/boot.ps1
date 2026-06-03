@@ -4,6 +4,19 @@ try {
 
 $script:SessionStart = Get-Date
 
+$script:BuxTips = @(
+    "Tipp: 'daily' gibt dir jeden Tag Gold + Streak-Bonus.",
+    "Tipp: 'pet status' zeigt Companion + Battlepet auf einen Blick.",
+    "Tipp: CasinoLuck und StrategyInsight leveln sich durch spielen.",
+    "Tipp: 'capsule <text>' erstellt eine Zeitkapsel fuer spaeter.",
+    "Tipp: Jede 5. Runde im Kampf ist ein Boss.",
+    "Tipp: 'bank' zeigt deine komplette Finanzhistorie.",
+    "Tipp: TUI-Spiele laufen ohne Clear-Host-Flicker.",
+    "Tipp: Die Companion reagiert auf Uhrzeit, Mood und Easter Eggs.",
+    "Tipp: 'h' listet ALLE verfuegbaren Commands.",
+    "Tipp: Achievements persistieren ueber Sessions hinweg."
+)
+
 function Invoke-BootSequence {
     try {
         try { Clear-Host } catch {}
@@ -35,6 +48,9 @@ function Invoke-BootSequence {
         elseif ($loads -lt 30) { Write-Host "  Session #$loads. Du lebst hier fast." -ForegroundColor DarkGray }
         elseif ($loads -lt 50) { Write-Host "  Session #$loads. Wir sind altbekannte." -ForegroundColor Yellow }
         else { Write-Host "  Session #$loads. Wir sind im Endgame now." -ForegroundColor Magenta }
+        
+        $tip = $script:BuxTips | Get-Random
+        Write-Host "  $tip" -ForegroundColor DarkGray
         
         $petData = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
         if (-not $petData) { $petData = $script:BuxeState.Companion }
