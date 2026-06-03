@@ -106,5 +106,34 @@ try { minesweeper } catch { Write-Output "MINESWEEPER FAILED: $_"; exit 1 }
 Disable-MockInput
 Write-Output "MINESWEEPER: PASSED"
 
+# Test Blackjack with mocked bet + quit
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "Q"
+try { blackjack } catch { Write-Output "BLACKJACK FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "BLACKJACK: PASSED"
+
+# Test Poker with mocked buy-in + fold
+Mock-ReadBetOnce 10
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockInput "F"
+try { poker } catch { Write-Output "POKER FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Read-Bet $origReadBet
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "POKER: PASSED"
+
+# Test Tower Defense (quit immediately)
+Enable-MockInput
+Queue-MockInput "Q"
+try { td } catch { Write-Output "TD FAILED: $_"; exit 1 }
+Disable-MockInput
+Write-Output "TD: PASSED"
+
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

@@ -27,9 +27,12 @@ function poker {
         
         $deck = New-CardDeck
         $deckPos = [ref]0
-        $playerHand = @(Draw-Card $deck $deckPos, Draw-Card $deck $deckPos)
-        $aiHand = @(Draw-Card $deck $deckPos, Draw-Card $deck $deckPos)
-        $community = @(Draw-Card $deck $deckPos, Draw-Card $deck $deckPos, Draw-Card $deck $deckPos, Draw-Card $deck $deckPos, Draw-Card $deck $deckPos)
+        $c1 = Draw-Card $deck $deckPos; $c2 = Draw-Card $deck $deckPos
+        $playerHand = @($c1, $c2)
+        $c3 = Draw-Card $deck $deckPos; $c4 = Draw-Card $deck $deckPos
+        $aiHand = @($c3, $c4)
+        $community = @()
+        for ($ci = 0; $ci -lt 5; $ci++) { $community += Draw-Card $deck $deckPos }
         
         # Show player cards
         $cs = New-Scene $w $h
