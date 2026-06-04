@@ -170,6 +170,36 @@ $result = Invoke-UseHandler "card" "" (Get-Room "corridor")
 Test-Assert "Use card on corridor terminal" ($result.Success -eq $true)
 Test-Assert "Bridge unlocked flag" ($script:AdvState.Flags["bridge_unlocked"] -eq $true)
 
+# Companion AI tests
+. "$modDir\adventure-companion-ai.ps1" 2>$null
+$script:AdvState.CompanionAI = Get-CompanionAIDefaults
+Test-Assert "Companion AI defaults" ($script:AdvState.CompanionAI.Mood -eq "Curious")
+
+# Running Gag test
+$script:AdvState.CompanionAI = Get-CompanionAIDefaults
+$script:AdvState.CompanionAI.RunningGags = @{}
+$gag = Test-RunningGag "examine" "card"
+Test-Assert "Running gag not triggered on 1st try" ($gag.Triggered -eq $false)
+$gag = Test-RunningGag "examine" "card"
+Test-Assert "Running gag not triggered on 2nd try" ($gag.Triggered -eq $false)
+$gag = Test-RunningGag "examine" "card"
+Test-Assert "Running gag triggered on 3rd try" ($gag.Triggered -eq $true)
+
+# Absurd combo test
+$abs = Test-AbsurdCombo "battery" "coffee"
+Test-Assert "Absurd combo recognized" ($abs.IsAbsurd -eq $true)
+$abs = Test-AbsurdCombo "card" "terminal"
+Test-Assert "Normal combo not absurd" ($abs.IsAbsurd -eq $false)
+
+# Mood update test
+Update-CompanionMood "find_item"
+Test-Assert "Mood changes to excited on find" ((Get-CompanionAI).Mood -eq "Excited")
+Update-CompanionMood "stuck"
+Update-CompanionMood "stuck"
+Update-CompanionMood "stuck"
+Update-CompanionMood "stuck"
+Test-Assert "Mood changes to bored on stuck" ((Get-CompanionAI).Mood -eq "Bored")
+
 # === TETRIS ENGINE ===
 Write-Host "`n  Testing Tetris Engine..." -ForegroundColor Yellow
 # Load tetris module explicitly for tests
@@ -238,7 +268,7 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}

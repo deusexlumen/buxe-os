@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure","handbook","boot","fun","ralph-loop")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","handbook","boot","fun","ralph-loop")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0
@@ -141,6 +141,45 @@ foreach ($t in $parseTests) {
     if ($c.Verb -eq $t.V -and $c.Noun -eq $t.N) { $parseOk++ }
 }
 Test-Assert "Adventure parser coverage (8/8)" ($parseOk -eq 8)
+
+# Test 19: Companion AI functions exist
+$aiFuncs = @("Get-CompanionAIDefaults","Test-RunningGag","Test-AbsurdCombo","Update-CompanionMood","Invoke-CompanionEvent","Get-CompanionHint")
+$aiMissing = 0
+foreach ($fn in $aiFuncs) { if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $aiMissing++ } }
+Test-Assert "Companion AI functions exist" ($aiMissing -eq 0)
+
+# Test 20: Companion AI state roundtrip
+$script:AdvState.CompanionAI = Get-CompanionAIDefaults
+$script:AdvState.CompanionAI.Mood = "Excited"
+Save-AdventureState
+Load-AdventureState
+Test-Assert "Companion AI state persists" ($script:AdvState.CompanionAI.Mood -eq "Excited")
+
+# Test 21: Running gag counter
+$script:AdvState.CompanionAI.RunningGags = @{}
+Test-RunningGag "go" "north" | Out-Null
+Test-RunningGag "go" "north" | Out-Null
+$gag = Test-RunningGag "go" "north"
+Test-Assert "Running gag triggers on 3rd repeat" ($gag.Triggered -eq $true)
+
+# Test 22: Absurd combo registry
+Test-Assert "Absurd battery+coffee exists" ((Test-AbsurdCombo "battery" "coffee").IsAbsurd -eq $true)
+Test-Assert "Non-absurd combo rejected" ((Test-AbsurdCombo "card" "terminal").IsAbsurd -eq $false)
+
+# Test 23: Mood transitions
+$script:AdvState.CompanionAI = Get-CompanionAIDefaults
+Update-CompanionMood "find_item"
+Test-Assert "Mood -> Excited on find" ((Get-CompanionAI).Mood -eq "Excited")
+
+# Test 24: Companion hint system
+$script:AdvState.CompanionAI = Get-CompanionAIDefaults
+$script:AdvState.CompanionAI.MovesWithoutProgress = 10
+$script:AdvState.Flags = @{}
+$script:AdvState.Inventory = @()
+$hint = Get-CompanionHint (Get-Room "hangar")
+$hasCompanion = $false
+try { $hasCompanion = (Get-PetState).Companion -ne $null } catch {}
+Test-Assert "Companion gives hint when stuck (hasCompanion=$hasCompanion)" ($hint -ne $null -or -not $hasCompanion)
 
 # Summary
 Write-Host "`n  ========================================" -ForegroundColor Cyan

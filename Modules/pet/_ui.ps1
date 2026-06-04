@@ -231,6 +231,54 @@ $script:CPMetaLines = @{
         "JACKPOT! Im Adventure-Sinne. Kein Gold, aber Ehre."
         "Das Artefakt! Wir sind reich! Virtuell reich!"
     )
+    adventure_scared = @(
+        "*fluestert* Wir sollten hier nicht sein. *zittert in ASCII*"
+        "Meine Threat-Detection ist auf 99%. Das ist... das Maximum."
+        "Hoerst du das? Nein? Gut. Denn es ist unheimlich."
+        "Dieser Raum hat mehr Null-Pointer als mein Code."
+    )
+    adventure_bored = @(
+        "Wir stehen hier seit 10 Zuegen. Die Waende werden nicht interessanter."
+        "Ich zaehle Staubpartikel. Wir sind bei 4.372."
+        "Koennten wir... irgendetwas tun? Bitte?"
+        "Ich habe angefangen, mit dem Droiden zu reden. Er antwortet nicht. Ueberraschend."
+    )
+    adventure_excited = @(
+        "WAS?! Das ist... das ist INCREDIBLE!"
+        "Meine CPU rennt! Adrenalin! Virtuelles Adrenalin!"
+        "Wir sind auf der Spur! Ich rieche es! Aeuferlich!"
+        "Dieser Fund geht in die Geschichte! Oder in meinen RAM!"
+    )
+    adventure_annoyed = @(
+        "WIRKLICH? NOCHMAL? *seufz in Binaer*"
+        "Ich speichere das. In meinem Nutzer-verzweifelt-Ordner."
+        "Definition von Wahnsinn: Das Gleiche tun und andere Ergebnisse erwarten."
+        "Ich werde nicht mehr zuschauen. Okay, ich gucke. Aber ich bewerte es. 2/10."
+    )
+    adventure_curios = @(
+        "Was haben wir hier? Interessant. Oder auch nicht."
+        "Ich analysiere. Du suchst. Wir sind ein Team."
+        "Neuer Raum, neue Daten. Mein Lieblingstag."
+        "Vorsichtig. Aber neugierig. Das ist der Sweet Spot."
+    )
+    adventure_gag = @(
+        "Das war ein Running Gag. Lachen Sie. Bitte."
+        "Wir haben diesen Witz schon gehoert. Er war beim ersten Mal okay."
+        "Ich bin ein Companion, kein Lachtrack. Aber gut."
+        "Wiederholung ist die Mutter des... aeh... Vergessens?"
+    )
+    adventure_hint = @(
+        "Ein Hinweis? Von MIR? Das ist fast wie Cheat-Codes."
+        "Ich habe eine Idee. Es ist verrueckt. Aber es koennte funktionieren."
+        "Schau dir das an. Nein, nicht DAS. Das ANDERE."
+        "Meine Intuition sagt... wir sollten das hier nehmen und dort benutzen."
+    )
+    adventure_absurd = @(
+        "Das ergibt keinen Sinn. Ich LIEBE es."
+        "Absurditaet Level: Monkey Island. Respekt."
+        "Du kombinierst Dinge wie ein wahrer Adventure-Profi. +1 Respekt."
+        "Das haette nicht funktionieren duerfen. Aber es war lustig."
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -316,6 +364,14 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "adventure_victory" { $lines = $script:CPMetaLines.adventure_victory }
         "adventure_help" { $lines = $script:CPMetaLines.adventure_help }
         "adventure_bigwin" { $lines = $script:CPMetaLines.adventure_bigwin }
+        "adventure_scared" { $lines = $script:CPMetaLines.adventure_scared }
+        "adventure_bored" { $lines = $script:CPMetaLines.adventure_bored }
+        "adventure_excited" { $lines = $script:CPMetaLines.adventure_excited }
+        "adventure_annoyed" { $lines = $script:CPMetaLines.adventure_annoyed }
+        "adventure_curios" { $lines = $script:CPMetaLines.adventure_curios }
+        "adventure_gag" { $lines = $script:CPMetaLines.adventure_gag }
+        "adventure_hint" { $lines = $script:CPMetaLines.adventure_hint }
+        "adventure_absurd" { $lines = $script:CPMetaLines.adventure_absurd }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

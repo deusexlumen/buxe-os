@@ -38,6 +38,7 @@ Load-State
 # === LOAD ADVENTURE MODULES ===
 . "$modulesDir\adventure-engine.ps1"
 . "$modulesDir\adventure-world.ps1"
+. "$modulesDir\adventure-companion-ai.ps1"
 . "$modulesDir\adventure.ps1"
 # === LOAD PET SYSTEM v2.0 ===
 $petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Sort-Object Name

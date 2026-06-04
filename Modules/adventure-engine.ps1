@@ -180,10 +180,32 @@ function Process-AdventureCommand($Cmd) {
     $room = Get-Room $script:AdvState.CurrentRoom
     $script:AdvState.Moves++
 
+    # Running Gag + Absurd Combo check (pre-action)
+    $gag = $null
+    $absurd = $null
+    if (Get-Command Test-RunningGag -ErrorAction SilentlyContinue) {
+        $gag = Test-RunningGag $Cmd.Verb $Cmd.Noun
+        if ($gag.Triggered) {
+            # Still process the command, but show gag after
+        }
+    }
+    if ($Cmd.Verb -eq "use" -and $Cmd.Noun -and (Get-Command Test-AbsurdCombo -ErrorAction SilentlyContinue)) {
+        $absurd = Test-AbsurdCombo $Cmd.Noun $Cmd.Target
+        if ($absurd.IsAbsurd) {
+            # Absurd combos bypass normal logic and return immediately
+            if (Get-Command Invoke-AdventureCompanionHook -ErrorAction SilentlyContinue) {
+                Invoke-AdventureCompanionHook $Cmd.Verb $Cmd.Noun $room $absurd
+            }
+            return @{ Success = $true; Message = $absurd.Line; CompanionContext = $absurd.Context }
+        }
+    }
+
+    $result = $null
     switch ($Cmd.Verb) {
         "go" {
             if (-not $room.Exits[$Cmd.Noun]) {
-                return @{ Success = $false; Message = "Du kannst nicht nach $($Cmd.Noun) gehen."; CompanionContext = "adventure_blocked" }
+                $result = @{ Success = $false; Message = "Du kannst nicht nach $($Cmd.Noun) gehen."; CompanionContext = "adventure_blocked" }
+                break
             }
             $script:AdvState.CurrentRoom = $room.Exits[$Cmd.Noun]
             if ($script:AdvState.Visited -notcontains $script:AdvState.CurrentRoom) {
@@ -192,95 +214,123 @@ function Process-AdventureCommand($Cmd) {
             }
             Save-AdventureState
             $newRoom = Get-Room $script:AdvState.CurrentRoom
-            return @{ Success = $true; Message = $null; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
+            $result = @{ Success = $true; Message = $null; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
+            break
         }
         "look" {
-            return @{ Success = $true; Message = $room.Description; CompanionContext = "adventure_look" }
+            $result = @{ Success = $true; Message = $room.Description; CompanionContext = "adventure_look" }
+            break
         }
         "examine" {
-            # Check objects
             if ($room.Objects[$Cmd.Noun]) {
-                return @{ Success = $true; Message = $room.Objects[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
-            }
-            # Check NPCs
-            if ($room.NPCs[$Cmd.Noun]) {
-                return @{ Success = $true; Message = $room.NPCs[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
-            }
-            # Check inventory
-            if (Has-Item $Cmd.Noun) {
+                $result = @{ Success = $true; Message = $room.Objects[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
+            } elseif ($room.NPCs[$Cmd.Noun]) {
+                $result = @{ Success = $true; Message = $room.NPCs[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
+            } elseif (Has-Item $Cmd.Noun) {
+                $foundDesc = $null
                 foreach ($r in $script:AdvRooms.Values) {
-                    if ($r.Objects[$Cmd.Noun]) { return @{ Success = $true; Message = $r.Objects[$Cmd.Noun].Description; CompanionContext = "adventure_examine" } }
+                    if ($r.Objects[$Cmd.Noun]) { $foundDesc = $r.Objects[$Cmd.Noun].Description; break }
                 }
+                if ($foundDesc) {
+                    $result = @{ Success = $true; Message = $foundDesc; CompanionContext = "adventure_examine" }
+                } else {
+                    $result = @{ Success = $false; Message = "Das siehst du hier nicht."; CompanionContext = "adventure_confused" }
+                }
+            } else {
+                $result = @{ Success = $false; Message = "Das siehst du hier nicht."; CompanionContext = "adventure_confused" }
             }
-            return @{ Success = $false; Message = "Das siehst du hier nicht."; CompanionContext = "adventure_confused" }
+            break
         }
         "take" {
             if (-not $room.Objects[$Cmd.Noun]) {
-                return @{ Success = $false; Message = "Das gibt es hier nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = "Das gibt es hier nicht."; CompanionContext = "adventure_confused" }
+            } else {
+                $obj = $room.Objects[$Cmd.Noun]
+                if (-not $obj.Takeable) {
+                    $result = @{ Success = $false; Message = "Das kannst du nicht mitnehmen."; CompanionContext = "adventure_blocked" }
+                } elseif (Add-ToInventory $Cmd.Noun $obj.Name) {
+                    $room.Objects.Remove($Cmd.Noun)
+                    Save-AdventureState
+                    $result = @{ Success = $true; Message = "Du nimmst $($obj.Name)."; CompanionContext = "adventure_take" }
+                } else {
+                    $result = @{ Success = $false; Message = "Du hast das schon."; CompanionContext = "adventure_confused" }
+                }
             }
-            $obj = $room.Objects[$Cmd.Noun]
-            if (-not $obj.Takeable) {
-                return @{ Success = $false; Message = "Das kannst du nicht mitnehmen."; CompanionContext = "adventure_blocked" }
-            }
-            if (Add-ToInventory $Cmd.Noun $obj.Name) {
-                $room.Objects.Remove($Cmd.Noun)
-                Save-AdventureState
-                return @{ Success = $true; Message = "Du nimmst $($obj.Name)."; CompanionContext = "adventure_take" }
-            }
-            return @{ Success = $false; Message = "Du hast das schon."; CompanionContext = "adventure_confused" }
+            break
         }
         "drop" {
             if (-not (Has-Item $Cmd.Noun)) {
-                return @{ Success = $false; Message = "Das hast du nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = "Das hast du nicht."; CompanionContext = "adventure_confused" }
+            } else {
+                $objDef = $null
+                foreach ($r in $script:AdvRooms.Values) {
+                    if ($r.Objects[$Cmd.Noun]) { $objDef = $r.Objects[$Cmd.Noun]; break }
+                }
+                if (-not $objDef) {
+                    $objDef = @{ Name = $Cmd.Noun; Description = "Ein $Cmd.Noun."; Takeable = $true }
+                }
+                $room.Objects[$Cmd.Noun] = $objDef
+                Remove-FromInventory $Cmd.Noun
+                $result = @{ Success = $true; Message = "Du legst $($objDef.Name) hin."; CompanionContext = "adventure_drop" }
             }
-            # Find object definition
-            $objDef = $null
-            foreach ($r in $script:AdvRooms.Values) {
-                if ($r.Objects[$Cmd.Noun]) { $objDef = $r.Objects[$Cmd.Noun]; break }
-            }
-            if (-not $objDef) {
-                # Reconstruct from backup in world definition
-                $objDef = @{ Name = $Cmd.Noun; Description = "Ein $Cmd.Noun."; Takeable = $true }
-            }
-            $room.Objects[$Cmd.Noun] = $objDef
-            Remove-FromInventory $Cmd.Noun
-            return @{ Success = $true; Message = "Du legst $($objDef.Name) hin."; CompanionContext = "adventure_drop" }
+            break
         }
         "use" {
-            return Invoke-UseHandler $Cmd.Noun $Cmd.Target $room
+            $result = Invoke-UseHandler $Cmd.Noun $Cmd.Target $room
+            break
         }
         "talk" {
             if (-not $room.NPCs[$Cmd.Noun]) {
-                return @{ Success = $false; Message = "Mit wem willst du reden?"; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = "Mit wem willst du reden?"; CompanionContext = "adventure_confused" }
+            } else {
+                $npc = $room.NPCs[$Cmd.Noun]
+                $dialog = $npc.Dialog | Get-Random
+                $result = @{ Success = $true; Message = "$($npc.Name): `"$dialog`""; CompanionContext = "adventure_talk" }
             }
-            $npc = $room.NPCs[$Cmd.Noun]
-            $dialog = $npc.Dialog | Get-Random
-            return @{ Success = $true; Message = "$($npc.Name): `"$dialog`""; CompanionContext = "adventure_talk" }
+            break
         }
         "inventory" {
-            return @{ Success = $true; Message = (Show-Inventory); CompanionContext = "adventure_inventory" }
+            $result = @{ Success = $true; Message = (Show-Inventory); CompanionContext = "adventure_inventory" }
+            break
         }
         "help" {
-            return @{ Success = $true; Message = (Get-AdventureHelp); CompanionContext = "adventure_help" }
+            $result = @{ Success = $true; Message = (Get-AdventureHelp); CompanionContext = "adventure_help" }
+            break
         }
         "save" {
             Save-AdventureState
-            return @{ Success = $true; Message = "Spiel gespeichert."; CompanionContext = "adventure_save" }
+            $result = @{ Success = $true; Message = "Spiel gespeichert."; CompanionContext = "adventure_save" }
+            break
         }
         "load" {
             Load-AdventureState
-            return @{ Success = $true; Message = "Spiel geladen."; CompanionContext = "adventure_load" }
+            $result = @{ Success = $true; Message = "Spiel geladen."; CompanionContext = "adventure_load" }
+            break
         }
         "score" {
-            return @{ Success = $true; Message = "Punkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore) | Züge: $($script:AdvState.Moves) | Entdeckt: $($script:AdvState.Visited.Count) / $($script:AdvRooms.Count) Räume"; CompanionContext = "adventure_score" }
+            $result = @{ Success = $true; Message = "Punkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore) | Züge: $($script:AdvState.Moves) | Entdeckt: $($script:AdvState.Visited.Count) / $($script:AdvRooms.Count) Räume"; CompanionContext = "adventure_score" }
+            break
         }
         "quit" {
-            return @{ Success = $true; Message = "QUIT"; CompanionContext = "adventure_quit" }
+            $result = @{ Success = $true; Message = "QUIT"; CompanionContext = "adventure_quit" }
+            break
         }
         default {
-            return @{ Success = $false; Message = "Das verstehe ich nicht. Tippe 'help' für Hilfe."; CompanionContext = "adventure_confused" }
+            $result = @{ Success = $false; Message = "Das verstehe ich nicht. Tippe 'help' für Hilfe."; CompanionContext = "adventure_confused" }
         }
     }
+
+    # === COMPANION AI HOOK ===
+    if (Get-Command Invoke-AdventureCompanionHook -ErrorAction SilentlyContinue) {
+        Invoke-AdventureCompanionHook $Cmd.Verb $Cmd.Noun $room $result
+    }
+
+    # Running gag override (show gag line instead of default context)
+    if ($gag -and $gag.Triggered -and $result) {
+        $result.CompanionContext = $gag.Context
+    }
+
+    return $result
 }
 
 # === USE HANDLER ===
