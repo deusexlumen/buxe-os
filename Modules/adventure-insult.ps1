@@ -54,6 +54,26 @@ $script:InsultPairs = @(
         Wrongs = @("Kommentare sind wichtig!","Ich werde nicht ignoriert!","// TODO: besser werden.")
     },
     @{
+        Insult = "Du kaempfst wie ein Bauer, der seine Maeuse nicht findet!"
+        Correct = "Und du kaempfst wie ein Kerker, der seinen Schluessel sucht."
+        Wrongs = @("Ich bin kein Bauer!","Meine Maeuse sind sicher!","Was fuer Maeuse?")
+    },
+    @{
+        Insult = "Ich habe Schimpansen gesehen, die besser schaetzen als du!"
+        Correct = "Die Schimpansen haben auch weniger Fehler gemacht als du."
+        Wrongs = @("Schimpansen sind intelligent!","Ich schaetze perfekt!","Uga uga?")
+    },
+    @{
+        Insult = "Du bist so langsam, dass selbst ein Dialog-Baum vor dir blüht!"
+        Correct = "Dialog-Baeume brauchen Zeit. Du brauchst Ewigkeiten."
+        Wrongs = @("Dialog-Baeume sind schoen!","Ich bin schnell!","NPC-Leben!" )
+    },
+    @{
+        Insult = "Dein Code hat mehr Bugs als ein Affenhaus!"
+        Correct = "Affen sind sauber. Dein Code ist... chaotisch."
+        Wrongs = @("Affen sind suess!","Ich debugge taeglich!","Banane?")
+    },
+    @{
         Insult = "Du bist so schwach, dass selbst ein 'try-catch' dich nicht retten kann!"
         Correct = "Try-Catch fängt Exceptions. Du bist ein Fatal Error."
         Wrongs = @("Try-Catch rettet immer!","Ich bin stark!","Finally ist besser.")
@@ -107,6 +127,31 @@ $script:InsultPairs = @(
         Insult = "Du bist so schwach, dass selbst ein 'Hello World' dich besiegen wuerde!"
         Correct = "Hello World laeuft auf jeder Plattform. Du crasht ueberall."
         Wrongs = @("Hello World ist einfa1ch!","Ich bin komplex!","printf('sieg');")
+    },
+    @{
+        Insult = "Du bist so verwirrend wie ein LucasArts-Puzzle ohne Logik!"
+        Correct = "LucasArts-Puzzle haben wenigstens Charme. Du hast nur Chaos."
+        Wrongs = @("Monkey Island ist klasse!","Ich liebe Point-and-Click!","Wo ist der Gummihuhn?")
+    },
+    @{
+        Insult = "Du kommst mir vor wie ein Dungeon ohne Karte: voellig orientierungslos!"
+        Correct = "Dungeons haben Schaetze. Du hast nur Fallen."
+        Wrongs = @("Ich habe einen Kompass!","Dungeons sind spannend!","Wo ist der Exit?")
+    },
+    @{
+        Insult = "Deine Strategie ist so durchschaubar wie ein Zork-Grue im Dunkeln!"
+        Correct = "Grues fressen Unvorbereitete. Du bist das naechste Mahl."
+        Wrongs = @("Ich trage immer eine Laterne!","Zork ist ein Klassiker!","Grues sind fiktiv!")
+    },
+    @{
+        Insult = "Du hast so wenig Durchblick wie ein Textadventure ohne Parser-Hilfe!"
+        Correct = "Parser-Hilfe zeigt Optionen. Du zeigst nur Verwirrung."
+        Wrongs = @("Ich kenne alle Befehle!","Hilfe ist fuer Anfaenger!","Try 'look around'.")
+    },
+    @{
+        Insult = "Du bist so langsam wie ein SCUMM-Engine-Ladebildschirm auf einer Diskette!"
+        Correct = "SCUMM war innovativ. Du bist nur antiquiert."
+        Wrongs = @("Disketten haben Nostalgiewert!","SCUMM ist Legende!","Ich habe SSD!")
     }
 )
 

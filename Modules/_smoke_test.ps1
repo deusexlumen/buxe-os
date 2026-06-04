@@ -211,6 +211,18 @@ Test-Assert "Observatory room exists" ((Get-Room "observatory") -ne $null)
 Test-Assert "Core room exists" ((Get-Room "core") -ne $null)
 Test-Assert "Total rooms = 16" ($script:AdvRooms.Count -eq 16)
 
+# Test JINX companion
+Test-Assert "JINX in CPNames" ($script:CPNames -contains "JINX")
+Test-Assert "JINX role is JESTER" ($script:CPRoles[$script:CPNames.IndexOf("JINX")] -eq "JESTER")
+Test-Assert "7 companions total" ($script:CPNames.Count -eq 7)
+Test-Assert "JINX quotes exist" ($script:CPQuotes["JINX"] -ne $null)
+Test-Assert "JINX Low quote" ($script:CPQuotes["JINX"].Low.Count -eq 2)
+
+# Test Easter Egg objects
+Test-Assert "Rubber chicken exists" ((Get-Room "cafeteria").Objects["rubber_chicken"] -ne $null)
+Test-Assert "Skull exists" ((Get-Room "vent").Objects["skull"] -ne $null)
+Test-Assert "Plastic tree exists" ((Get-Room "secret").Objects["tree"] -ne $null)
+
 # Test EVA without suit = death
 $script:AdvState.CurrentRoom = "airlock"
 $script:AdvState.Inventory = @()
@@ -327,7 +339,8 @@ Test-Assert "Desktop Pet default comment chance" ($comment -eq $null -or $commen
 # === INSULT SWORDFIGHTING TESTS ===
 Write-Host "`n  Testing Insult Swordfighting..." -ForegroundColor Yellow
 . "$modDir\adventure-insult.ps1" 2>$null
-Test-Assert "Insult pairs loaded" ($script:InsultPairs.Count -eq 20)
+$insultCount = if ($script:InsultPairs) { $script:InsultPairs.Count } else { 0 }
+Test-Assert "Insult pairs loaded ($insultCount)" ($insultCount -eq 29)
 Reset-InsultState
 Test-Assert "Insult state reset" ($script:InsultState.PlayerScore -eq 0)
 $round = Get-RandomInsultRound

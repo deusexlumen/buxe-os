@@ -9,7 +9,7 @@ function New-Companion {
     for ($i = 0; $i -lt $script:CPNames.Count; $i++) {
         Write-Host "  [$($i+1)] $($script:CPNames[$i]) [$($script:CPRoles[$i])]" -ForegroundColor $script:CPColors[$i]
     }
-    $c = Read-Choice "Waehle [1-5]" '^[1-5]$'
+    $c = Read-Choice "Waehle [1-7]" '^[1-7]$'
     $idx = [int]$c - 1
     $pet = Get-PetState
     $pet.Companion = @{

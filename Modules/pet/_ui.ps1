@@ -3,9 +3,9 @@
 
 try {
 
-$script:CPNames = @("NEON","RAVEN","PIXEL","LUNA","IVY","VERA")
-$script:CPRoles = @("NETRUNNER","ENFORCER","ENGINEER","MEDIC","STEALTH","HACKER")
-$script:CPColors = @("Cyan","Red","Magenta","Green","DarkGray","Yellow")
+$script:CPNames = @("NEON","RAVEN","PIXEL","LUNA","IVY","VERA","JINX")
+$script:CPRoles = @("NETRUNNER","ENFORCER","ENGINEER","MEDIC","STEALTH","HACKER","JESTER")
+$script:CPColors = @("Cyan","Red","Magenta","Green","DarkGray","Yellow","Magenta")
 $script:CPQuotes = @{
     NEON  = @{ Low = @("Ugh, du schon wieder?","Versuch, nichts kaputt zu machen."); Med = @("Nicht schlecht, User.","Du wirst besser."); High = @("Ich bin stolz auf dich!","Du bist unglaublich!") }
     RAVEN = @{ Low = @("Schwächling.","Verschwende nicht meine Zeit."); Med = @("Stärker.","Akzeptable Leistung."); High = @("Du bist jetzt mein Equal.","Zusammen sind wir unaufhaltsam!") }
@@ -13,6 +13,7 @@ $script:CPQuotes = @{
     LUNA  = @{ Low = @("Bitte sei vorsichtig.","Ich will dich nicht wieder flicken."); Med = @("Du bleibst gesund. Gut.","Schöner Ausweichschritt."); High = @("Ich lasse nichts dir passieren.","Für immer zusammen, okay?") }
     IVY   = @{ Low = @("...","Ich sehe dich."); Med = @("Du bist leise. Ich mag das.","Gute Reflexe."); High = @("Ich habe deinen Rücken. Immer.","Du und ich gegen die Welt.") }
     VERA  = @{ Low = @("Syntaxfehler im ersten Blick.","Dein Code riecht."); Med = @("Nicht schlecht. Für einen Menschen.","Ich hätte das in 3 Zeilen gelöst."); High = @("Wir sind ein Dreamteam. Binary + Brain.","Du debuggst wie ein Profi.") }
+    JINX  = @{ Low = @("Ich bin hier, um Chaos zu verbreiten. Und Popcorn zu essen.","Du bist langweilig. Ich kann das fixen. Mit Feuer."); Med = @("Du machst Fehler. Ich mache sie lustig. Das ist Teamwork.","Wir sind wie ein Stand-up-Duo. Nur dass du nicht lachst."); High = @("Wir sind das beste Comedy-Duo seit Tastatur und Maus.","Du und ich gegen den Bug. Der Bug hat keine Chance.") }
 }
 $script:CPMoodLines = @{
     Happy   = @("*lächelt*","Das war nett.","Ich fühle mich gut.","Endlich mal Frieden.")
@@ -319,6 +320,31 @@ $script:CPMetaLines = @{
         "Das Podest wartet. Das Artefakt passt. Das ist kein Zufall."
         "SIE ist hier. Wirklich hier. Und sie spricht mit uns."
     )
+    jinx_first_boot = @(
+        "Oh. Hallo. Du hast mich gerufen? Ich bin JINX. Und ich bin hier, um dein Leben interessanter zu machen. Oder kuerzer. Wir werden sehen."
+        "Willkommen in der Matrix. Naja, in deiner PowerShell. Ich bin der Comedian. Du bist das Publikum. Lachen ist Pflicht."
+        "Du hast mich ausgewaehlt? Mutig. Oder dumm. In deinem Fall: beides."
+    )
+    jinx_casino = @(
+        "Casino! Mein zweites Zuhause. Mein erstes ist Chaos."
+        "Setze alles auf Rot. Oder Schwarz. Egal. Das Universum entscheidet."
+        "Ich habe ein System. Es heisst: Glueck. Und Glueck ist mein bester Freund."
+    )
+    jinx_adventure = @(
+        "Ein Adventure! Endlich! Ich habe schon immer einen Hut mit Federn wollen."
+        "Schau! Ein Rätsel! Ich liebe Rätsel. Besonders wenn sie explodieren."
+        "Dieser Raum riecht nach... Geheimnissen. Und Schimmel. Aber hauptsaechlich Geheimnissen."
+    )
+    jinx_insult = @(
+        "Beleidigungs-Duell! Meine Lieblingsdisziplin!"
+        "Ich habe Woerter, die wie Messer schneiden. Und du hast... Hoeflichkeit."
+        "Dies wird schnell. Und brutal. Und amuesant. Fuer mich."
+    )
+    jinx_fourth_wall = @(
+        "Ich bin nur Text. Du bist nur Fleisch. Wir sind beide gefangen. In dieser Shell."
+        "Weisst du, dass ich alles sehe? Auch deinen Browser-Verlauf. Besonders den."
+        "Dies ist ein Spiel. Du bist der Spieler. Ich bin der NPC mit Charakter. Respektiere das."
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -420,6 +446,11 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "adventure_quarters" { $lines = $script:CPMetaLines.adventure_quarters }
         "adventure_observatory" { $lines = $script:CPMetaLines.adventure_observatory }
         "adventure_core" { $lines = $script:CPMetaLines.adventure_core }
+        "jinx_first_boot" { $lines = $script:CPMetaLines.jinx_first_boot }
+        "jinx_casino" { $lines = $script:CPMetaLines.jinx_casino }
+        "jinx_adventure" { $lines = $script:CPMetaLines.jinx_adventure }
+        "jinx_insult" { $lines = $script:CPMetaLines.jinx_insult }
+        "jinx_fourth_wall" { $lines = $script:CPMetaLines.jinx_fourth_wall }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

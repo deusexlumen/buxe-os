@@ -37,6 +37,18 @@ function Load-AdventureState {
                 if (-not $script:AdvState.Inventory) { $script:AdvState.Inventory = @() }
                 if (-not $script:AdvState.Visited) { $script:AdvState.Visited = @() }
                 if (-not $script:AdvState.Flags) { $script:AdvState.Flags = @{} }
+                if (-not $script:AdvState.CompanionAI) {
+                    $script:AdvState.CompanionAI = @{
+                        Mood = "Curious"
+                        Boredom = 0
+                        Fear = 0
+                        RunningGags = @{}
+                        FoundSecrets = @()
+                        LastRoom = ""
+                        MovesWithoutProgress = 0
+                        LastAdvice = ""
+                    }
+                }
                 return
             }
         } catch {}

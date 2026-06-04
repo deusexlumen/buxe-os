@@ -224,5 +224,21 @@ Disable-MockInput
 Set-Item function:Wait-Enter $origWaitEnter
 Write-Output "INSULT: PASSED"
 
+# Test JINX exists in arrays
+if ($script:CPNames -contains "JINX") {
+    Write-Output "JINX COMPANION: PASSED"
+} else {
+    Write-Output "JINX COMPANION FAILED"
+    exit 1
+}
+
+# Test insult pairs count = 29
+if ($script:InsultPairs.Count -eq 29) {
+    Write-Output "INSULT 29 PAIRS: PASSED"
+} else {
+    Write-Output "INSULT 29 PAIRS FAILED: $($script:InsultPairs.Count)"
+    exit 1
+}
+
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

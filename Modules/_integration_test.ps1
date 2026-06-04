@@ -154,10 +154,14 @@ $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 $script:AdvState.CompanionAI.Mood = "Excited"
 Save-AdventureState
 Load-AdventureState
-Test-Assert "Companion AI state persists" ($script:AdvState.CompanionAI.Mood -eq "Excited")
+$ai = Get-CompanionAI
+Test-Assert "Companion AI state persists" ($ai.Mood -eq "Excited")
 
 # Test 21: Running gag counter
-$script:AdvState.CompanionAI.RunningGags = @{}
+$ai = Get-CompanionAI
+$ai.RunningGags = @{}
+$script:AdvState.CompanionAI = $ai
+Save-AdventureState
 Test-RunningGag "go" "north" | Out-Null
 Test-RunningGag "go" "north" | Out-Null
 $gag = Test-RunningGag "go" "north"
@@ -197,6 +201,19 @@ Test-Assert "EVA without suit = death" ($result.Message -match "GAME OVER")
 # Test 28: True ending flag
 Test-Assert "True ending flag exists" ($script:AdvState.Flags -is [hashtable] -or $script:AdvState.Flags -is [System.Management.Automation.PSCustomObject])
 
+# Test 29: JINX companion
+Test-Assert "JINX companion exists" ($script:CPNames -contains "JINX")
+Test-Assert "7 companions" ($script:CPNames.Count -eq 7)
+Test-Assert "JINX quotes loaded" ($script:CPQuotes.ContainsKey("JINX"))
+
+# Test 30: LucasArts Easter Eggs
+Test-Assert "Rubber chicken in cafeteria" ((Get-Room "cafeteria").Objects.ContainsKey("rubber_chicken"))
+Test-Assert "Skull in vent" ((Get-Room "vent").Objects.ContainsKey("skull"))
+Test-Assert "Tree in secret" ((Get-Room "secret").Objects.ContainsKey("tree"))
+
+# Test 31: Insult pairs expanded
+Test-Assert "Insult pairs = 29" ($script:InsultPairs.Count -eq 29)
+
 # Test 24: Companion hint system
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 $script:AdvState.CompanionAI.MovesWithoutProgress = 10
@@ -222,7 +239,7 @@ Test-Assert "Insult alias exists" ((Get-Command insult -ErrorAction SilentlyCont
 $insults = $script:InsultPairs
 $valid = 0
 foreach ($i in $insults) { if ($i.Insult -and $i.Correct -and $i.Wrongs.Count -eq 3) { $valid++ } }
-Test-Assert "All insult pairs valid (20/20)" ($valid -eq 20)
+Test-Assert "All insult pairs valid (29/29)" ($valid -eq 29)
 
 # Summary
 Write-Host "`n  ========================================" -ForegroundColor Cyan

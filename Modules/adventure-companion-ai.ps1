@@ -305,6 +305,16 @@ $script:AbsurdCombos = @{
     "key|terminal"     = "Der Schluessel kratzt am Terminal. Wie mein Code an der Wand."
     "map|drone"        = "Du zeigst dem Droiden die Karte. Er flackert. Er versteht nichts."
     "artifact|cup"     = "Du haeltst das Artefakt ueber den Kaffee. Der Kaffee beginnt zu leuchten."
+    "suit|coffee"      = "Du traenkst den Kaffee durch den Helm. Das ist nicht, wofuer EVA-Anzuege gemacht wurden."
+    "suit|drone"       = "Der Droide zieht den Raumanzug an. Er sieht aus wie ein Mini-Astronaut. Niedlich."
+    "notebook|coffee"  = "Du blaetterst im Notizbuch und liest es im Kaffee. Die Tinte loest sich. Genau wie deine Hoffnungen."
+    "diary|captain"    = "Du liest dem Kapitän sein eigenes Tagebuch vor. 'Tag 47...' Er blinzelt. Er erinnert sich."
+    "photo|captain"    = "Du zeigst Vance das Crew-Foto. Er sieht die roten Kreuze. 'Das war... nicht ich.'"
+    "serum|drone"      = "Du gibst dem Droiden Serum. Er beginnt zu rosten langsamer. Medizin fuer Maschinen."
+    "datacore|terminal"= "Du steckst den Datenkern ins Terminal. Es spielt ein Lied. Ein trauriges, schoenes Lied."
+    "artifact|suit"    = "Du steckst das Artefakt in den Raumanzug. Der Anzug beginnt zu leuchten. Und zu summen."
+    "crowbar|suit"     = "Du hackst auf den Raumanzug ein. Er ist robust. Du bist es nicht."
+    "map|coffee"       = "Du traenkst Kaffee auf der Sternenkarte. Jetzt gibt es einen Kaffeefleck im Nebel-Sektor 7."
 }
 
 function Test-AbsurdCombo($Item, $Target) {

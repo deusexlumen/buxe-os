@@ -82,6 +82,7 @@ Register-Room "vent" "LÜFTUNGSSCHACHT" `
 @{ down = "storage"; east = "secret" } `
 (@{
     dust = @{ Name = "Staub"; Description = "Nur Staub. Warum schaust du dir Staub an?"; Takeable = $false; UseWith = $null }
+    skull = @{ Name = "Schädel"; Description = "Ein polierter Schädel mit einem Grinsen. Auf der Stirn steht: 'Manny Calavera war hier.'"; Takeable = $true; UseWith = $null }
 }) `
 (@{}) `
 @(
@@ -99,6 +100,7 @@ Register-Room "secret" "GEHEIMER RAUM" `
 (@{
     notes = @{ Name = "Notizen"; Description = "Jede Notize sagt 'SIE SIEHT UNS.' Die Handschrift wird immer wilder. Die letzte ist in... Blut?"; Takeable = $false; UseWith = $null }
     key = @{ Name = "Goldener Schlüssel"; Description = "Ein schwerer goldener Schlüssel mit seltsamen Symbolen. Er fühlt sich warm an."; Takeable = $true; UseWith = "chest" }
+    tree = @{ Name = "Kleiner Baum"; Description = "Ein kleiner Plastikbaum. Jemand hat ihn hier versteckt. Darauf steht: 'Ich bin ein Pirat, ich mag Baumkaetzchen.'"; Takeable = $true; UseWith = $null }
 }) `
 (@{}) `
 @(
@@ -136,6 +138,8 @@ Register-Room "cafeteria" "KANTINE" `
 (@{
     cup = @{ Name = "Tasse"; Description = "Eine halbvolle Tasse kalten Kaffees. Wer auch immer das war, er ist nie zurückgekommen."; Takeable = $true; UseWith = $null }
     sign = @{ Name = "Speiseplan"; Description = "Montag: Nudeln. Dienstag: Nudeln. Mittwoch: Weltraum-Hähnchen. Donnerstag: Nudeln. Die Routine war realer als das Monster."; Takeable = $false; UseWith = $null }
+    rubber_chicken = @{ Name = "Gummihuhn"; Description = "Ein altes Gummihuhn mit einem Seil. Jemand hat damit an einer Schaltklinke gezogen. Wie absurd."; Takeable = $true; UseWith = $null }
+    tentacle = @{ Name = "Lila Tentakel-Streifen"; Description = "Ein kleines Stueck lila Tentakel. Es zuckt noch. Jemand hat hier Experimente gemacht."; Takeable = $true; UseWith = $null }
 }) `
 (@{}) `
 @(
