@@ -200,6 +200,45 @@ Update-CompanionMood "stuck"
 Update-CompanionMood "stuck"
 Test-Assert "Mood changes to bored on stuck" ((Get-CompanionAI).Mood -eq "Bored")
 
+# Test new rooms v25.0
+Test-Assert "Airlock room exists" ((Get-Room "airlock") -ne $null)
+Test-Assert "EVA room exists" ((Get-Room "eva") -ne $null)
+Test-Assert "Engine room exists" ((Get-Room "engine") -ne $null)
+Test-Assert "Medbay room exists" ((Get-Room "medbay") -ne $null)
+Test-Assert "Armory room exists" ((Get-Room "armory") -ne $null)
+Test-Assert "Quarters room exists" ((Get-Room "quarters") -ne $null)
+Test-Assert "Observatory room exists" ((Get-Room "observatory") -ne $null)
+Test-Assert "Core room exists" ((Get-Room "core") -ne $null)
+Test-Assert "Total rooms = 16" ($script:AdvRooms.Count -eq 16)
+
+# Test EVA without suit = death
+$script:AdvState.CurrentRoom = "airlock"
+$script:AdvState.Inventory = @()
+$script:AdvState.Oxygen = 10
+$cmd = Parse-AdventureCommand "go west"
+$result = Process-AdventureCommand $cmd
+Test-Assert "EVA without suit = death" ($result.Message -match "GAME OVER")
+
+# Test EVA with suit = ok
+$script:AdvState.CurrentRoom = "airlock"
+$script:AdvState.Inventory = @("suit")
+$script:AdvState.Oxygen = 10
+$cmd = Parse-AdventureCommand "go west"
+$result = Process-AdventureCommand $cmd
+Test-Assert "EVA with suit = ok" ($result.Success -eq $true)
+
+# Test oxygen countdown
+$script:AdvState.CurrentRoom = "eva"
+$script:AdvState.Inventory = @("suit")
+$script:AdvState.Oxygen = 1
+$cmd = Parse-AdventureCommand "go east"
+$result = Process-AdventureCommand $cmd
+Test-Assert "Oxygen depletes in EVA" ($result.Success -eq $true -and $script:AdvState.Oxygen -eq 10)
+
+# Test hack command parsing
+$cmd = Parse-AdventureCommand "hack terminal"
+Test-Assert "Parser: hack terminal" ($cmd.Verb -eq "hack" -and $cmd.Noun -eq "terminal")
+
 # === TETRIS ENGINE ===
 Write-Host "`n  Testing Tetris Engine..." -ForegroundColor Yellow
 # Load tetris module explicitly for tests

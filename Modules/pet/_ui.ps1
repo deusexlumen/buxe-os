@@ -279,6 +279,46 @@ $script:CPMetaLines = @{
         "Du kombinierst Dinge wie ein wahrer Adventure-Profi. +1 Respekt."
         "Das haette nicht funktionieren duerfen. Aber es war lustig."
     )
+    adventure_airlock = @(
+        "Eine Luftschleuse. Der Weltraum wartet. Und er ist kalt."
+        "Raumanzug anlegen. Bitte. Ich habe keinen Bock auf Weltraum-Begraebnisse."
+        "Das Sichtfenster zeigt nichts. Nur Sterne. Und Tod."
+    )
+    adventure_eva = @(
+        "Wir sind IM WELTRAUM. Das ist nicht normal. Das ist wunderschoen. Und toedlich."
+        "Sauerstoff zaehlen. Nichts anderes zaehlt gerade."
+        "Die Sterne... sie sind so nah. Und wir sind so allein."
+    )
+    adventure_engine = @(
+        "Maschinenraum. Heiss. Laut. Wie mein Prozessor bei 100% Auslastung."
+        "Der Reaktor flackert. Das ist keine gute Metapher."
+        "Ingenieure. Immer am Fluchen. Immer am Reparieren."
+    )
+    adventure_medbay = @(
+        "Krankenstation. Riecht nach Desinfektionsmittel und Geheimnissen."
+        "Die Betten mit Riemen... das ist nicht normal. Oder doch?"
+        "Medizinische Daten. Jemand hat hier Experimente gemacht."
+    )
+    adventure_armory = @(
+        "Waffenkammer. Leer. Wie die Versprechen meiner Entwickler."
+        "Keine Waffen. Nur Staub und Erinnerungen."
+        "Hier stand einmal Macht. Jetzt steht nur ein Code-Zettel."
+    )
+    adventure_quarters = @(
+        "Crew-Unterkuenfte. Jemand hat hier gelebt. Geliebt. Gelitten."
+        "Fotos an der Wand. Gesichter mit Kreuzen. Nur Vance nicht. Warum?"
+        "Tagebuecher. Die wahre Geschichte der Polaris."
+    )
+    adventure_observatory = @(
+        "Observatorium. Die Kuppel zeigt den Nebel. Und er zeigt zurueck."
+        "Teleskop auf 7-7-7. Anomalie. Das ist kein Stern. Das ist SIE."
+        "Der Weltraum ist gross. Und wir sind klein. Und SIE ist groesser."
+    )
+    adventure_core = @(
+        "Der Kern. Das Herz. Die Wahrheit. Ich habe Angst. Wirklich."
+        "Das Podest wartet. Das Artefakt passt. Das ist kein Zufall."
+        "SIE ist hier. Wirklich hier. Und sie spricht mit uns."
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -372,6 +412,14 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "adventure_gag" { $lines = $script:CPMetaLines.adventure_gag }
         "adventure_hint" { $lines = $script:CPMetaLines.adventure_hint }
         "adventure_absurd" { $lines = $script:CPMetaLines.adventure_absurd }
+        "adventure_airlock" { $lines = $script:CPMetaLines.adventure_airlock }
+        "adventure_eva" { $lines = $script:CPMetaLines.adventure_eva }
+        "adventure_engine" { $lines = $script:CPMetaLines.adventure_engine }
+        "adventure_medbay" { $lines = $script:CPMetaLines.adventure_medbay }
+        "adventure_armory" { $lines = $script:CPMetaLines.adventure_armory }
+        "adventure_quarters" { $lines = $script:CPMetaLines.adventure_quarters }
+        "adventure_observatory" { $lines = $script:CPMetaLines.adventure_observatory }
+        "adventure_core" { $lines = $script:CPMetaLines.adventure_core }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

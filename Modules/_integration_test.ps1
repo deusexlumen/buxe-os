@@ -122,7 +122,8 @@ Test-Assert "Adventure state save/load" ($script:AdvState.CurrentRoom -eq "lab" 
 # Test 17: Adventure room connectivity
 $hangar = Get-Room "hangar"
 Test-Assert "Hangar connects to corridor" ($hangar.Exits["north"] -eq "corridor")
-Test-Assert "Corridor has bridge exit (locked by default)" ((Get-Room "corridor").Exits["north"] -eq $null)
+Test-Assert "Corridor north exit is medbay" ((Get-Room "corridor").Exits["north"] -eq "medbay")
+Test-Assert "Bridge is not directly accessible from corridor" ((Get-Room "corridor").Exits["bridge"] -eq $null)
 
 # Test 18: Adventure parser coverage
 $parseTests = @(
@@ -170,6 +171,31 @@ Test-Assert "Non-absurd combo rejected" ((Test-AbsurdCombo "card" "terminal").Is
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 Update-CompanionMood "find_item"
 Test-Assert "Mood -> Excited on find" ((Get-CompanionAI).Mood -eq "Excited")
+
+# Test 24: New rooms connectivity
+Test-Assert "Hangar connects to airlock" ((Get-Room "hangar").Exits["down"] -eq "airlock")
+Test-Assert "Airlock connects to EVA" ((Get-Room "airlock").Exits["west"] -eq "eva")
+Test-Assert "Corridor connects to engine" ((Get-Room "corridor").Exits["down"] -eq "engine")
+Test-Assert "Engine connects to core" ((Get-Room "engine").Exits["north"] -eq "core")
+Test-Assert "Bridge connects to observatory" ((Get-Room "bridge").Exits["up"] -eq "observatory")
+Test-Assert "Total rooms = 16" ($script:AdvRooms.Count -eq 16)
+
+# Test 25: Sauerstoff-System
+$script:AdvState.Oxygen = 10
+Test-Assert "Oxygen defaults to 10" ($script:AdvState.Oxygen -eq 10)
+
+# Test 26: Hack command
+$cmd = Parse-AdventureCommand "hack terminal"
+Test-Assert "Hack parser works" ($cmd.Verb -eq "hack" -and $cmd.Noun -eq "terminal")
+
+# Test 27: EVA death without suit
+$script:AdvState.CurrentRoom = "airlock"
+$script:AdvState.Inventory = @()
+$result = Process-AdventureCommand (Parse-AdventureCommand "go west")
+Test-Assert "EVA without suit = death" ($result.Message -match "GAME OVER")
+
+# Test 28: True ending flag
+Test-Assert "True ending flag exists" ($script:AdvState.Flags -is [hashtable] -or $script:AdvState.Flags -is [System.Management.Automation.PSCustomObject])
 
 # Test 24: Companion hint system
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults

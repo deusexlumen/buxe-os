@@ -150,6 +150,170 @@ Register-Room "cafeteria" "KANTINE" `
 $script:AdvRooms["hangar"].Exits["west"] = "cafeteria"
 $script:AdvRooms["cafeteria"].Exits["north"] = "hangar"
 
+# === NEW ROOMS v25.0 ===
+
+# === ROOM 9: AIRLOCK ===
+Register-Room "airlock" "LUFTSCHLEUSE" `
+"Eine massive Luftschleuse mit dicken Stahltueren. Durch das Sichtfenster siehst du den schwarzen Weltraum und die verbeulte Aussenhuelle der Station. Ein Warnschild leuchtet rot: 'EVA ERfordert RAUMANZUG.' Eine Tuer fuehrt nach draussen." `
+@{ up = "hangar"; west = "eva" } `
+(@{
+    suit = @{ Name = "Raumanzug"; Description = "Ein schwerer EVA-Raumanzug mit Sauerstofftank. Er riecht nach Schweiß und Weltraum."; Takeable = $true; UseWith = $null }
+    warning = @{ Name = "Warnschild"; Description = "WARNUNG: EVA ohne Raumanzug = sofortiger Tod. Nicht metaphorisch."; Takeable = $false; UseWith = $null }
+}) `
+(@{}) `
+@(
+    "  [=======]",
+    "  |  EVA  |",
+    "  | VACUUM|",
+    "  [=======]",
+    "   [SUIT]"
+) "adventure_airlock"
+
+# Connect airlock to hangar
+$script:AdvRooms["hangar"].Exits["down"] = "airlock"
+
+# === ROOM 10: EVA ===
+Register-Room "eva" "AUSSENBEREICH" `
+"Du schwebst im Nichts. Die Polaris erstreckt sich ueber dir wie ein riesiges Metallgebirge. Sterne umgeben dich. In der Ferne siehst du ein seltsames Leuchten im Nebel. Ein Kabel fuehrt zurueck zur Luftschleuse." `
+@{ east = "airlock" } `
+(@{
+    cable = @{ Name = "Sicherheitskabel"; Description = "Ein dickes Stahlseil, das dich mit der Station verbindet. Dein einziger Weg zurueck."; Takeable = $false; UseWith = $null }
+    debris = @{ Name = "Truemmer"; Description = "Metallplatten und Kabel, die von der Station abgebrochen sind. Darunter... ein Datenkern?"; Takeable = $false; UseWith = "suit" }
+}) `
+(@{}) `
+@(
+    "    *  .  *",
+    "  * STATION *",
+    "    *  .  *",
+    "  [CABLE]--->",
+    "  ...VOID..."
+) "adventure_eva"
+
+# === ROOM 11: ENGINE ===
+Register-Room "engine" "MASCHINENRAUM" `
+"Der Maschinenraum droehnt. Ein riesiger Reaktor pulsiert in der Mitte des Raums, aber sein Licht flackert unregelmaessig. Konsole blinken rot. Der Boden ist heiss. Im Norden ist eine schwere Tuere mit dem Schild 'REAKTOR-KERN'." `
+@{ up = "corridor"; north = "core" } `
+(@{
+    reactor = @{ Name = "Reaktor"; Description = "Der Hauptreaktor der Polaris. Er flackert. Die Stabilitaetsanzeige zeigt 47%."; Takeable = $false; UseWith = "battery" }
+    console = @{ Name = "Kontrollkonsole"; Description = "Eine blinkende Konsole mit Warnmeldungen. 'STABILISIERUNG ERFORDERLICH.'"; Takeable = $false; UseWith = $null }
+}) `
+(@{
+    engineer = @{ Name = "Hologramm-Ingenieur"; Description = "Ein flackerndes Hologramm eines Ingenieurs. Er wirkt gestresst."; Dialog = @("Der Reaktor... er braucht Energie.", "Die Batterie aus dem Lager. Die passt.", "Beeil dich. Wir haben nicht viel Zeit.") }
+}) `
+@(
+    "    [###]",
+    "    [#R#]",
+    "  [=======]",
+    "   ENGINE",
+    "  ...HOT..."
+) "adventure_engine"
+
+# Connect engine to corridor
+$script:AdvRooms["corridor"].Exits["down"] = "engine"
+
+# === ROOM 12: MEDBAY ===
+Register-Room "medbay" "KRANKENSTATION" `
+"Die Krankenstation riecht nach Desinfektionsmittel. Betten mit Lederriemen stehen an den Waenden. Ein medizinisches Terminal ist eingeschaltet, aber gesperrt. Schraenke mit Medikamenten sind leer. Im Sueden geht es zurueck in den Korridor." `
+@{ south = "corridor" } `
+(@{
+    terminal = @{ Name = "Med-Terminal"; Description = "Ein medizinisches Terminal mit Patientendaten. Es ist mit einem Code gesperrt."; Takeable = $false; UseWith = $null }
+    bed = @{ Name = "Bett"; Description = "Ein Krankenbett mit Lederriemen. Jemand wurde hier festgehalten. Oder behandelt."; Takeable = $false; UseWith = $null }
+    cabinet = @{ Name = "Medizinschrank"; Description = "Ein verschlossener Schrank mit einem roten Kreuz. Er braucht einen Schluessel."; Takeable = $false; UseWith = "medkey" }
+}) `
+(@{
+    nurse = @{ Name = "Hologramm-Schwester"; Description = "Ein freundliches Hologramm einer Schwester. Sie laechelt zu fest."; Dialog = @("Patient 7 hat... Veraenderungen gezeigt.", "Die Injektionen waren notwendig. Sie sagten es.", "Ich habe nur meinen Job gemacht.") }
+}) `
+@(
+    "  [BED] [BED]",
+    "  [BED] [BED]",
+    "   [MED+]",
+    "  [SCREEN]",
+    "   MEDBAY"
+) "adventure_medbay"
+
+# Connect medbay to corridor (locked by default, unlock via hacking or key)
+$script:AdvRooms["corridor"].Exits["north"] = "medbay"
+
+# === ROOM 13: ARMORY ===
+Register-Room "armory" "WAFFENKAMMER" `
+"Die Waffenkammer ist leer. Regale, die einmal Gewehre und Munition hielten, sind staubig und leer. An der Wand haengt ein Notiz mit einem Code. Eine verschlossene Tuer fuehrt zu einem Nebenraum. Im Westen geht es zurueck in den Korridor." `
+@{ west = "corridor"; east = "quarters" } `
+(@{
+    note = @{ Name = "Code-Notiz"; Description = "Ein Zettel: 'SICHERHEITSCODE: 7-7-7. Wie originell.'"; Takeable = $true; UseWith = $null }
+    rack = @{ Name = "Waffenregal"; Description = "Leere Regale. Jemand hat alles mitgenommen. Oder es wurde konfisziert."; Takeable = $false; UseWith = $null }
+}) `
+(@{}) `
+@(
+    "  [    ] [    ]",
+    "  [    ] [    ]",
+    "   [7777]",
+    "  [====]",
+    "   ARMORY"
+) "adventure_armory"
+
+# Connect armory to corridor
+$script:AdvRooms["corridor"].Exits["east"] = "armory"
+
+# === ROOM 14: QUARTERS ===
+Register-Room "quarters" "CREW-UNTERKUNFTE" `
+"Kleine Kabinen, eine neben der anderen. Jede hat ein Bett, einen Schreibtisch und ein Foto an der Wand. Jemand hat hier gelebt. Geliebt. Gefuerchtet. Ein Tagebuch liegt auf einem der Betten. Im Westen geht es zurueck in die Waffenkammer." `
+@{ west = "armory"; down = "corridor" } `
+(@{
+    diary = @{ Name = "Tagebuch"; Description = "Kapitän Vance' Tagebuch: 'Tag 47. Das Signal wird staerker. Dr. Yarrow hat etwas im Nebel gesehen. Sie nennt es SIE.' Die letzten Seiten sind zerrissen."; Takeable = $true; UseWith = $null }
+    photo = @{ Name = "Foto"; Description = "Ein Foto der Crew. Alle laecheln. Jemand hat rote Kreuze ueber die Gesichter gemalt. Alle ausser Vance."; Takeable = $true; UseWith = $null }
+    medkey = @{ Name = "Medizin-Schluessel"; Description = "Ein kleiner roter Schluessel mit einem Kreuz. Er oeffnet den Medizinschrank."; Takeable = $true; UseWith = "cabinet" }
+}) `
+(@{}) `
+@(
+    "  [BED] [BED]",
+    "  [BED] [BED]",
+    "   [DIARY]",
+    "  [PHOTO]",
+    "   CREW"
+) "adventure_quarters"
+
+# Connect quarters to corridor
+$script:AdvRooms["corridor"].Exits["up"] = "quarters"
+
+# === ROOM 15: OBSERVATORY ===
+Register-Room "observatory" "OBSERVATORIUM" `
+"Ein kuppelfoermiger Raum mit einem riesigen Teleskop. Die Kuppel ist offen und zeigt den Nebel in all seiner Pracht. Ein Computer zeigt Koordinaten an. Auf einem Bildschirm: 'NEBELSEKTOR 7 — ANOMALIE DETEKTIERT.' Im Sueden geht es zurueck zur Bruecke." `
+@{ south = "bridge" } `
+(@{
+    telescope = @{ Name = "Teleskop"; Description = "Ein riesiges Teleskop, das auf den Nebel gerichtet ist. Du siehst... etwas. Eine Gestalt? Nein. Ein Schatten."; Takeable = $false; UseWith = $null }
+    computer = @{ Name = "Navigationscomputer"; Description = "Koordinaten: 7-7-7. Entfernung: unbekannt. Groesse: unbekannt. Absicht: ...SIE WARTET."; Takeable = $false; UseWith = $null }
+}) `
+(@{}) `
+@(
+    "     ***",
+    "   * NEBEL *",
+    "     ***",
+    "  [TELESCOPE]",
+    "  ...7-7-7..."
+) "adventure_observatory"
+
+# Connect observatory to bridge
+$script:AdvRooms["bridge"].Exits["up"] = "observatory"
+
+# === ROOM 16: CORE ===
+Register-Room "core" "REAKTOR-KERN" `
+"Das Herz der Station. Der Reaktor-Kern pulsiert in einem hypnotischen Blau. In der Mitte des Raums steht ein Podest. Auf dem Podest liegt ein Symbol — es passt perfekt zum Polaris-Artefakt. Die Waende vibrieren. Du hoerst ein Fluestern. 'Benutze mich.' Im Sueden geht es zurueck in den Maschinenraum." `
+@{ south = "engine" } `
+(@{
+    pedestal = @{ Name = "Podest"; Description = "Ein Podest mit einem kreisfoermigen Ausschnitt. Es passt perfekt zum Artefakt."; Takeable = $false; UseWith = "artifact" }
+    core = @{ Name = "Reaktor-Kern"; Description = "Der Kern pulsiert. Er ist lebendig. Oder er wird kontrolliert."; Takeable = $false; UseWith = $null }
+}) `
+(@{
+    entity = @{ Name = "SIE"; Description = "Eine Gestalt aus Licht und Schatten. Sie hat keine Augen, aber sie SIEHT dich."; Dialog = @("Du hast mich gefunden.", "Das Artefakt. Der Kern. Die Wahrheit.", "Lege es auf das Podest. Und verstehe.") }
+}) `
+@(
+    "    [###]",
+    "    [#P#]",
+    "  [=======]",
+    "    CORE",
+    "  ...SHE..."
+) "adventure_core"
+
 # === USE HANDLERS (World-specific logic) ===
 
 Register-UseHandler {
@@ -200,13 +364,66 @@ Register-UseHandler {
         }
     }
 
-    # Artifact use (endgame)
+    # Artifact use (endgame - normal ending)
     if ($Item -eq "artifact" -and -not $Target) {
         if (Has-Item "artifact") {
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 50
             Save-AdventureState
-            return @{ Success = $true; Message = "Du berührst das Artefakt. Die Welt verschwimmt... und du verstehst. Die Station war nie verloren. Sie wartete. Auf DICH.`n`n=== DAS ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZüge: $($script:AdvState.Moves)`nDanke fürs Spielen!"; CompanionContext = "adventure_victory" }
+            return @{ Success = $true; Message = "Du beruehrst das Artefakt. Die Welt verschwimmt... und du verstehst. Die Station war nie verloren. Sie wartete. Auf DICH.`n`n=== DAS ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDanke fuers Spielen!"; CompanionContext = "adventure_victory" }
+        }
+    }
+
+    # Battery on reactor in engine
+    if ($Item -eq "battery" -and $Room.Id -eq "engine") {
+        if (Has-Item "battery") {
+            $script:AdvState.Flags["reactor_fixed"] = $true
+            $script:AdvState.Score += 20
+            Save-AdventureState
+            return @{ Success = $true; Message = "Du steckst die Batterie in den Reaktor. Das Flackern hoert auf. Die Stabilitaet steigt auf 100%. Die Tuer zum Reaktor-Kern oeffnet sich."; CompanionContext = "adventure_unlock" }
+        }
+    }
+
+    # Artifact on pedestal in core (TRUE ENDING)
+    if ($Item -eq "artifact" -and $Target -eq "pedestal" -and $Room.Id -eq "core") {
+        if (Has-Item "artifact") {
+            $script:AdvState.Flags["true_ending"] = $true
+            $script:AdvState.Flags["game_won"] = $true
+            $script:AdvState.Score += 100
+            Save-AdventureState
+            return @{ Success = $true; Message = "Du legst das Artefakt auf das Podest. Der Kern pulsiert wild. Die Gestalt aus Licht tritt vor. 'Du hast verstanden. Die Station war ein Gefaengnis. Und ich war die Waerterin. Du hast mich befreit.'`n`nDas Licht verschlingt dich. Aber es tut nicht weh. Es fuehlt sich an wie... Zuhause.`n`n=== DAS WAHRE ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDu hast die Wahrheit gefunden."; CompanionContext = "adventure_victory" }
+        }
+    }
+
+    # Medkey on cabinet in medbay
+    if ($Item -eq "medkey" -and $Target -eq "cabinet" -and $Room.Id -eq "medbay") {
+        if (Has-Item "medkey") {
+            $script:AdvState.Flags["medbay_unlocked"] = $true
+            $script:AdvState.Score += 10
+            $script:AdvRooms["medbay"].Objects["serum"] = @{ Name = "Heil-Serum"; Description = "Ein gruen fluoreszierendes Serum. Es heilt alles. Auch Dinge, die nicht heilbar sein sollten."; Takeable = $true; UseWith = $null }
+            Save-AdventureState
+            return @{ Success = $true; Message = "Der Schrank oeffnet sich. Darin liegt ein gruen fluoreszierendes Serum."; CompanionContext = "adventure_unlock" }
+        }
+    }
+
+    # Suit on debris in eva (find data core)
+    if ($Item -eq "suit" -and -not $Target -and $Room.Id -eq "eva") {
+        if (Has-Item "suit") {
+            $script:AdvState.Flags["eva_explored"] = $true
+            $script:AdvState.Score += 15
+            $script:AdvRooms["eva"].Objects["datacore"] = @{ Name = "Datenkern"; Description = "Ein schwerer Datenkern aus der Kommunikationsantenne. Er enthaelt Aufzeichnungen aus dem Nebel-Sektor 7."; Takeable = $true; UseWith = $null }
+            Save-AdventureState
+            return @{ Success = $true; Message = "Du durchwuehlst die Truemmer in deinem Anzug und findest einen schweren Datenkern!"; CompanionContext = "adventure_unlock" }
+        }
+    }
+
+    # Serum on captain in bridge
+    if ($Item -eq "serum" -and $Target -eq "captain" -and $Room.Id -eq "bridge") {
+        if (Has-Item "serum") {
+            $script:AdvState.Flags["captain_healed"] = $true
+            $script:AdvState.Score += 20
+            Save-AdventureState
+            return @{ Success = $true; Message = "Du gibst Kapitän Vance das Serum. Er blinzelt. 'Du... du hast es geschafft. Das Signal... es war SIE. Sie wollte befreit werden. Nicht bekaempft.' Er gibt dir einen letzten Hinweis: 'Der Kern. Das Podest. Das Artefakt.'"; CompanionContext = "adventure_bigwin" }
         }
     }
 
@@ -219,3 +436,4 @@ Register-UseHandler {
 } catch {
     Write-Host "[ADVENTURE WORLD] Fehler: $_" -ForegroundColor Red
 }
+

@@ -18,7 +18,8 @@ function Get-AdventureDefaults {
         Visited = @()
         Moves = 0
         Score = 0
-        MaxScore = 100
+        MaxScore = 200
+        Oxygen = 10
     }
 }
 
@@ -168,6 +169,7 @@ function Parse-AdventureCommand($InputLine) {
         save = "save"
         load = "load"
         score = "score"
+        hack = "hack"
     }
     if ($verbMap[$verb]) { $verb = $verbMap[$verb] }
 
@@ -207,14 +209,42 @@ function Process-AdventureCommand($Cmd) {
                 $result = @{ Success = $false; Message = "Du kannst nicht nach $($Cmd.Noun) gehen."; CompanionContext = "adventure_blocked" }
                 break
             }
-            $script:AdvState.CurrentRoom = $room.Exits[$Cmd.Noun]
+            $targetRoomId = $room.Exits[$Cmd.Noun]
+
+            # EVA Suit Check
+            if ($targetRoomId -eq "eva") {
+                if (-not (Has-Item "suit")) {
+                    $result = @{ Success = $false; Message = "Du oeffnest die Luftschleuse. Der Sog des Vakuums reisst dich hinaus. Ohne Raumanzug ueberlebst du 3 Sekunden.`n`n=== GAME OVER ===`nDu bist erfroren im Weltraum.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                    break
+                }
+                # Reset oxygen when entering EVA
+                $script:AdvState.Oxygen = 10
+            }
+
+            # Oxygen countdown in EVA
+            if ($room.Id -eq "eva" -and $targetRoomId -ne "airlock") {
+                $script:AdvState.Oxygen--
+                if ($script:AdvState.Oxygen -le 0) {
+                    $result = @{ Success = $false; Message = "Dein Sauerstoff ist aufgebraucht. Die Dunkelheit umschlingt dich.`n`n=== GAME OVER ===`nDu bist erstickt im Weltraum.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                    break
+                }
+            }
+
+            # Leaving EVA restores oxygen
+            if ($room.Id -eq "eva" -and $targetRoomId -eq "airlock") {
+                $script:AdvState.Oxygen = 10
+            }
+
+            $script:AdvState.CurrentRoom = $targetRoomId
             if ($script:AdvState.Visited -notcontains $script:AdvState.CurrentRoom) {
                 $script:AdvState.Visited += $script:AdvState.CurrentRoom
                 $script:AdvState.Score += 5
             }
             Save-AdventureState
             $newRoom = Get-Room $script:AdvState.CurrentRoom
-            $result = @{ Success = $true; Message = $null; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
+            $oxMsg = ""
+            if ($newRoom.Id -eq "eva") { $oxMsg = " Sauerstoff: $($script:AdvState.Oxygen)/10" }
+            $result = @{ Success = $true; Message = $oxMsg; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
             break
         }
         "look" {
@@ -308,7 +338,30 @@ function Process-AdventureCommand($Cmd) {
             break
         }
         "score" {
-            $result = @{ Success = $true; Message = "Punkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore) | Züge: $($script:AdvState.Moves) | Entdeckt: $($script:AdvState.Visited.Count) / $($script:AdvRooms.Count) Räume"; CompanionContext = "adventure_score" }
+            $ox = ""
+            if ($script:AdvState.CurrentRoom -eq "eva") { $ox = " | Sauerstoff: $($script:AdvState.Oxygen)" }
+            $result = @{ Success = $true; Message = "Punkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore) | Züge: $($script:AdvState.Moves) | Entdeckt: $($script:AdvState.Visited.Count) / $($script:AdvRooms.Count) Räume$ox"; CompanionContext = "adventure_score" }
+            break
+        }
+        "hack" {
+            if (-not $room.Objects[$Cmd.Noun]) {
+                $result = @{ Success = $false; Message = "Was willst du hacken?"; CompanionContext = "adventure_confused" }
+            } elseif ($room.Objects[$Cmd.Noun].Name -notmatch "Terminal|Konsole|Computer|Bildschirm") {
+                $result = @{ Success = $false; Message = "Das kannst du nicht hacken."; CompanionContext = "adventure_blocked" }
+            } elseif ($Cmd.Noun -eq "terminal" -and $Room.Id -eq "corridor" -and -not $script:AdvState.Flags["bridge_unlocked"]) {
+                $result = @{ Success = $true; Message = "Du hackst das Terminal. Die Kartenleser-Sicherheit ist laecherlich. Die Bruecke ist jetzt zugaenglich."; CompanionContext = "adventure_unlock" }
+                $script:AdvState.Flags["bridge_unlocked"] = $true
+                $script:AdvRooms["corridor"].Exits["north"] = "bridge"
+                $script:AdvState.Score += 15
+                Save-AdventureState
+            } elseif ($Cmd.Noun -eq "terminal" -and $Room.Id -eq "medbay" -and -not $script:AdvState.Flags["medbay_unlocked"]) {
+                $result = @{ Success = $true; Message = "Du hackst das Med-Terminal. Patientendaten entschluesselt. Jemand hat Experimente an der Crew durchgefuehrt. Und du hast den Schluessel gefunden: 7-7-7."; CompanionContext = "adventure_unlock" }
+                $script:AdvState.Flags["medbay_unlocked"] = $true
+                $script:AdvState.Score += 10
+                Save-AdventureState
+            } else {
+                $result = @{ Success = $false; Message = "Das Terminal ist bereits entsperrt oder nicht hackbar."; CompanionContext = "adventure_blocked" }
+            }
             break
         }
         "quit" {
@@ -367,6 +420,7 @@ KOMMANDOS:
   save                                -- Spiel speichern
   load                                -- Spiel laden
   score                               -- Punktestand
+  hack [terminal]                     -- Terminal hacken (nur bestimmte)
   help   (oder: h, ?)                 -- Diese Hilfe
   quit   (oder: q)                    -- Adventure beenden
 "@
@@ -410,6 +464,13 @@ function Show-AdventureRoom($Room) {
     if ($Room.NPCs.Count -gt 0) {
         $npcStr = ($Room.NPCs.Values | ForEach-Object { $_.Name }) -join ", "
         Write-Host "  Personen: $npcStr" -ForegroundColor Magenta
+    }
+
+    # Oxygen warning in EVA
+    if ($Room.Id -eq "eva" -and $script:AdvState.Oxygen -le 5) {
+        Write-Host "  WARNUNG: Sauerstoff niedrig! $($script:AdvState.Oxygen)/10" -ForegroundColor Red
+    } elseif ($Room.Id -eq "eva") {
+        Write-Host "  Sauerstoff: $($script:AdvState.Oxygen)/10" -ForegroundColor Yellow
     }
 
     Write-Host $bot -ForegroundColor Cyan
