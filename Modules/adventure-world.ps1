@@ -431,6 +431,29 @@ Register-UseHandler {
         }
     }
 
+    # === LUCASARTS EASTER EGG USE HANDLERS ===
+    # Rubber chicken - classic Monkey Island item
+    if ($Item -eq "rubber_chicken" -and -not $Target) {
+        return @{ Success = $false; Message = "Du ziehst am Gummihuhn. Es macht 'Quack'. Nichts passiert. Aber es fuehlt sich an wie ein Sieg.`n`n(Pro-Tipp: In einem anderen Universum haettest du damit eine Schaltklinke betaetigt.)"; CompanionContext = "adventure_absurd" }
+    }
+    if ($Item -eq "rubber_chicken" -and $Target -eq "pulley") {
+        return @{ Success = $false; Message = "Du haengst das Gummihuhn an die Seilrolle. Es schwingt hin und her. Eine Gans wuerde stolz sein."; CompanionContext = "adventure_absurd" }
+    }
+    # Skull - Grim Fandango reference
+    if ($Item -eq "skull" -and -not $Target) {
+        return @{ Success = $false; Message = "Du haeltst den Schaedel ans Ohr. 'Hallo? Manny?' Stille. Dann: 'Sprich mit dem Gluecksbeetle.' Warte, was?"; CompanionContext = "adventure_absurd" }
+    }
+    if ($Item -eq "skull" -and $Target -eq "tree") {
+        return @{ Success = $false; Message = "Du stellst den Schaedel unter den Plastikbaum. Es sieht aus wie eine sehr morbide Weihnachtsdekoration."; CompanionContext = "adventure_absurd" }
+    }
+    # Plastic tree - Monkey Island reference
+    if ($Item -eq "tree" -and -not $Target) {
+        return @{ Success = $false; Message = "Du umarmst den kleinen Plastikbaum. 'Ich bin ein Pirat, ich mag Baumkaetzchen.' Nein. Nein tust du nicht."; CompanionContext = "adventure_absurd" }
+    }
+    if ($Item -eq "tree" -and $Target -eq "captain") {
+        return @{ Success = $false; Message = "Du haeltst Kapitän Vance den Plastikbaum hin. Er blinzelt. 'Das... das erinnert mich an etwas. Eine Insel? Ein Geheimnis?'"; CompanionContext = "adventure_absurd" }
+    }
+
     return $null
 }
 

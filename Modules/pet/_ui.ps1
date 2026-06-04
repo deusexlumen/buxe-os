@@ -345,6 +345,37 @@ $script:CPMetaLines = @{
         "Weisst du, dass ich alles sehe? Auch deinen Browser-Verlauf. Besonders den."
         "Dies ist ein Spiel. Du bist der Spieler. Ich bin der NPC mit Charakter. Respektiere das."
     )
+    jinx_adventure_hangar = @(
+        "Ein kaputter Droide und rostige Gerueste. Das ist kein Hangar, das ist ein LucasArts-Set!"
+        "Siehst du das Shuttle? Es wird nicht mehr starten. Wie meine Motivation montags."
+        "Rotes Licht bedeutet Gefahr. Oder Weihnachten. Oder beides. Ein gefaehrliches Weihnachten!"
+    )
+    jinx_adventure_corridor = @(
+        "Korridore. Immer Korridore. Dieser hier hat 47 Pixel mehr als noetig."
+        "Das Terminal will eine Karte. Ich will eine Pizza. Wir bekommen beides nicht."
+        "X ueber Gesichter? Das ist nicht gruselig, das ist... effizient."
+    )
+    jinx_adventure_cafeteria = @(
+        "Weltraum-Haehnchen! Das Gummihuhn ist neidisch. Sehr neidisch."
+        "Montag: Nudeln. Dienstag: Nudeln. Donnerstag: Nudeln. Mittwoch? CHAOS."
+        "Kaffee! Endlich! Wenn auch kalt. Wie mein Humor."
+    )
+    jinx_adventure_absurd = @(
+        "Das ergibt keinen Sinn. ICH LIEBE ES. Das ist pure SCUMM-Logik!"
+        "Monkey Island haette stolz auf dich sein koennen. Wirklich."
+        "Du kombinierst Dinge wie Guybrush. Nur mit weniger Haare."
+        "Absurditaet Level: Over 9000. Oder zumindest Over 1990."
+    )
+    jinx_adventure_victory = @(
+        "GEWONNEN! Wir haben es geschafft! *wirft virtuelles Konfetti*"
+        "Das Ende. Finito. Aus. Wie ein guter Film. Nur besser."
+        "SIE wartete. Wir kamen. Wir sahen. Wir quakten. (Das Gummihuhn war dabei.)"
+    )
+    jinx_adventure_bored = @(
+        "Wir stehen hier seit 10 Zuegen. Ich habe angefangen, einen Point-and-Click zu programmieren."
+        "Langeweile. Die wahre Gefahr jedes Adventures. Schlimmer als ein Grue."
+        "Koennten wir... irgendetwas tun? Ein Puzzle loesen? Eine Wand anschauen? Beides?"
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -383,6 +414,13 @@ function Get-CompanionLine($Companion, $Context = "default") {
     if (-not $mood) { $mood = "Happy" }
     $tier = if ($Companion.Bond -lt 30) { "Low" } elseif ($Companion.Bond -lt 70) { "Med" } else { "High" }
     $lines = @()
+    # JINX override: 75% chance to use her witty LucasArts-specific contexts
+    if ($Companion.Name -eq "JINX") {
+        $jinxCtx = "jinx_$Context"
+        if ($script:CPMetaLines.ContainsKey($jinxCtx) -and (Get-Random -Maximum 100) -lt 75) {
+            $Context = $jinxCtx
+        }
+    }
     switch ($Context) {
         "talk" {
             $lines = $script:CPQuotes[$Companion.Name].$tier
@@ -451,6 +489,12 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "jinx_adventure" { $lines = $script:CPMetaLines.jinx_adventure }
         "jinx_insult" { $lines = $script:CPMetaLines.jinx_insult }
         "jinx_fourth_wall" { $lines = $script:CPMetaLines.jinx_fourth_wall }
+        "jinx_adventure_hangar" { $lines = $script:CPMetaLines.jinx_adventure_hangar }
+        "jinx_adventure_corridor" { $lines = $script:CPMetaLines.jinx_adventure_corridor }
+        "jinx_adventure_cafeteria" { $lines = $script:CPMetaLines.jinx_adventure_cafeteria }
+        "jinx_adventure_absurd" { $lines = $script:CPMetaLines.jinx_adventure_absurd }
+        "jinx_adventure_victory" { $lines = $script:CPMetaLines.jinx_adventure_victory }
+        "jinx_adventure_bored" { $lines = $script:CPMetaLines.jinx_adventure_bored }
         default {
             $lines = $script:CPMoodLines[$mood]
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }

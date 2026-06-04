@@ -315,6 +315,12 @@ $script:AbsurdCombos = @{
     "artifact|suit"    = "Du steckst das Artefakt in den Raumanzug. Der Anzug beginnt zu leuchten. Und zu summen."
     "crowbar|suit"     = "Du hackst auf den Raumanzug ein. Er ist robust. Du bist es nicht."
     "map|coffee"       = "Du traenkst Kaffee auf der Sternenkarte. Jetzt gibt es einen Kaffeefleck im Nebel-Sektor 7."
+    "rubber_chicken|box"     = "Du steckst das Gummihuhn in die Kiste. Es quakt protestierend. Die Kiste bleibt verschlossen."
+    "rubber_chicken|terminal"= "Du tippst mit dem Gummihuhn auf das Terminal. Es erscheint: 'ERROR: Ungueltige Eingabemethode. Quack.'"
+    "skull|battery"          = "Du haeltst die Batterie an den Schaedel. Die Augenhoehlen leuchten kurz auf. Gruselig. Und cool."
+    "tree|cup"               = "Du stellst den Plastikbaum in die Kaffeetasse. Ein Bonsai fuer unterwegs."
+    "rubber_chicken|suit"    = "Du steckst das Gummihuhn in den Helm des Raumanzugs. Ein Weltraum-Gummihuhn. Das gibt Nobelpreise."
+    "tree|drone"             = "Der Droide betrachtet den Plastikbaum. Seine Optik flackert vor... emotionaler Verwirrung?"
 }
 
 function Test-AbsurdCombo($Item, $Target) {
