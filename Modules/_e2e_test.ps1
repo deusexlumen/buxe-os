@@ -13,7 +13,7 @@ try {
 
 Write-Output ""
 Write-Output "=== VERIFYING FUNCTIONS ==="
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","insult","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
 $missing = @()
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing += $fn }
@@ -214,6 +214,15 @@ try { adv } catch { Write-Output "ADVENTURE FAILED: $_"; exit 1 }
 Disable-MockInput
 Set-Item function:Wait-Enter $origWaitEnter
 Write-Output "ADVENTURE: PASSED"
+
+# Test Insult Swordfighting (quit immediately - requires Bond 30)
+Set-Item function:Wait-Enter { }
+Enable-MockInput
+Queue-MockString "q"
+try { insult } catch { Write-Output "INSULT FAILED: $_"; exit 1 }
+Disable-MockInput
+Set-Item function:Wait-Enter $origWaitEnter
+Write-Output "INSULT: PASSED"
 
 Write-Output ""
 Write-Output "=== ALL E2E CHECKS PASSED ==="

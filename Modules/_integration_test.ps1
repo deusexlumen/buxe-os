@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","handbook","boot","fun","ralph-loop")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","adventure-insult","desktop-pet","handbook","boot","fun","ralph-loop")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0
@@ -180,6 +180,23 @@ $hint = Get-CompanionHint (Get-Room "hangar")
 $hasCompanion = $false
 try { $hasCompanion = (Get-PetState).Companion -ne $null } catch {}
 Test-Assert "Companion gives hint when stuck (hasCompanion=$hasCompanion)" ($hint -ne $null -or -not $hasCompanion)
+
+# Test 25: Desktop Pet functions exist
+Test-Assert "Desktop Pet functions exist" ((Get-Command Get-DesktopPetComment -ErrorAction SilentlyContinue) -ne $null)
+
+# Test 26: Desktop Pet comment generation
+$comment = Get-DesktopPetComment "git push --force"
+Test-Assert "Desktop Pet detects force push" ($comment -ne $null)
+
+# Test 27: Insult Swordfighting functions exist
+Test-Assert "Insult game function exists" ((Get-Command Invoke-InsultGame -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Insult alias exists" ((Get-Command insult -ErrorAction SilentlyContinue) -ne $null)
+
+# Test 28: Insult pairs integrity
+$insults = $script:InsultPairs
+$valid = 0
+foreach ($i in $insults) { if ($i.Insult -and $i.Correct -and $i.Wrongs.Count -eq 3) { $valid++ } }
+Test-Assert "All insult pairs valid (20/20)" ($valid -eq 20)
 
 # Summary
 Write-Host "`n  ========================================" -ForegroundColor Cyan

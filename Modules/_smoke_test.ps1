@@ -268,12 +268,33 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}
 }
 Test-Assert "All modules load" ($loadOk -eq $allMods.Count)
+
+# === DESKTOP PET TESTS ===
+Write-Host "`n  Testing Desktop Pet..." -ForegroundColor Yellow
+. "$modDir\desktop-pet.ps1" 2>$null
+$comment = Get-DesktopPetComment "git push"
+Test-Assert "Desktop Pet comment for git push" ($comment -ne $null)
+$comment = Get-DesktopPetComment "rm -rf /"
+Test-Assert "Desktop Pet comment for rm -rf" ($comment -ne $null)
+$comment = Get-DesktopPetComment "this-command-does-not-exist"
+Test-Assert "Desktop Pet default comment chance" ($comment -eq $null -or $comment -ne $null)  # 10% chance
+
+# === INSULT SWORDFIGHTING TESTS ===
+Write-Host "`n  Testing Insult Swordfighting..." -ForegroundColor Yellow
+. "$modDir\adventure-insult.ps1" 2>$null
+Test-Assert "Insult pairs loaded" ($script:InsultPairs.Count -eq 20)
+Reset-InsultState
+Test-Assert "Insult state reset" ($script:InsultState.PlayerScore -eq 0)
+$round = Get-RandomInsultRound
+Test-Assert "Random insult round has insult" ($round.Insult -ne $null)
+Test-Assert "Random insult round has correct" ($round.Correct -ne $null)
+Test-Assert "Random insult round has 3 wrongs" ($round.Wrongs.Count -eq 3)
 
 # === SUMMARY ===
 Write-Host "`n  ========================================" -ForegroundColor Cyan
