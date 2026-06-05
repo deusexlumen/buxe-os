@@ -7,6 +7,56 @@ $script:PetRaidBosses = @(
     @{ Name = "NET_TITAN"; Type = "ELEC"; HP = 450; ATK = 35; DEF = 25; SPD = 12 }
     @{ Name = "OMEGA_CORE"; Type = "HACK"; HP = 600; ATK = 45; DEF = 30; SPD = 15 }
 )
+$script:RaidShopItems = @(
+    @{ Name = "Omega Chip"; Type = "Chip"; Cost = 15; Desc = "+10 ATK"; ATK = 10 }
+    @{ Name = "Titan Plate"; Type = "Armor"; Cost = 15; Desc = "+10 DEF, +30 HP"; DEF = 10; HP = 30 }
+    @{ Name = "Core Collar"; Type = "Accessory"; Cost = 15; Desc = "+10 SPD"; SPD = 10 }
+    @{ Name = "Golem Heart"; Type = "Consumable"; Cost = 30; Desc = "+15% ALL Stats permanent"; Buff = @{ Stat = "ALL"; Value = 0.15 } }
+    @{ Name = "Reboot Key"; Type = "Consumable"; Cost = 20; Desc = "Reset Raid-Cooldown" }
+)
+
+function Start-RaidShop {
+    $pet = Get-PetState
+    $p = $pet.Pet
+    if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    while ($true) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "RAID TOKEN SHOP" -Double | Out-Null
+        Write-Host "`n  Tokens: $($pet.Pet.RaidTokens)" -ForegroundColor Yellow
+        Write-Host "  Aktiv: $($p.Name) [Lv.$($p.Level)]" -ForegroundColor $p.Color
+        Write-Host ""
+        for ($i = 0; $i -lt $script:RaidShopItems.Count; $i++) {
+            $it = $script:RaidShopItems[$i]
+            Write-Host "  [$($i+1)] $($it.Name) [$($it.Type)] — $($it.Cost) Tokens | $($it.Desc)" -ForegroundColor White
+        }
+        Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
+        $c = Read-Choice "Waehle" "^([1-$($script:RaidShopItems.Count)]|Q)$"
+        if ($c -eq 'Q') { return }
+        $item = $script:RaidShopItems[[int]$c - 1]
+        if ($pet.Pet.RaidTokens -lt $item.Cost) {
+            Write-Host "`n  Nicht genug Tokens!" -ForegroundColor Red
+            Wait-Enter
+            continue
+        }
+        $pet.Pet.RaidTokens -= $item.Cost
+        if ($item.Type -eq "Consumable" -and $item.Name -eq "Reboot Key") {
+            $pet.Pet.RaidCleared = ""
+            Write-Host "`n  Raid-Cooldown zurueckgesetzt!" -ForegroundColor Magenta
+        } elseif ($item.Type -eq "Consumable" -and $item.Name -eq "Golem Heart") {
+            $p.MaxHP += [math]::Round($p.MaxHP * $item.Buff.Value)
+            $p.ATK += [math]::Round($p.ATK * $item.Buff.Value)
+            $p.DEF += [math]::Round($p.DEF * $item.Buff.Value)
+            $p.SPD += [math]::Round($p.SPD * $item.Buff.Value)
+            Write-Host "`n  Golem Heart konsumiert! Permanente +15% ALL Stats!" -ForegroundColor Magenta
+        } else {
+            $slot = $item.Type.ToLower()
+            $p.Equipment.$slot = $item.Name
+            Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
+        }
+        Save-PetState $pet
+        Wait-Enter
+    }
+}
 
 function Start-PetRaid {
     $pet = Get-PetState
@@ -23,9 +73,10 @@ function Start-PetRaid {
         if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "raid_start") -Fast }
         if ($pet.Pet.RaidCleared -eq $today) { Write-Host "  [Heute bereits versucht]" -ForegroundColor Red }
         else { Write-Host "  [Verfuegbar]" -ForegroundColor Green }
-        Write-Host "`n  [1] Raid starten | [Q] Zurueck" -ForegroundColor White
-        $c = Read-Choice "Waehle" '^[1Q]$'
+        Write-Host "`n  [1] Raid starten | [2] Token-Shop | [Q] Zurueck" -ForegroundColor White
+        $c = Read-Choice "Waehle" '^[12Q]$'
         if ($c -eq 'Q') { return }
+        if ($c -eq '2') { Start-RaidShop; continue }
         if ($pet.Pet.RaidCleared -eq $today) { Write-Host "`n  Heute schon versucht!" -ForegroundColor Red; Wait-Enter; continue }
         Invoke-PetRaidBattle $pet $p
     }

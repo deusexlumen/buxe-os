@@ -132,9 +132,25 @@ function Start-PetTutorialFight {
 function Get-EffectiveStats($p, $companion = $null) {
     $eq = $p.Equipment
     $hp = 0; $atk = 0; $def = 0; $spd = 0
-    if ($eq.Armor) { $atk += 3; $hp += 10 }
-    if ($eq.Chip) { $atk += 3 }
-    if ($eq.Accessory) { $spd += 3 }
+    # Resolve equipment from shop tables
+    $allItems = @($script:PetShopItems) + @($script:RaidShopItems)
+    foreach ($slot in @("Armor","Chip","Accessory")) {
+        $itemName = $eq.$slot
+        if ($itemName) {
+            $item = $allItems | Where-Object { $_.Name -eq $itemName } | Select-Object -First 1
+            if ($item) {
+                if ($item.ATK) { $atk += $item.ATK }
+                if ($item.DEF) { $def += $item.DEF }
+                if ($item.HP) { $hp += $item.HP }
+                if ($item.SPD) { $spd += $item.SPD }
+            } else {
+                # Fallback for unknown items
+                if ($slot -eq "Armor") { $atk += 3; $hp += 10 }
+                if ($slot -eq "Chip") { $atk += 3 }
+                if ($slot -eq "Accessory") { $spd += 3 }
+            }
+        }
+    }
     if ($p.Personality -eq "Aggressive") { $atk = [math]::Round($atk * 1.1) }
     if ($p.Personality -eq "Defensive") { $def = [math]::Round($def * 1.1) }
     if ($p.Personality -eq "Speedster") { $spd = [math]::Round($spd * 1.15) }
