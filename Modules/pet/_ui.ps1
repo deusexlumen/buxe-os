@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
+# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
 # LucasArts-Style Frames, Companion Dialogs, Easter Eggs
 
 try {
@@ -376,6 +376,35 @@ $script:CPMetaLines = @{
         "Langeweile. Die wahre Gefahr jedes Adventures. Schlimmer als ein Grue."
         "Koennten wir... irgendetwas tun? Ein Puzzle loesen? Eine Wand anschauen? Beides?"
     )
+    pvp_win = @(
+        "GEWONNEN! Wir sind das beste Team seit Prozessor und RAM!"
+        "Sieg! Die Gegner waren... pathetisch. Wie erwartet."
+        "Das nenne ich PvP. Persoenlicher virtueller Pew-pew."
+        "Rank up! Wir steigen auf! Wie meine Temperatur."
+    )
+    pvp_loss = @(
+        "Niederlage. Aber wir haben gelernt. Oder zumindest gelitten."
+        "Das war knapp. Zu knapp. Wie mein Speicherplatz."
+        "Naechstes Mal. Wir kommen zurueck. Staerker. Mit besserem Ping."
+        "Verlieren ist auch eine Strategie. Nicht eine gute, aber eine."
+    )
+    raid_start = @(
+        "Ein Raid. Drei Phasen. Kein Save Point. Mein Herz... aeh, mein Prozessor rennt."
+        "Bosskampf! Endlich etwas, das sich bewegt. Naja, virtuell."
+        "Dieser Raid ist nicht fuer Anfaenger. Gut, dass wir Profis sind."
+        "Drei Bosse. Ein Ziel. Ueberleben. Klingt nach einem Dienstag."
+    )
+    raid_phase = @(
+        "Phase geschafft! Weiter geht's!"
+        "Der Boss hat Phase 2 erreicht. Er wird staerker. Wir auch."
+        "Fast geschafft! Die Datenlage verbessert sich."
+    )
+    raid_complete = @(
+        "RAID COMPLETE! Wir haben es geschafft! Das Artefakt... aeh, der Loot!"
+        "Drei Bosse. Null Niederlagen. Das nenne ich Effizienz."
+        "Wir sind Legenden. Virtuelle Legenden. Aber trotzdem."
+        "Der Raid ist vorbei. Die Erinnerung bleibt. Und der Loot."
+    )
 }
 
 function Show-PetFrame($Title, [switch]$Double) {
@@ -484,6 +513,11 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "adventure_quarters" { $lines = $script:CPMetaLines.adventure_quarters }
         "adventure_observatory" { $lines = $script:CPMetaLines.adventure_observatory }
         "adventure_core" { $lines = $script:CPMetaLines.adventure_core }
+        "pvp_win" { $lines = $script:CPMetaLines.pvp_win }
+        "pvp_loss" { $lines = $script:CPMetaLines.pvp_loss }
+        "raid_start" { $lines = $script:CPMetaLines.raid_start }
+        "raid_phase" { $lines = $script:CPMetaLines.raid_phase }
+        "raid_complete" { $lines = $script:CPMetaLines.raid_complete }
         "jinx_first_boot" { $lines = $script:CPMetaLines.jinx_first_boot }
         "jinx_casino" { $lines = $script:CPMetaLines.jinx_casino }
         "jinx_adventure" { $lines = $script:CPMetaLines.jinx_adventure }

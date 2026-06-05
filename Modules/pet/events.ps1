@@ -137,6 +137,10 @@ $script:PetQuestPool = @(
     @{ Type = "gift"; Text = "Gib deinem Companion 1 Geschenk."; Target = 1; RewardGold = 30; RewardBond = 6 }
     @{ Type = "casino"; Text = "Spiele 1 Casino-Spiel."; Target = 1; RewardGold = 25; RewardBond = 4 }
     @{ Type = "train"; Text = "Trainiere 1x."; Target = 1; RewardGold = 25; RewardBond = 5 }
+    @{ Type = "pvp"; Text = "Gewinne 1 PvP-Kampf."; Target = 1; RewardGold = 50; RewardBond = 10 }
+    @{ Type = "raid"; Text = "Erreiche Raid Phase 2."; Target = 1; RewardGold = 60; RewardBond = 12 }
+    @{ Type = "cook"; Text = "Koche 1 Gericht fuer dein Pet."; Target = 1; RewardGold = 20; RewardBond = 4 }
+    @{ Type = "shop"; Text = "Kaufe 1 Item im Shop."; Target = 1; RewardGold = 15; RewardBond = 3 }
 )
 
 function Get-DailyQuests {

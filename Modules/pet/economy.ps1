@@ -41,6 +41,7 @@ function Start-PetShop {
         $p.Equipment.$slot = $item.Name
         $pet.Economy.Gold -= $item.Cost
         Save-PetState $pet
+        Check-QuestProgress "shop"
         Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
         Wait-Enter
     }
@@ -76,6 +77,7 @@ function Start-PetCook {
         Write-Host "`n  BONUS DISH! Mystery Stew gezaubert!" -ForegroundColor Magenta
     }
     Save-PetState $pet
+    Check-QuestProgress "cook"
     Show-CompanionDialog $cp "Mmm, das riecht gut! Ich habe mein Bestes gegeben!" -Fast
     Write-Host "  $($recipe.Name) fuer $($p.Name)! Naechster Kampf: $($recipe.Desc)" -ForegroundColor Green
     Wait-Enter

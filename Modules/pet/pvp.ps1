@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — PET PvP v2.0
+# BUXE_OS v24.2 — PET PvP v2.0
 
 try {
 
@@ -60,14 +60,28 @@ function Start-PetPvP {
     try { Clear-Host } catch {}
     if ($ps -gt $es) {
         $gain = 20 + $rankIdx * 10; $pet.Pet.PvPPoints += $gain; $pet.Pet.PvPWins++
-        $gold = Get-Random -Minimum 10 -Maximum 26
+        $gold = Get-Random -Minimum (15 + $rankIdx * 5) -Maximum (31 + $rankIdx * 10)
         $pet.Economy.Gold += $gold
-        Write-Host "`n  GEWONNEN! +$gain Pts | +$gold G" -ForegroundColor Green
-        Add-PetXP 15 "PvP Win"
+        # Loot drop chance increases with rank
+        $lootChance = 15 + $rankIdx * 10
+        $lootText = ""
+        if ((Get-Random -Maximum 100) -lt $lootChance) {
+            $lootItems = @("Scrap Metal","Data Shard","Energy Cell","Rare Chip","Boss Core")
+            $loot = $lootItems[$rankIdx]
+            $pet.Economy.Inventory += $loot
+            $lootText = " | Loot: $loot"
+        }
+        # Companion sync bonus on win
+        if ($pet.Companion) { $pet.Companion.Sync += 2 }
+        Write-Host "`n  GEWONNEN! +$gain Pts | +$gold G$lootText" -ForegroundColor Green
+        Add-PetXP (15 + $rankIdx * 2) "PvP Win"
+        Check-QuestProgress "pvp"
+        if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "pvp_win") -Fast }
     } elseif ($ps -lt $es) {
         $pet.Pet.PvPPoints = [math]::Max(0, $pet.Pet.PvPPoints - 10)
         Write-Host "`n  NIEDERLAGE..." -ForegroundColor Red
         Add-PetXP 5 "PvP Loss"
+        if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "pvp_loss") -Fast }
     } else {
         Write-Host "`n  UNENTSCHIEDEN!" -ForegroundColor Yellow
         Add-PetXP 8 "PvP Draw"

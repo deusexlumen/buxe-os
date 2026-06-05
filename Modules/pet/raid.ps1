@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — PET RAID v2.0
+# BUXE_OS v24.2 — PET RAID v2.0
 
 try {
 
@@ -20,6 +20,7 @@ function Start-PetRaid {
     try { Clear-Host } catch {}
         Show-PetFrame "RAID DUNGEON" -Double | Out-Null
         Write-Host "`n  Tokens: $($pet.Pet.RaidTokens) | Beste Phase: $($pet.Pet.RaidBest)" -ForegroundColor Yellow
+        if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "raid_start") -Fast }
         if ($pet.Pet.RaidCleared -eq $today) { Write-Host "  [Heute bereits versucht]" -ForegroundColor Red }
         else { Write-Host "  [Verfuegbar]" -ForegroundColor Green }
         Write-Host "`n  [1] Raid starten | [Q] Zurueck" -ForegroundColor White
@@ -82,9 +83,12 @@ function Invoke-PetRaidBattle($pet, $p) {
         } else {
             $tokens += switch ($phase) { 1 { 1 } 2 { 3 } 3 { 10 } }
             Write-Host "`n  PHASE $phase GESCHAFFT!" -ForegroundColor Green
+            if ($phase -ge 2) { Check-QuestProgress "raid" }
+            if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "raid_phase") -Fast }
             if ($phase -eq 3) {
                 Write-Host "  *** RAID COMPLETE! ***" -ForegroundColor Magenta
                 Add-PetXP 100 "Raid Complete"
+                if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "raid_complete") -Fast }
             } else { Start-Sleep -Seconds 1 }
         }
         $phase++
