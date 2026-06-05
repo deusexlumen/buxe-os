@@ -191,11 +191,14 @@ function wordle {
         # Hard mode validation
         if ($hardMode -and $mustUse.Count -gt 0) {
             $validGuess = $true
+            $guessCounts = @{}
+            foreach ($c in $guess.ToCharArray()) { $guessCounts[$c] = ($guessCounts[$c] + 1) }
             foreach ($req in $mustUse) {
                 if ($req.Position -ne $null) {
                     if ($guess[$req.Position] -ne $req.Letter) { $validGuess = $false; break }
                 } else {
-                    if (-not $guess.Contains($req.Letter)) { $validGuess = $false; break }
+                    $yellowCount = ($mustUse | Where-Object { $_.Letter -eq $req.Letter -and $_.Position -eq $null }).Count
+                    if (($guessCounts[$req.Letter] -or 0) -lt $yellowCount) { $validGuess = $false; break }
                 }
             }
             if (-not $validGuess) {

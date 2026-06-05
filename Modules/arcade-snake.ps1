@@ -36,14 +36,14 @@ function snake {
     $inputHandler = {
         param($evt, $tick)
         switch ($evt.Key) {
-            'W' { if ($game.Dir -ne "DOWN") { $game.NextDir = "UP" } }
-            'S' { if ($game.Dir -ne "UP") { $game.NextDir = "DOWN" } }
-            'A' { if ($game.Dir -ne "RIGHT") { $game.NextDir = "LEFT" } }
-            'D' { if ($game.Dir -ne "LEFT") { $game.NextDir = "RIGHT" } }
-            'UpArrow' { if ($game.Dir -ne "DOWN") { $game.NextDir = "UP" } }
-            'DownArrow' { if ($game.Dir -ne "UP") { $game.NextDir = "DOWN" } }
-            'LeftArrow' { if ($game.Dir -ne "RIGHT") { $game.NextDir = "LEFT" } }
-            'RightArrow' { if ($game.Dir -ne "LEFT") { $game.NextDir = "RIGHT" } }
+            'W' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP" } }
+            'S' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN" } }
+            'A' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT" } }
+            'D' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT" } }
+            'UpArrow' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP" } }
+            'DownArrow' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN" } }
+            'LeftArrow' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT" } }
+            'RightArrow' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT" } }
             'Escape' { $game.Over = $true; return 'QUIT' }
         }
     }

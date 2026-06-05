@@ -46,14 +46,14 @@ function arcade {
     param([string]$Game)
     if ($Game) {
         switch ($Game.ToLower()) {
-            "tetris" { Start-Tetris }
-            "snake" { Start-Snake }
-            "minesweeper" { Start-Minesweeper }
-            "breakout" { Start-Breakout }
-            "wordle" { Start-Wordle }
-            "monkeytype" { Start-MonkeyType }
-            "zork" { Start-Zork }
-            "hangman" { Start-Hangman }
+            "tetris" { tetris }
+            "snake" { snake }
+            "minesweeper" { minesweeper }
+            "breakout" { breakout }
+            "wordle" { wordle }
+            "monkeytype" { monkeytype }
+            "zork" { zork }
+            "hangman" { hangman }
             "2048" { Start-Game2048 }
             "dino" { Start-DinoJump }
             "memory" { Start-MemoryMatch }
@@ -82,14 +82,14 @@ function arcade {
         Write-Host "  [S] Stats Overview  |  [Q] Exit" -ForegroundColor DarkGray
         $c = Read-Choice "Waehle" '^[1234567890MSQ]$'
         switch ($c) {
-            '1' { Start-Tetris }
-            '2' { Start-Snake }
-            '3' { Start-Minesweeper }
-            '4' { Start-Breakout }
-            '5' { Start-Wordle }
-            '6' { Start-MonkeyType }
-            '7' { Start-Zork }
-            '8' { Start-Hangman }
+            '1' { tetris }
+            '2' { snake }
+            '3' { minesweeper }
+            '4' { breakout }
+            '5' { wordle }
+            '6' { monkeytype }
+            '7' { zork }
+            '8' { hangman }
             '9' { Start-Game2048 }
             '0' { Start-DinoJump }
             'M' { Start-MemoryMatch }

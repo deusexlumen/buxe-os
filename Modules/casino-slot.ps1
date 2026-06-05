@@ -105,7 +105,6 @@ function slot {
         if (-not $stats.TotalWon) { $stats.TotalWon = 0 }
         if (-not $stats.TotalSpent) { $stats.TotalSpent = 0 }
 
-        Set-Bankroll (-$bet) -TrackCasino
         $stats.TotalSpent += $bet
         $stats.Spins++
         $stats.ProgressiveJackpot += [math]::Floor($bet * 0.01)

@@ -16,18 +16,16 @@ function craps {
         Add-SceneText $s 4 2 "Bet: $bet G" 'DarkGray'
         Add-SceneText $s 4 4 "[1] Pass Line     -> 7/11 gewinnt, 2/3/12 verliert" 'White'
         Add-SceneText $s 4 5 "[2] Don't Pass    -> 2/3 gewinnt, 7/11 verliert, 12 Push" 'White'
-        Add-SceneText $s 4 6 "[3] Come          -> Wie Pass, nach Come-out" 'White'
-        Add-SceneText $s 4 7 "[4] Don't Come    -> Wie Don't Pass, nach Come-out" 'White'
-        Add-SceneText $s 4 8 "[5] Odds          -> True Odds hinter Pass/Come" 'White'
-        Add-SceneText $s 4 9 "[6] Place Bet     -> Auf Zahl setzen (4,5,6,8,9,10)" 'White'
-        Add-SceneText $s 4 10 "[7] Field         -> Ein-Wurf (2,3,4,9,10,11,12)" 'White'
-        Add-SceneText $s 4 12 "[Q]uit" 'DarkGray'
+        Add-SceneText $s 4 6 "[3] Odds          -> True Odds hinter Pass (Point noetig)" 'White'
+        Add-SceneText $s 4 7 "[4] Place Bet     -> Auf Zahl setzen (4,5,6,8,9,10)" 'White'
+        Add-SceneText $s 4 8 "[5] Field         -> Ein-Wurf (2,3,4,9,10,11,12)" 'White'
+        Add-SceneText $s 4 10 "[Q]uit" 'DarkGray'
         Show-Scene $s -Force
 
-        $type = Read-GameChoice "" "^[1234567PDCNOFAQ]$"
+        $type = Read-GameChoice "" "^[12345PDOAFQ]$"
         if ($type -eq 'Q') { return @{ Win = 0; Loss = 0; Stats = $stats } }
 
-        $typeMap = @{ 'P' = '1'; 'D' = '2'; 'C' = '3'; 'N' = '4'; 'O' = '5'; 'A' = '6'; 'F' = '7' }
+        $typeMap = @{ 'P' = '1'; 'D' = '2'; 'O' = '3'; 'A' = '4'; 'F' = '5' }
         if ($typeMap[$type]) { $type = $typeMap[$type] }
 
         $won = $false; $lost = $false; $push = $false
@@ -47,7 +45,7 @@ function craps {
             Add-SceneFrame $rs 20 3 8 5 "" 'White'
             Add-SceneText $rs 23 5 "$($dice[1])" 'Cyan'
             Add-SceneText $rs 32 5 "= $sum" 'Yellow'
-            Add-SceneText $rs 4 9 $(switch ($type) { "1" { "Pass Line" } "2" { "Don't Pass" } "3" { "Come" } "4" { "Don't Come" } }) 'DarkGray'
+            Add-SceneText $rs 4 9 $(switch ($type) { "1" { "Pass Line" } "2" { "Don't Pass" } }) 'DarkGray'
             Show-Scene $rs -Force
             Start-Sleep -Milliseconds 600
 
@@ -63,21 +61,9 @@ function craps {
                     elseif ($sum -in @(7,11)) { $lost = $true }
                     else { $point = $sum }
                 }
-                "3" {
-                    if ($sum -in @(7,11)) { $won = $true }
-                    elseif ($sum -in @(2,3)) { $lost = $true }
-                    elseif ($sum -eq 12) { $push = $true }
-                    else { $point = $sum }
-                }
-                "4" {
-                    if ($sum -in @(2,3)) { $won = $true }
-                    elseif ($sum -eq 12) { $push = $true }
-                    elseif ($sum -in @(7,11)) { $lost = $true }
-                    else { $point = $sum }
-                }
             }
         }
-        elseif ($type -eq "5") {
+        elseif ($type -eq "3") {
             $os = New-Scene $w $h
             Add-SceneFrame $os 0 0 $w $h "CRAPS" 'Cyan' -Double
             Add-SceneText $os 4 2 "Odds Bet: $bet G" 'DarkGray'
@@ -94,7 +80,7 @@ function craps {
                 return @{ Win = 0; Loss = 0; Stats = $stats }
             }
         }
-        elseif ($type -eq "6") {
+        elseif ($type -eq "4") {
             $os = New-Scene $w $h
             Add-SceneFrame $os 0 0 $w $h "CRAPS" 'Cyan' -Double
             Add-SceneText $os 4 2 "Place Bet: $bet G" 'DarkGray'
@@ -111,7 +97,7 @@ function craps {
                 return @{ Win = 0; Loss = 0; Stats = $stats }
             }
         }
-        elseif ($type -eq "7") {
+        elseif ($type -eq "5") {
             $dice = New-DiceRoll 2 6
             $sum = Get-DiceSum $dice
 
@@ -208,16 +194,14 @@ function craps {
             switch ($type) {
                 "1" { $winAmount = $bet }
                 "2" { $winAmount = $bet }
-                "3" { $winAmount = $bet }
-                "4" { $winAmount = $bet }
-                "5" {
+                "3" {
                     switch ($point) {
                         { $_ -in @(4,10) } { $winAmount = [math]::Floor($bet * 2) }
                         { $_ -in @(5,9) } { $winAmount = [math]::Floor($bet * 3 / 2) }
                         { $_ -in @(6,8) } { $winAmount = [math]::Floor($bet * 6 / 5) }
                     }
                 }
-                "6" {
+                "4" {
                     switch ($point) {
                         { $_ -in @(4,10) } { $winAmount = [math]::Floor($bet * 9 / 5) }
                         { $_ -in @(5,9) } { $winAmount = [math]::Floor($bet * 7 / 5) }

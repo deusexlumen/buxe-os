@@ -140,7 +140,8 @@ function monkeytype {
         if ($tc -eq $ic) { $correct++ }
     }
     $accuracy = if ($total -gt 0) { [math]::Round(($correct / $total) * 100) } else { 0 }
-    $wpm = [math]::Round(($target.Split(' ').Count / $seconds) * 60)
+    $typedWords = if ($trimmedInput.Length -gt 0) { [math]::Max(1, $trimmedInput.Split(' ').Count) } else { 0 }
+    $wpm = if ($seconds -gt 0) { [math]::Round((($typedWords / $seconds) * 60)) } else { 0 }
     
     try { Clear-Host } catch {}
     Show-Frame "MONKEYTYPE" -Double | Out-Null
