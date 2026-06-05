@@ -8,19 +8,20 @@ function uptime {
 }
 function weather { 
     try { 
-        $r = Invoke-RestMethod "wttr.in/?format=3" -TimeoutSec 8
+        $r = Invoke-RestMethod "https://wttr.in/?format=3" -TimeoutSec 8
         Write-Host "`n  Wetter: $r`n" -ForegroundColor Cyan
     } catch { 
         Write-Host "  Wetter-API nicht erreichbar." -ForegroundColor DarkGray 
     }
 }
 function ip {
-    try {
-        $r = Invoke-RestMethod "https://ipinfo.io/json" -TimeoutSec 5
-        Write-Host "`n  Public IP: $($r.ip)" -ForegroundColor Cyan
-        Write-Host "  $($r.city), $($r.region), $($r.country)" -ForegroundColor DarkGray
-        Write-Host "  $($r.org)`n" -ForegroundColor DarkGray
-    } catch { Write-Host "  IP-API nicht erreichbar." -ForegroundColor DarkGray }
+    $local = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | Select-Object -First 1
+    if ($local) {
+        Write-Host "`n  Local IP: $($local.IPAddress)" -ForegroundColor Cyan
+        Write-Host "  Interface: $($local.InterfaceAlias)`n" -ForegroundColor DarkGray
+    } else {
+        Write-Host "`n  Keine lokale IPv4 gefunden.`n" -ForegroundColor DarkGray
+    }
 }
 function port { param($p); Test-NetConnection -ComputerName localhost -Port $p }
 function mem {
@@ -40,6 +41,44 @@ function sysinfo {
 function sudo { Start-Process pwsh -Verb runAs }
 function reload { . $PROFILE }
 function profile { notepad $PROFILE }
+function guide { notepad (Join-Path (Split-Path $PROFILE) "GUIDE.md") }
+
+# === DEV WORKFLOW ALIASES ===
+function kill-node {
+    $procs = Get-Process -Name "node" -ErrorAction SilentlyContinue
+    if ($procs) {
+        $procs | Stop-Process -Force
+        Write-Host "  $(($procs | Measure-Object).Count) Node.js Prozess(e) beendet." -ForegroundColor Green
+    } else {
+        Write-Host "  Keine Node.js Prozesse laufen." -ForegroundColor DarkGray
+    }
+}
+function kill-port {
+    param([int]$Port)
+    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $conn) { Write-Host "  Port $Port ist frei." -ForegroundColor DarkGray; return }
+    $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+    if ($proc) {
+        $proc | Stop-Process -Force
+        Write-Host "  Prozess $($proc.ProcessName) (PID $($proc.Id)) auf Port $Port beendet." -ForegroundColor Green
+    }
+}
+function npmo { npm outdated }
+function size {
+    param([string]$Path = ".")
+    $items = Get-ChildItem $Path -Recurse -File -ErrorAction SilentlyContinue
+    $bytes = ($items | Measure-Object -Property Length -Sum).Sum
+    $size = if ($bytes -gt 1GB) { "{0:N2} GB" -f ($bytes / 1GB) } elseif ($bytes -gt 1MB) { "{0:N2} MB" -f ($bytes / 1MB) } else { "{0:N2} KB" -f ($bytes / 1KB) }
+    Write-Host "`n  $Path = $size ($($items.Count) Dateien)`n" -ForegroundColor Cyan
+}
+function tmp-clean {
+    $before = (Get-ChildItem $env:TEMP -Recurse -ErrorAction SilentlyContinue | Measure-Object).Count
+    Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+    $after = (Get-ChildItem $env:TEMP -Recurse -ErrorAction SilentlyContinue | Measure-Object).Count
+    Write-Host "`n  Temp bereinigt: $before -> $after Dateien/Ordner uebrig.`n" -ForegroundColor Green
+}
+function flush-dns { ipconfig /flushdns | Out-Null; Write-Host "`n  DNS-Cache geleert.`n" -ForegroundColor Green }
+function empty-bin { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host "`n  Papierkorb geleert.`n" -ForegroundColor Green }
 
 } catch {
     Write-Host "[engine-aliases-sys] CRITICAL ERROR: $($_)" -ForegroundColor Red

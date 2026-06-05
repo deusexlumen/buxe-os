@@ -49,20 +49,21 @@ if ($script:SessionStart) {
 
 Write-Output ""
 Write-Output "=== GAME FLOW TESTS ==="
+$e2eErrors = @()
 
 # Test Zork (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
-try { zork } catch { Write-Output "ZORK FAILED: $_"; exit 1 }
+try { zork } catch { Write-Output "ZORK FAILED: $_"; $e2eErrors += "zork" }
 Disable-MockInput
-Write-Output "ZORK: PASSED"
+if ($e2eErrors -notcontains "zork") { Write-Output "ZORK: PASSED" }
 
 # Test Rogue (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
-try { rogue } catch { Write-Output "ROGUE FAILED: $_"; exit 1 }
+try { rogue } catch { Write-Output "ROGUE FAILED: $_"; $e2eErrors += "rogue" }
 Disable-MockInput
-Write-Output "ROGUE: PASSED"
+if ($e2eErrors -notcontains "rogue") { Write-Output "ROGUE: PASSED" }
 
 # Helper: mock Read-Bet to return bet once then 0
 function Mock-ReadBetOnce($bet) {
@@ -82,7 +83,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "C"
-try { hilo } catch { Write-Output "HILO FAILED: $_"; Write-Output "STACK: $($_.ScriptStackTrace)"; exit 1 }
+try { hilo } catch { Write-Output "HILO FAILED: $_"; Write-Output "STACK: $($_.ScriptStackTrace)"; $e2eErrors += "hilo" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -93,7 +94,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput " "
-try { slot } catch { Write-Output "SLOT FAILED: $_"; exit 1 }
+try { slot } catch { Write-Output "SLOT FAILED: $_"; $e2eErrors += "slot" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -102,7 +103,7 @@ Write-Output "SLOT: PASSED"
 # Test Minesweeper (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
-try { minesweeper } catch { Write-Output "MINESWEEPER FAILED: $_"; exit 1 }
+try { minesweeper } catch { Write-Output "MINESWEEPER FAILED: $_"; $e2eErrors += "minesweeper" }
 Disable-MockInput
 Write-Output "MINESWEEPER: PASSED"
 
@@ -111,7 +112,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "Q"
-try { blackjack } catch { Write-Output "BLACKJACK FAILED: $_"; exit 1 }
+try { blackjack } catch { Write-Output "BLACKJACK FAILED: $_"; $e2eErrors += "blackjack" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -122,7 +123,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "F"
-try { poker } catch { Write-Output "POKER FAILED: $_"; exit 1 }
+try { poker } catch { Write-Output "POKER FAILED: $_"; $e2eErrors += "poker" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -131,7 +132,7 @@ Write-Output "POKER: PASSED"
 # Test Tower Defense (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
-try { td } catch { Write-Output "TD FAILED: $_"; exit 1 }
+try { td } catch { Write-Output "TD FAILED: $_"; $e2eErrors += "td" }
 Disable-MockInput
 Write-Output "TD: PASSED"
 
@@ -140,7 +141,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "1Q"
-try { roulette } catch { Write-Output "ROULETTE FAILED: $_"; exit 1 }
+try { roulette } catch { Write-Output "ROULETTE FAILED: $_"; $e2eErrors += "roulette" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -151,7 +152,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "PQ"
-try { craps } catch { Write-Output "CRAPS FAILED: $_"; exit 1 }
+try { craps } catch { Write-Output "CRAPS FAILED: $_"; $e2eErrors += "craps" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -162,7 +163,7 @@ Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "BQ"
-try { baccarat } catch { Write-Output "BACCARAT FAILED: $_"; exit 1 }
+try { baccarat } catch { Write-Output "BACCARAT FAILED: $_"; $e2eErrors += "baccarat" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
 Set-Item function:Wait-Enter $origWaitEnter
@@ -171,14 +172,14 @@ Write-Output "BACCARAT: PASSED"
 # Test Snake (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
-try { snake } catch { Write-Output "SNAKE FAILED: $_"; exit 1 }
+try { snake } catch { Write-Output "SNAKE FAILED: $_"; $e2eErrors += "snake" }
 Disable-MockInput
 Write-Output "SNAKE: PASSED"
 
 # Test Wordle (quit on first guess)
 Enable-MockInput
 Queue-MockString "Q"
-try { wordle } catch { Write-Output "WORDLE FAILED: $_"; exit 1 }
+try { wordle } catch { Write-Output "WORDLE FAILED: $_"; $e2eErrors += "wordle" }
 Disable-MockInput
 Write-Output "WORDLE: PASSED"
 
@@ -186,7 +187,7 @@ Write-Output "WORDLE: PASSED"
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockInput "Q"
-try { monkeytype } catch { Write-Output "MONKEYTYPE FAILED: $_"; exit 1 }
+try { monkeytype } catch { Write-Output "MONKEYTYPE FAILED: $_"; $e2eErrors += "monkeytype" }
 Disable-MockInput
 Set-Item function:Wait-Enter $origWaitEnter
 Write-Output "MONKEYTYPE: PASSED"
@@ -195,14 +196,14 @@ Write-Output ""
 # Test Tetris (quit on start screen)
 Enable-MockInput
 Queue-MockInput "Q"
-try { tetris } catch { Write-Output "TETRIS FAILED: $_"; exit 1 }
+try { tetris } catch { Write-Output "TETRIS FAILED: $_"; $e2eErrors += "tetris" }
 Disable-MockInput
 Write-Output "TETRIS: PASSED"
 
 # Test Breakout (quit on start screen)
 Enable-MockInput
 Queue-MockInput "Q"
-try { breakout } catch { Write-Output "BREAKOUT FAILED: $_"; exit 1 }
+try { breakout } catch { Write-Output "BREAKOUT FAILED: $_"; $e2eErrors += "breakout" }
 Disable-MockInput
 Write-Output "BREAKOUT: PASSED"
 
@@ -210,7 +211,7 @@ Write-Output "BREAKOUT: PASSED"
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockString "quit"
-try { adv } catch { Write-Output "ADVENTURE FAILED: $_"; exit 1 }
+try { adv } catch { Write-Output "ADVENTURE FAILED: $_"; $e2eErrors += "adventure" }
 Disable-MockInput
 Set-Item function:Wait-Enter $origWaitEnter
 Write-Output "ADVENTURE: PASSED"
@@ -219,7 +220,7 @@ Write-Output "ADVENTURE: PASSED"
 Set-Item function:Wait-Enter { }
 Enable-MockInput
 Queue-MockString "q"
-try { insult } catch { Write-Output "INSULT FAILED: $_"; exit 1 }
+try { insult } catch { Write-Output "INSULT FAILED: $_"; $e2eErrors += "insult" }
 Disable-MockInput
 Set-Item function:Wait-Enter $origWaitEnter
 Write-Output "INSULT: PASSED"
@@ -241,4 +242,8 @@ if ($script:InsultPairs.Count -eq 29) {
 }
 
 Write-Output ""
+if ($e2eErrors.Count -gt 0) {
+    Write-Output "=== E2E FAILURES: $($e2eErrors -join ', ') ==="
+    exit 1
+}
 Write-Output "=== ALL E2E CHECKS PASSED ==="

@@ -119,6 +119,7 @@ $preBackups = Get-ChildItem $corruptBackupPattern -ErrorAction SilentlyContinue
 
 # Corrupt the file
 "THIS IS NOT JSON {{{" | Out-File $script:BuxeStateFile -Encoding utf8 -Force
+Start-Sleep -Milliseconds 100
 $script:BuxeStateLoadedAt = $null
 Load-State
 

@@ -202,14 +202,7 @@ function Render-Frame($Frame, [switch]$ForceFull) {
 # === LEGACY COMPATIBILITY ===
 # Show-Frame und Show-Bar existieren weiterhin, nutzen aber den Renderer.
 
-function Show-FrameLegacy($Title, [switch]$Double) {
-    $w = [math]::Min(50, $Host.UI.RawUI.WindowSize.Width - 4)
-    $h = 3
-    $f = New-Frame $w $h
-    Draw-FrameBorder $f 0 0 $w $h 'Cyan' -Double:$Double
-    Draw-FrameTitle $f 0 0 $w $Title 'Cyan'
-    Render-Frame $f -ForceFull
-}
+# REMOVED: Show-FrameLegacy was never called. TUI games use New-Scene directly.
 
 } catch {
     Write-Host "[engine-render] CRITICAL ERROR: $_" -ForegroundColor Red

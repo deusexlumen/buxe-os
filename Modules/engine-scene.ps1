@@ -118,15 +118,8 @@ function New-MenuScene($Title, $Options) {
 }
 
 # === LEGACY COMPATIBILITY ===
-# Bestehende Show-Frame/Show-Bar Funktionen nutzen jetzt den Renderer.
-
-function Show-Frame($Title, [switch]$Double) {
-    $w = [math]::Min(50, $Host.UI.RawUI.WindowSize.Width - 4)
-    $h = 3
-    $s = New-Scene $w $h
-    Add-SceneFrame $s 0 0 $w $h $Title 'Cyan' -Double:$Double
-    Show-Scene $s -Force
-}
+# NOTE: Show-Frame lives in engine-ui.ps1 (ASCII frames).
+# TUI games use New-Scene + Add-ToScene + Show-Scene directly.
 
 function Show-BarLegacy($Current, $Max, $Width = 20) {
     $f = New-Frame $Width 1

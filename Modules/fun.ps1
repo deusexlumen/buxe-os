@@ -3,24 +3,29 @@
 try {
 
 # === TTS ===
-function say { param($t); Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak($t) }
-function voice { param($t); if (-not $t) { $t = Read-Host "Text" }; try { edge-tts --text "$t" --write-media "$env:TEMP\voice.mp3" --voice "en-US-AriaNeural" | Out-Null; ffplay -nodisp -autoexit "$env:TEMP\voice.mp3" 2>$null } catch { say $t } }
-function clip-say { $t = Get-Clipboard; if ($t) { voice $t } else { Write-Host "Clipboard ist leer." -ForegroundColor Red } }
-function stop-say { Get-Process -Name "ffplay" -ErrorAction SilentlyContinue | Stop-Process -Force }
-function voices { Write-Host "Stimmen: edge-tts + ffplay (falls installiert), Fallback: System.Speech" -ForegroundColor Cyan }
+# TTS lives in the main profile (Say, Set-Voice, Show-Voices, Clip-Say).
+# Removed duplicate say/voice/clip-say/stop-say/voices from here to avoid shadowing.
 
 # === GAGS ===
 # (Entfernt: genact, parrot, sneakers, uwu, rig, bs, sudo-insult)
 
-# === APIs ===
-function chuck { try { $r = Invoke-RestMethod "https://api.chucknorris.io/jokes/random" -TimeoutSec 5; Write-Host "`n  $($r.value)`n" -ForegroundColor Yellow } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function cat { try { $r = Invoke-RestMethod "https://catfact.ninja/fact" -TimeoutSec 5; Write-Host "`n  CAT FACT: $($r.fact)`n" -ForegroundColor Cyan } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function dog { try { $r = Invoke-RestMethod "https://dog.ceo/api/breeds/image/random" -TimeoutSec 5; Write-Host "`n  DOG PIC: $($r.message)`n" -ForegroundColor Cyan } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function btc { try { $r = Invoke-RestMethod "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd" -TimeoutSec 5; Write-Host "`n  Bitcoin: $($r.bitcoin.usd) USD`n" -ForegroundColor Yellow } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function bored { try { $r = Invoke-RestMethod "https://www.boredapi.com/api/activity" -TimeoutSec 5; Write-Host "`n  ACTIVITY: $($r.activity)`n" -ForegroundColor Magenta } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function kanye { try { $r = Invoke-RestMethod "https://api.kanye.rest" -TimeoutSec 5; Write-Host "`n  Kanye: `"$($r.quote)`"`n" -ForegroundColor White } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function dadjoke { try { $r = Invoke-RestMethod "https://icanhazdadjoke.com/" -Headers @{Accept = "application/json"} -TimeoutSec 5; Write-Host "`n  JOKE: $($r.joke)`n" -ForegroundColor Green } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
-function zen { try { $r = Invoke-RestMethod "https://zenquotes.io/api/random" -TimeoutSec 5; Write-Host "`n  $($r[0].q) -- $($r[0].a)`n" -ForegroundColor Cyan } catch { Write-Host "API offline." -ForegroundColor DarkGray } }
+# === API WRAPPER ===
+function Invoke-PublicApi($Url, $PropertyPath, $Color, $Headers = @{}) {
+    try {
+        $r = Invoke-RestMethod $Url -Headers $Headers -TimeoutSec 5
+        $value = Invoke-Expression "`$r.$PropertyPath"
+        Write-Host "`n  $value`n" -ForegroundColor $Color
+    } catch { Write-Host "API offline." -ForegroundColor DarkGray }
+}
+
+function chuck   { Invoke-PublicApi "https://api.chucknorris.io/jokes/random" "value" "Yellow" }
+function cat     { Invoke-PublicApi "https://catfact.ninja/fact" "fact" "Cyan" }
+function dog     { Invoke-PublicApi "https://dog.ceo/api/breeds/image/random" "message" "Cyan" }
+function btc     { Invoke-PublicApi "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd" "bitcoin.usd" "Yellow" }
+function bored   { Invoke-PublicApi "https://www.boredapi.com/api/activity" "activity" "Magenta" }
+function kanye   { Invoke-PublicApi "https://api.kanye.rest" "quote" "White" }
+function dadjoke { Invoke-PublicApi "https://icanhazdadjoke.com/" "joke" "Green" @{Accept = "application/json"} }
+function zen     { Invoke-PublicApi "https://zenquotes.io/api/random" "[0].q + ' -- ' + [0].a" "Cyan" }
 
 # === TOOLS ===
 function pomodoro { param($min = 25); Write-Host "  Pomodoro: $min Minuten..." -ForegroundColor Red; Start-Sleep -Seconds ($min * 60); Write-Host "  Zeit um!" -ForegroundColor Green; say "Pomodoro complete" }

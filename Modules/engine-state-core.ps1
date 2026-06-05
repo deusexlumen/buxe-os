@@ -71,17 +71,21 @@ function Save-State {
     $bak3 = "$script:BuxeStateFile.bak3"
     $bak4 = "$script:BuxeStateFile.bak4"
     $bak5 = "$script:BuxeStateFile.bak5"
-    if (Test-Path $bak4) { Move-Item $bak4 $bak5 -Force -ErrorAction SilentlyContinue }
-    if (Test-Path $bak3) { Move-Item $bak3 $bak4 -Force -ErrorAction SilentlyContinue }
-    if (Test-Path $bak2) { Move-Item $bak2 $bak3 -Force -ErrorAction SilentlyContinue }
-    if (Test-Path $bak1) { Move-Item $bak1 $bak2 -Force -ErrorAction SilentlyContinue }
-    if (Test-Path $script:BuxeStateFile) { Copy-Item $script:BuxeStateFile $bak1 -Force -ErrorAction SilentlyContinue }
+    try {
+        if (Test-Path $bak4) { Move-Item $bak4 $bak5 -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $bak3) { Move-Item $bak3 $bak4 -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $bak2) { Move-Item $bak2 $bak3 -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $bak1) { Move-Item $bak1 $bak2 -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $script:BuxeStateFile) { Copy-Item $script:BuxeStateFile $bak1 -Force -ErrorAction SilentlyContinue }
+    } catch {
+        Write-Warning "[StateManager] Backup rotation warning: $_"
+    }
     
     $tempFile = "$script:BuxeStateFile.tmp"
     try {
         $script:BuxeState | ConvertTo-Json -Depth 20 | Out-File $tempFile -Encoding utf8 -ErrorAction Stop
         Move-Item -Path $tempFile -Destination $script:BuxeStateFile -Force -ErrorAction Stop
-        $script:BuxeStateLoadedAt = (Get-Item $script:BuxeStateFile).LastWriteTime
+        try { $script:BuxeStateLoadedAt = (Get-Item $script:BuxeStateFile).LastWriteTime } catch {}
     } catch {
         Write-Warning "[StateManager] Failed to save state: $_"
         if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
@@ -90,12 +94,18 @@ function Save-State {
 
 function Load-State {
     if ($script:BuxeStateTransactionDepth -gt 0) { return }
+    # Throttle: only check file system every 1 second
+    if ($script:BuxeStateLoadedAt -and $script:BuxeState -and $script:BuxeStateLastCheck -and
+        ((Get-Date) - $script:BuxeStateLastCheck).TotalSeconds -lt 1) {
+        return
+    }
+    $script:BuxeStateLastCheck = Get-Date
     if (Test-Path $script:BuxeStateFile) {
-        $currentWriteTime = (Get-Item $script:BuxeStateFile).LastWriteTime
-        if ($script:BuxeStateLoadedAt -and $script:BuxeStateLoadedAt -eq $currentWriteTime -and $script:BuxeState) {
-            return
-        }
         try {
+            $currentWriteTime = (Get-Item $script:BuxeStateFile -ErrorAction SilentlyContinue).LastWriteTime
+            if ($script:BuxeStateLoadedAt -and $script:BuxeStateLoadedAt -eq $currentWriteTime -and $script:BuxeState) {
+                return
+            }
             $raw = Get-Content $script:BuxeStateFile -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
             $script:BuxeState = Convert-PSObjectToHashtable $raw
             $script:BuxeStateLoadedAt = $currentWriteTime

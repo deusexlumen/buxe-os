@@ -37,6 +37,13 @@ function Invoke-CasinoGame {
             $winAmount += $bonus
             if ($bonus -gt 0) { $result.Win = $winAmount }
         }
+        # Cap suspicious wins
+        $maxWin = $bet * 100
+        if ($winAmount -gt $maxWin) {
+            Write-Warning "[Casino] Ungewoehnlich hoher Gewinn: $winAmount (cap: $maxWin)"
+            $winAmount = $maxWin
+            $result.Win = $winAmount
+        }
         
         # Skill progression: CasinoLuck increases on wins with luck bonus active
         if ($winAmount -gt 0 -and $luckMod -gt 1.0) {
@@ -77,11 +84,17 @@ function Invoke-CasinoGame {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bust") -Fast
             } elseif ($result.Win -gt 500) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bigwin") -Fast
+                Add-PetMemory "Casino Big Win! +$($result.Win) G" "GOLD"
             } elseif ($result.Win -gt 0) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_win") -Fast
             } elseif ($result.Loss -gt 0) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_loss") -Fast
             }
+        }
+        
+        # Quest Progress
+        if (Get-Command Check-QuestProgress -ErrorAction SilentlyContinue) {
+            Check-QuestProgress "casino"
         }
         
         # Easter Eggs

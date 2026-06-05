@@ -1,4 +1,4 @@
-# BUXE_OS v24.7 -- ADVENTURE WORLD
+﻿# BUXE_OS v24.7 -- ADVENTURE WORLD
 # Die verlorene Station Polaris. 8 Räume, Objekte, NPCs, Rätsel.
 
 try {
@@ -329,7 +329,7 @@ Register-UseHandler {
             $script:AdvState.Flags["bridge_unlocked"] = $true
             $script:AdvRooms["corridor"].Exits["north"] = "bridge"
             $script:AdvState.Score += 15
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du steckst die Karte in den Leser. Die Tür zur Brücke öffnet sich mit einem Zischen."; CompanionContext = "adventure_unlock" }
         }
     }
@@ -340,7 +340,7 @@ Register-UseHandler {
             $script:AdvState.Flags["box_opened"] = $true
             $script:AdvRooms["storage"].Objects["map"] = @{ Name = "Sternenkarte"; Description = "Eine Karte der Region. Die Polaris ist markiert - und ein großes rotes X im Nebel-Sektor 7."; Takeable = $true; UseWith = $null }
             $script:AdvState.Score += 10
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du hebelst die Kiste auf. Darin liegt eine Sternenkarte!"; CompanionContext = "adventure_unlock" }
         }
     }
@@ -356,7 +356,7 @@ Register-UseHandler {
             $script:AdvState.Flags["chest_opened"] = $true
             $script:AdvState.Score += 25
             $script:AdvRooms["bridge"].Objects["artifact"] = @{ Name = "Polaris-Artefakt"; Description = "Ein schwebender Kristall, der ein sanftes blaues Licht ausstrahlt. Das Signal... kommt von HIER."; Takeable = $true; UseWith = $null }
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Der Schlüssel dreht sich mit einem Klicken. Der Schrank öffnet sich. Ein Artefakt schwebt darin!"; CompanionContext = "adventure_bigwin" }
         }
     }
@@ -373,7 +373,7 @@ Register-UseHandler {
         if (Has-Item "artifact") {
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 50
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du beruehrst das Artefakt. Die Welt verschwimmt... und du verstehst. Die Station war nie verloren. Sie wartete. Auf DICH.`n`n=== DAS ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDanke fuers Spielen!"; CompanionContext = "adventure_victory" }
         }
     }
@@ -383,7 +383,7 @@ Register-UseHandler {
         if (Has-Item "battery") {
             $script:AdvState.Flags["reactor_fixed"] = $true
             $script:AdvState.Score += 20
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du steckst die Batterie in den Reaktor. Das Flackern hoert auf. Die Stabilitaet steigt auf 100%. Die Tuer zum Reaktor-Kern oeffnet sich."; CompanionContext = "adventure_unlock" }
         }
     }
@@ -394,7 +394,7 @@ Register-UseHandler {
             $script:AdvState.Flags["true_ending"] = $true
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 100
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du legst das Artefakt auf das Podest. Der Kern pulsiert wild. Die Gestalt aus Licht tritt vor. 'Du hast verstanden. Die Station war ein Gefaengnis. Und ich war die Waerterin. Du hast mich befreit.'`n`nDas Licht verschlingt dich. Aber es tut nicht weh. Es fuehlt sich an wie... Zuhause.`n`n=== DAS WAHRE ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDu hast die Wahrheit gefunden."; CompanionContext = "adventure_victory" }
         }
     }
@@ -405,7 +405,7 @@ Register-UseHandler {
             $script:AdvState.Flags["medbay_unlocked"] = $true
             $script:AdvState.Score += 10
             $script:AdvRooms["medbay"].Objects["serum"] = @{ Name = "Heil-Serum"; Description = "Ein gruen fluoreszierendes Serum. Es heilt alles. Auch Dinge, die nicht heilbar sein sollten."; Takeable = $true; UseWith = $null }
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Der Schrank oeffnet sich. Darin liegt ein gruen fluoreszierendes Serum."; CompanionContext = "adventure_unlock" }
         }
     }
@@ -416,7 +416,7 @@ Register-UseHandler {
             $script:AdvState.Flags["eva_explored"] = $true
             $script:AdvState.Score += 15
             $script:AdvRooms["eva"].Objects["datacore"] = @{ Name = "Datenkern"; Description = "Ein schwerer Datenkern aus der Kommunikationsantenne. Er enthaelt Aufzeichnungen aus dem Nebel-Sektor 7."; Takeable = $true; UseWith = $null }
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du durchwuehlst die Truemmer in deinem Anzug und findest einen schweren Datenkern!"; CompanionContext = "adventure_unlock" }
         }
     }
@@ -426,7 +426,7 @@ Register-UseHandler {
         if (Has-Item "serum") {
             $script:AdvState.Flags["captain_healed"] = $true
             $script:AdvState.Score += 20
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Du gibst Kapitän Vance das Serum. Er blinzelt. 'Du... du hast es geschafft. Das Signal... es war SIE. Sie wollte befreit werden. Nicht bekaempft.' Er gibt dir einen letzten Hinweis: 'Der Kern. Das Podest. Das Artefakt.'"; CompanionContext = "adventure_bigwin" }
         }
     }
@@ -448,10 +448,10 @@ Register-UseHandler {
     }
     # Plastic tree - Monkey Island reference
     if ($Item -eq "tree" -and -not $Target) {
-        return @{ Success = $false; Message = "Du umarmst den kleinen Plastikbaum. 'Ich bin ein Pirat, ich mag Baumkaetzchen.' Nein. Nein tust du nicht."; CompanionContext = "adventure_absurd" }
+        return @{ Success = $false; Message = "Du umarmst den kleinen Plastikbaum. Ich bin ein Pirat, ich mag Baumkaetzchen. Nein. Nein tust du nicht."; CompanionContext = "adventure_absurd" }
     }
     if ($Item -eq "tree" -and $Target -eq "captain") {
-        return @{ Success = $false; Message = "Du haeltst Kapitän Vance den Plastikbaum hin. Er blinzelt. 'Das... das erinnert mich an etwas. Eine Insel? Ein Geheimnis?'"; CompanionContext = "adventure_absurd" }
+        return @{ Success = $false; Message = "Du haeltst Kapitaen Vance den Plastikbaum hin. Er blinzelt. Das... das erinnert mich an etwas. Eine Insel? Ein Geheimnis?"; CompanionContext = "adventure_absurd" }
     }
 
     return $null

@@ -147,6 +147,13 @@ function Read-GameInput($Prompt) {
 }
 
 function Read-GameChoice($Prompt, $ValidPattern, $TimeoutSec = 0) {
+    if ($script:MockInputEnabled -and $script:MockStringQueue.Count -gt 0) {
+        $input = $script:MockStringQueue[0]
+        $script:MockStringQueue = $script:MockStringQueue | Select-Object -Skip 1
+        if ($input -match $ValidPattern) {
+            return $input
+        }
+    }
     if ($script:MockInputEnabled -and $script:MockInputQueue.Count -gt 0) {
         $char = $script:MockInputQueue[0]
         $script:MockInputQueue = $script:MockInputQueue | Select-Object -Skip 1

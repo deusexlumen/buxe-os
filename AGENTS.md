@@ -6,13 +6,14 @@
 
 ## Project Overview
 
-**BUXE_OS** ist ein hochgradig personalisiertes PowerShell-Profil-System fuer Windows. Es wird als "Betriebssystem" fuer die Shell bezeichnet und enthaelt dutzende interaktive Features: Arcade-Spiele, Casino-Suite, RPG-Systeme (Companion + Battlepet), Git-Aliase, Navigation-Shortcuts, TTS, API-Integrationen und einen selbstbewussten Boot-Sequence.
+**BUXE_OS** ist ein hochgradig personalisiertes PowerShell-Profil-System fuer Windows. Es wird als "Betriebssystem" fuer die Shell bezeichnet und enthaelt dutzende interaktive Features: Arcade-Spiele, Casino-Suite, RPG-Systeme (Companion + Battlepet), Text-Adventure, Desktop-Pet, Git-Aliase, Navigation-Shortcuts, TTS, API-Integrationen und einen selbstbewussten Boot-Sequence.
 
 - **Sprache**: PowerShell 7/5.1-kompatibel
 - **Hauptsprache der Doku/Kommentare**: Deutsch
 - **Profil-Pfad**: `%USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1`
 - **Modul-Pfad**: `%USERPROFILE%\Documents\PowerShell\Modules\`
 - **Daten-Persistenz**: `%LOCALAPPDATA%\buxe\buxe_state_v24.json` (unified JSON)
+- **Module**: 46 Dateien in `Modules\` plus 13 Dateien in `Modules\pet\` = 59 Produktions-Module
 
 ---
 
@@ -20,7 +21,7 @@
 
 ```
 Documents\PowerShell\
-├── Microsoft.PowerShell_profile.ps1      # Entry point (~250 Zeilen), TTS-System
+├── Microsoft.PowerShell_profile.ps1      # Entry point (~240 Zeilen), TTS-System
 ├── buxe.omp.json                         # Oh-My-Posh Theme (JSON-Schema v2)
 ├── achievements.json                     # Legacy-Achievement-Datei (nicht mehr aktiv)
 ├── GUIDE.md                              # Benutzer-Handbuch (deutsch, vollstaendig)
@@ -55,9 +56,16 @@ Documents\PowerShell\
     ├── arcade-monkeytype.ps1             # Monkeytype WPM-Test
     ├── arcade-snake.ps1                  # Snake (TUI)
     ├── arcade-wordle.ps1                 # Wordle
+    ├── arcade-breakout.ps1               # Breakout (TUI)
     ├── strategy-poker.ps1                # Texas Hold'em
     ├── strategy-td.ps1                   # Tower Defense (TUI)
     ├── strategy-rogue.ps1                # Dungeon Crawler (TUI)
+    ├── adventure-engine.ps1              # Parser-basierte Adventure-Engine (Room, Inventory, Parser)
+    ├── adventure-world.ps1               # Adventure-Welt (16 Raeume, Objekte, NPCs)
+    ├── adventure-companion-ai.ps1        # Adventure Companion AI (Mood, Running Gags, Easter Eggs)
+    ├── adventure.ps1                     # Adventure Main Router
+    ├── adventure-insult.ps1              # Insult Swordfighting (29 Paare)
+    ├── desktop-pet.ps1                   # Desktop Pet (Prompt-Override, Command-Comments)
     ├── fun.ps1                           # TTS-Fallback, APIs, Gags
     ├── handbook.ps1                      # Handbuch-Wrapper (laedt 9 Kapitel)
     ├── handbook-core.ps1                 # Kapitel 1-2: Grundlagen, Navigation
@@ -70,9 +78,9 @@ Documents\PowerShell\
     ├── handbook-status.ps1               # Kapitel 9: Status-Effekte
     ├── handbook-commands.ps1             # Komplett-Befehlsliste
     ├── ralph-loop.ps1                    # Kimi CLI Aliase (kimir, kimia, kimix, kimis)
-    ├── _smoke_test.ps1                   # Unit/Engine Smoke Test (45 Tests)
-    ├── _integration_test.ps1             # Integrationstest (18 Checks)
-    ├── _e2e_test.ps1                     # End-to-End Game-Flow Tests (8 Spiele)
+    ├── _smoke_test.ps1                   # Unit/Engine Smoke Test
+    ├── _integration_test.ps1             # Integrationstest (AST-Checks, State, Duplikate)
+    ├── _e2e_test.ps1                     # End-to-End Game-Flow Tests
     └── pet\                              # PET SYSTEM v2.0 (13 Module)
         ├── _init.ps1                     # State, Schema, Meta-Progression, Feature-Unlocks
         ├── _ui.ps1                       # LucasArts-Style Frames, Dialog-Engine, Easter Eggs
@@ -100,13 +108,13 @@ Documents\PowerShell\
 | Terminal-Icons | Datei-Icons im Listing |
 | PSFzf | Fuzzy Finding |
 | Zoxide | Smartes Directory-Jumping |
-| System.Speech (.NET) | Lokale TTS (Fallback) |
-| edge-tts + ffplay | Erweiterte TTS via Edge |
+| edge-tts + ffplay | Erweiterte TTS via Edge (primary) |
+| System.Speech (.NET) | Lokale TTS (Fallback, nicht aktiv) |
 | Nerd Font (CaskaydiaCove) | Icon-Font fuer Oh-My-Posh |
 
 **Externe APIs** (genutzt in `fun.ps1` und `engine-aliases.ps1`):
-- `wttr.in` (Wetter)
-- `ipinfo.io` (Public IP)
+- `wttr.in` (Wetter, HTTPS)
+- `ip` zeigt lokale IPv4 (kein externer API-Call mehr)
 - `api.chucknorris.io` (Jokes)
 - `api.coingecko.com` (Bitcoin-Kurs)
 - `icanhazdadjoke.com`, `zenquotes.io`, `api.kanye.rest`, etc.
@@ -119,16 +127,20 @@ Documents\PowerShell\
 
 Laedt externe Module und sourcet alle eigenen Module via Dot-Sourcing in einer festen Reihenfolge:
 
-1. **Engine-Module** (muessen zuerst geladen werden): `engine-state-core`, `engine-state-migration`, `engine-state-advanced`, `engine-ui`, `engine-render`, `engine-scene`, `engine-input`, `engine-game`, `engine-aliases`
-2. **Boot**: `boot.ps1`
-3. **Casino-Engine**: `casino-engine.ps1`
-4. **Casino-Games** (einzeln): blackjack, roulette, craps, hilo, baccarat, slot
-5. **Casino-Router**: `casino.ps1`
-6. **Arcade Wrapper**: `arcade.ps1` (laedt alle `arcade-*.ps1` Sub-Module)
-7. **Strategy**: `strategy-poker.ps1`, `strategy-td.ps1`, `strategy-rogue.ps1`
-8. **Pet System v2.0**: Alle `pet\*.ps1` automatisch per `Get-ChildItem | Sort-Object Name`
-9. **Handbuch**: `handbook.ps1` (laedt alle `handbook-*.ps1` Kapitel)
-10. **Fun & Misc**: `fun.ps1`, `ralph-loop.ps1`
+1. **Engine-Module** (muessen zuerst geladen werden): `engine-state-core`, `engine-state-migration`, `engine-state-advanced`
+2. **State laden**: `Load-State`
+3. **Weitere Engine-Module**: `engine-ui`, `engine-game`, `engine-render`, `engine-input`, `engine-scene`, `engine-aliases`
+4. **Boot**: `boot.ps1`
+5. **Casino-Engine**: `casino-engine.ps1`
+6. **Casino-Games** (einzeln): blackjack, roulette, craps, hilo, baccarat, slot
+7. **Casino-Router**: `casino.ps1`
+8. **Arcade Wrapper**: `arcade.ps1` (laedt alle `arcade-*.ps1` Sub-Module)
+9. **Strategy**: `strategy-poker.ps1`, `strategy-td.ps1`, `strategy-rogue.ps1`
+10. **Adventure System**: `adventure-engine.ps1`, `adventure-world.ps1`, `adventure-companion-ai.ps1`, `adventure.ps1`, `adventure-insult.ps1`
+11. **Desktop Pet**: `desktop-pet.ps1`
+12. **Pet System v2.0**: Alle `pet\*.ps1` automatisch per `Get-ChildItem | Sort-Object Name`
+13. **Handbuch**: `handbook.ps1` (laedt alle `handbook-*.ps1` Kapitel)
+14. **Fun & Misc**: `fun.ps1`, `ralph-loop.ps1`
 
 Am Ende wird `Invoke-BootSequence` aufgerufen.
 
@@ -141,7 +153,7 @@ Jedes Modul ist in einem `try { ... } catch { }` Block gewrappt, damit ein defek
 | `engine-state-core.ps1` | State-Defaults, Save/Load, Backup-Rotation, Accessors, Audit-Log. |
 | `engine-state-migration.ps1` | v23 -> v24 Migration, Export/Import. |
 | `engine-state-advanced.ps1` | State-Transaktionen (Start/Complete/Rollback). |
-| `engine-ui.ps1` | `Show-Frame`, `Show-Bar`, `Show-Menu`, `Wait-Enter`, `Read-Choice`, `Read-Bet`, `Confirm-Bust`, `Show-Animation`, `Show-SlotSpin`, `Show-CardHand`, `Show-DiceRoll`, `Clear-Screen`, `Show-Bankroll`, `Show-StatusBar` |
+| `engine-ui.ps1` | `Show-Frame`, `Show-Bar`, `Show-Menu`, `Wait-Enter`, `Read-Choice`, `Read-Bet`, `Confirm-Bust`, `Clear-Screen`, `Show-Bankroll` |
 | `engine-render.ps1` | Double-Buffered Rendering. `Show-Buffer`, `Render-SceneDelta`. Kein `Clear-Host` — nur geaenderte Zeilen werden neu geschrieben. |
 | `engine-scene.ps1` | Deklarative Scenes. `New-Scene`, `Add-ToScene`, `Show-Scene`. Spiele definieren WAS, nicht WIE. |
 | `engine-input.ps1` | `Invoke-GameLoop` (Init/Tick/Render/Cleanup mit FPS), `Read-GameChoice` (Polling-Input), `Enable-MockInput` / `Queue-MockInput` / `Disable-MockInput` (E2E-Testing). |
@@ -164,7 +176,7 @@ Das TUI-Framework besteht aus drei Engine-Modulen, die zusammenarbeiten:
 
 3. **`engine-input.ps1`** — Polling-basiertes Input-Handling statt blocking `Read-Host`. Unterstuetzt Mock-Input fuer automatisierte E2E-Tests.
 
-**Spiele, die TUI verwenden:** Minesweeper, Snake, Tower Defense, Rogue, Zork, Hangman
+**Spiele, die TUI verwenden:** Minesweeper, Snake, Tower Defense, Rogue, Zork, Hangman, Tetris, Breakout
 
 ### Unified State (`engine-state-core.ps1`)
 
@@ -180,8 +192,9 @@ Battlepet = { ... }
 Pet = { Meta, Companion, Pet, Economy, Achievements, Memories }
 Casino = { Blackjack, Roulette, Craps, HiLo, Baccarat, Slot }
 Strategy = { Poker, TowerDefense, Rogue }
-Arcade = { MonkeyType, Snake, Wordle, Zork, Hangman, Minesweeper }
+Arcade = { MonkeyType, Snake, Wordle, Zork, Hangman, Minesweeper, Tetris }
 Achievements = @{}
+Story = @{}
 Boot = { Loads, TotalCommands, FavoriteCommand, LastBoot }
 Capsules = @()
 ```
@@ -189,6 +202,23 @@ Capsules = @()
 **Wichtig**: `Save-State` schreibt atomar (`.tmp` -> `Move-Item`). Bei korruptem JSON wird automatisch ein Backup erstellt und Defaults geladen. Migration von v23 (mehrere JSON-Dateien) zu v24 (unified) geschieht automatisch beim ersten Start.
 
 **Backup-Rotation**: `Save-State` behaelt 5 rotierende Backups (`.bak1` bis `.bak5`). Die aktuelle Datei wird vor dem Speichern nach `.bak1` kopiert, aeltere Backups werden kaskadiert.
+
+### Adventure System (`Modules/adventure-*.ps1`)
+
+Ein parser-basiertes Text-Adventure im LucasArts-Stil mit eigenem State-File:
+- **State**: `%LOCALAPPDATA%\buxe\buxe_adventure.json` (separat vom Haupt-State)
+- **Engine**: `adventure-engine.ps1` — Room-System, Inventory, Kommandoparser (Verb/Noun), Use-Handler
+- **Welt**: `adventure-world.ps1` — 16 Raeume (Hangar, Bridge, EVA, Core, etc.), Objekte, Exits, Flags
+- **Companion AI**: `adventure-companion-ai.ps1` — Mood-System (Curious/Excited/Bored/Scared), Running Gags (3x gleiche Aktion = Witz), Absurd-Combos, JINX (Jester-Companion)
+- **Insult Swordfighting**: `adventure-insult.ps1` — 29 Insult/Comeback-Paare im Monkey-Island-Stil
+- **Commands**: `adv` startet das Adventure, `insult` startet Schwertkampf
+
+### Desktop Pet (`Modules/desktop-pet.ps1`)
+
+Companion kommentiert Shell-Befehle in Echtzeit via Prompt-Override.
+- **Command Database**: Regex-Pattern -> zufaellige Sprueche (Git, npm, Docker, rm, etc.)
+- **Aktivierung**: Opt-in via `dp-on`. Kein Auto-Install mehr (entfernt in v24.2 wegen Prompt-Latency).
+- **Deaktivierung**: `dp-off`
 
 ### Pet System v2.0 (`Modules/pet/`)
 
@@ -248,8 +278,9 @@ Das TTS-System lebt direkt im `Microsoft.PowerShell_profile.ps1` (nicht in `fun.
 
 | Datei | Inhalt |
 |-------|--------|
-| `%LOCALAPPDATA%\buxe\buxe_state_v24.json` | Unified State (Bank, Companion, Battlepet, Pet, Casino, Strategy, Arcade, Achievements, Boot, Capsules) |
+| `%LOCALAPPDATA%\buxe\buxe_state_v24.json` | Unified State (Bank, Companion, Battlepet, Pet, Casino, Strategy, Arcade, Achievements, Boot, Capsules, Story) |
 | `%LOCALAPPDATA%\buxe\buxe_state_v24.json.bak1` bis `.bak5` | Rotierende Auto-Backups |
+| `%LOCALAPPDATA%\buxe\buxe_adventure.json` | Adventure Savegame (separater State) |
 | `%LOCALAPPDATA%\buxe\v23_archive\` | Archivierte alte v23 JSON-Dateien nach Migration |
 | `%LOCALAPPDATA%\buxe\buxe_export_*.json` | Manuelle Export-Backups |
 | `%USERPROFILE%\.kimi\tts-config.json` | TTS-Stimmen-Einstellung |
@@ -283,7 +314,7 @@ profile   # oeffnet Notepad mit dem Hauptprofil
 & "$PSScriptRoot\Modules\_smoke_test.ps1"
 ```
 
-Testet (45 Tests):
+Testet ca. 50 Checks:
 - State Defaults (Version 24, Bank, Casino)
 - Kartendeck-Generatoren (52 Karten)
 - Hand-Evaluation (Blackjack 21, Baccarat 7)
@@ -292,15 +323,22 @@ Testet (45 Tests):
 - UI Framework (Show-Bar Laenge)
 - Pet System v2.0 (Get-PetState, Get-EffectiveStats, Show-PetFrame)
 - State Accessors (Get-Bankroll, Load-State)
-- Modul-Ladevorgang (alle Module inkl. Pet System)
+- State Transactions (Start/Rollback/Complete)
+- Corrupt JSON Recovery (Backup + Defaults)
+- Adventure Engine (Parser, Inventory, Rooms, Companion AI)
+- Tetris Engine (Collision, Lock, Line-Clear)
+- Breakout Engine (Bricks, Collision, Score)
+- Desktop Pet (Command Comments)
+- Insult Swordfighting (Pairs, State)
 - Backup-Rotation
+- Modul-Ladevorgang (alle Module inkl. Pet System)
 
 ### Integration Test
 ```powershell
 & "$PSScriptRoot\Modules\_integration_test.ps1"
 ```
 
-Testet (18 Checks):
+Testet 18 Checks:
 - Gold-Transaktionen (Add-Gold, Spend-Gold Roundtrip)
 - State Persistence (Save-State, Datei-Existenz)
 - Keine duplizierten Funktionen in Produktionsmodulen (AST-Check)
@@ -313,9 +351,9 @@ Testet (18 Checks):
 & "$PSScriptRoot\Modules\_e2e_test.ps1"
 ```
 
-Testet (16 Game-Flows):
+Testet 17 Game-Flows:
 - Komplettes Laden des Profils (`Microsoft.PowerShell_profile.ps1`)
-- Verfuegbarkeit aller 35 required Functions
+- Verfuegbarkeit aller 39 required Functions
 - State-File Existenz und Groesse
 - `SessionStart` wurde gesetzt
 - **Game-Flows** (automatisiert mit Mock-Input):
@@ -334,11 +372,13 @@ Testet (16 Game-Flows):
   - Wordle (`Q` auf erstem Guess)
   - Monkeytype (`Q` auf Pre-Game)
   - Tetris (`Q` auf Start-Screen)
+  - Breakout (`Q`)
+  - Adventure (`quit`)
 
 ### Manuelles Modul-Reload
 ```powershell
 # Einzelne Engine-Module neu laden:
-. $PROFILE\..\modules\engine-state.ps1
+. $PROFILE\..\modules\engine-state-core.ps1
 ```
 
 ---
@@ -367,6 +407,7 @@ Alle `[Console]::CursorPosition`, `[Console]::CursorVisible`, `Clear-Host`, und 
 - Keine globale `$global:`-Variablen verwenden
 - Save-Funktionen schreiben sofort nach `$script:BuxeStateDir`
 - Das Pet System verwendet `Get-PetState` / `Save-PetState` als Abstraktion
+- Das Adventure System verwendet `Get-AdventureDefaults` / `Load-AdventureState` / `Save-AdventureState`
 
 ### UI-Konventionen
 - `Clear-Host` vor jedem interaktiven Screen (oder `Clear-Screen` Wrapper)
@@ -384,10 +425,22 @@ Alle `[Console]::CursorPosition`, `[Console]::CursorVisible`, `Clear-Host`, und 
 - Zeitstempel: `yyyy-MM-dd HH:mm`
 
 ### Encoding
-- BUXE_OS v24 verwendet **reines ASCII** in allen Engine- und Casino-Modulen
-- Keine Umlaute, keine Emojis, keine Box-Drawing-Chars in den Engine-Modulen
+- **Engine-Module** (`engine-*.ps1`, `casino-engine.ps1`) verwenden **reines ASCII** ohne Umlaute, Emojis oder Box-Drawing-Chars
+- **Game-Module** (Arcade, Strategy, Adventure, Desktop-Pet) duerfen **UTF-8** mit deutschen Umlauten in User-facing Strings verwenden
 - `pet/_ui.ps1` verwendet Unicode-Box-Drawing fuer LucasArts-Style Frames (Ausnahme)
 - TUI-Module (`engine-render.ps1`, `engine-scene.ps1`) verwenden ASCII-Zeichen fuer Rahmen
+
+### LucasArts Design Philosophy (PROJECT-WIDE)
+ALL user-facing text in BUXE_OS — especially companion dialogs, random events, arcade flavor text, casino commentary, and boot messages — MUST follow the LucasArts adventure design rules documented in [`LUCASARTS.md`](./LUCASARTS.md).
+
+Before writing any user-facing text, read `LUCASARTS.md`. The core rules are:
+1. **Self-aware** — characters know they are code in a PowerShell session
+2. **Fourth-wall breaks** — speak to the User directly, reference buttons and commands
+3. **No generic text** — every line must have a specific voice and observation
+4. **Character voice is everything** — each NPC/companion has an immutable, distinct voice
+5. **Humor over drama** — even "sad" moments are played for laughs
+6. **The 47 Rule** — running gag, used sparingly but consistently
+7. **No game over** — wrong choices end humorously, never punishingly
 
 ---
 
@@ -407,13 +460,16 @@ Alle `[Console]::CursorPosition`, `[Console]::CursorVisible`, `Clear-Host`, und 
 ### Browser-History-Zugriff
 `companion.ps1` (v23, archiviert) konnte bei 3+ Verlusten in Folge die Browser-History von Chrome, Edge und Firefox lesen. In v24 wurde dieses Feature **entfernt**. Das Pet System greift nicht auf Browser-Daten zu.
 
+### Prompt-Function Override (Desktop Pet)
+`desktop-pet.ps1` ueberschreibt die PowerShell-`prompt`-Funktion, um Befehle zu intercepten und Companion-Kommentare auszugeben. Dies ist lokal und sendet keine Daten nach aussen, aber es modifiziert das Shell-Verhalten global. Seit v24.2 ist der Desktop Pet **opt-in** (`dp-on` / `dp-off`).
+
 ### TTS-System
 - `Say` nutzt `edge-tts` (externes Python-Tool) und `ffplay` (FFmpeg)
 - `stop-say` terminiert diese Prozesse via `Stop-Process`
 - Temp-Dateien werden automatisch nach dem Abspielen geloescht
 
 ### Clipboard
-`clip-say` liest die Zwischenablage (`Get-Clipboard`) und gibt sie als TTS aus. Keine Daten werden uebertragen.
+`clip-say` liest die Zwischenablage (`Get-Clipboard`) und gibt sie als TTS aus. Seit v24.2: Max 500 Zeichen, sensitive Keywords (password, token, key, secret, apikey, auth, credential, login, passwd) werden blockiert.
 
 ### Keine Code-Signing
 Das Profil ist unsigniertes PowerShell-Skript. Es laeuft im FullLanguage-Modus des Benutzers.
@@ -427,7 +483,7 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 
 1. **Neues Modul**: `.ps1`-Datei in `Modules\` (oder `Modules\pet\`) erstellen und in `Microsoft.PowerShell_profile.ps1` eintragen
 2. **Neue Commands**: In das passende Modul einfuegen (siehe GUIDE.md fuer Kategorien)
-3. **Neue Persistenz**: Im `Get-StateDefaults` von `engine-state-core.ps1` registrieren
+3. **Neue Persistenz**: Im `Get-StateDefaults` von `engine-state-core.ps1` registrieren (oder eigenes Savefile wie Adventure)
 4. **Neue Achievements**: `Unlock-Achievement "Name"` aufrufen; die Unlock-Logik prueft automatisch auf Duplikate
 5. **UI**: `Show-Frame`, `Show-Bar`, `Wait-Enter` verwenden
 6. **TUI-Spiel**: `New-Scene`, `Add-ToScene`, `Show-Scene` verwenden; Input via `Read-GameChoice`
@@ -453,6 +509,10 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 | `Modules/casino-engine.ps1` | Shared Casino-Wrapper |
 | `Modules/arcade-tetris.ps1` | Tetris TUI-Spiel (Referenz-Implementierung) |
 | `Modules/arcade-minesweeper.ps1` | Minesweeper TUI-Spiel |
+| `Modules/arcade-breakout.ps1` | Breakout TUI-Spiel |
+| `Modules/adventure-engine.ps1` | Adventure Engine (Parser, State, Inventory) |
+| `Modules/adventure-world.ps1` | Adventure Welt-Daten |
+| `Modules/desktop-pet.ps1` | Desktop Pet (Prompt-Override) |
 | `Modules/pet/_init.ps1` | Pet System Schema und Meta-Progression |
 | `Modules/pet/hub.ps1` | Pet Hub Router mit dynamischem Menu |
 | `Modules/pet/companion.ps1` | Companion-Datenmodell und Actions |
@@ -468,8 +528,7 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 ## Version History Convention
 
 Versionen werden in Datei-Headern und der Boot-Sequence angezeigt:
-- Hauptprofil: v24.4
-- Pet System: v24.2
-- Module tragen ihre eigene Versionsnummer im Header
+- Hauptprofil: v24.0 (stabil)
+- Einzelne Module tragen ihre eigene Versionsnummer im Header (z.B. v24.5 fuer Breakout, v24.9 fuer Desktop Pet)
 - Die `status`-Funktion zeigt die aktuelle Version an
 - State-Version ist im JSON als `Version = 24` gespeichert

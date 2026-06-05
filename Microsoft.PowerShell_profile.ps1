@@ -226,6 +226,17 @@ function Clip-Say {
         Write-Host "[X] Zwischenablage ist leer." -ForegroundColor Red
         return
     }
+    if ($text.Length -gt 500) {
+        Write-Host "[X] Text zu lang (max 500 Zeichen)." -ForegroundColor Red
+        return
+    }
+    $suspicious = @('password','token','key','secret','apikey','auth','credential','login','passwd')
+    foreach ($word in $suspicious) {
+        if ($text -match $word) {
+            Write-Host "[X] Zwischenablage enthaelt potenziell sensitive Daten ($word). Abgebrochen." -ForegroundColor Red
+            return
+        }
+    }
     Write-Host "[TTS] Lese $($text.Length) Zeichen aus Zwischenablage..." -ForegroundColor DarkGray
     Say $text
 }
@@ -236,3 +247,29 @@ Set-Alias -Name svoice -Value Set-Voice
 
 # --- Begruessung beim Start (optional, auskommentiert) ---
 # Write-Host "[TTS] Bereit! Tippe 'Show-Voices' fuer die Stimmenliste." -ForegroundColor DarkGray
+
+# Override h help from module to ensure latest version is always active
+function h {
+    try { Clear-Host } catch {}
+    Show-Frame "BUXE_OS v24.0 COMMANDS" -Double | Out-Null
+    Write-Host ""
+    Load-State
+    $b = $script:BuxeState.Bank
+    if ($b.Gold) { Write-Host "  |  Bank: $($b.Gold) G | Streak: $($b.DailyStreak)" -ForegroundColor Yellow }
+    Write-Host "  +======================================+" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  [NAV]      .. ... .... tmp dl docs mkcd" -ForegroundColor DarkGray
+    Write-Host "  [FILES]    ll la touch rmrf c which grep" -ForegroundColor DarkGray
+    Write-Host "  [GIT]      g gs ga gc gp gl gco gb gd glog gcm gundo gunstage" -ForegroundColor DarkGray
+    Write-Host "  [SYSTEM]   uptime weather ip port mem sudo reload profile sysinfo" -ForegroundColor DarkGray
+    Write-Host "  [DEV]      kill-node kill-port size tmp-clean flush-dns empty-bin" -ForegroundColor DarkGray
+    Write-Host "  [PNPM]     p pi pib ps pb pd pt pl po pr px pclean" -ForegroundColor DarkGray
+    Write-Host "  [BANK]     bank daily" -ForegroundColor DarkGray
+    Write-Host "  [STATS]    status achievements ego" -ForegroundColor DarkGray
+    Write-Host "  [VOICE]    voices | svoice EN|ML # | Say text [-Wait] | clip-say" -ForegroundColor DarkGray
+    Write-Host "  [RALPH]    kimir kimia kimix kimis" -ForegroundColor DarkGray
+    Write-Host "  [MISC]     capsule dp-on guide h" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  Tip: status for overview. Games/Pet hidden -- type the name directly." -ForegroundColor DarkGray
+    Write-Host ""
+}

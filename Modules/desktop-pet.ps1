@@ -399,13 +399,8 @@ function Show-DesktopPetDialog($Text) {
 function dp-on { $script:DesktopPetEnabled = $true; Install-DesktopPet }
 function dp-off { $script:DesktopPetEnabled = $false; Uninstall-DesktopPet }
 
-# Auto-install on load if companion exists
-try {
-    $pet = Get-PetState
-    if ($pet -and $pet.Companion) {
-        Install-DesktopPet
-    }
-} catch {}
+# Desktop Pet is opt-in. Use 'dp-on' to enable.
+# Previous auto-install removed because prompt overrides add latency to every command.
 
 } catch {
     Write-Host "[DESKTOP PET] Fehler: $_" -ForegroundColor Red

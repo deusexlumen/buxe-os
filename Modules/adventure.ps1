@@ -83,8 +83,9 @@ function Invoke-Adventure {
         Wait-Enter
     }
 
+    Save-AdventureState
     try { Clear-Host } catch {}
-    Write-Host "  Adventure beendet. Bis zum nächsten Abenteuer!" -ForegroundColor Cyan
+    Write-Host "  Adventure beendet. Bis zum naechsten Abenteuer!" -ForegroundColor Cyan
     Start-Sleep -Milliseconds 500
 }
 

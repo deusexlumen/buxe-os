@@ -17,6 +17,7 @@ function Invoke-PetLevelUp($oldLevel, $newLevel) {
         }
     }
     if ($newFeatures.Count -eq 0) { return }
+    Add-PetMemory "Level Up! $oldLevel -> $newLevel" "UP"
     try { Clear-Host } catch {}
     Show-PetFrame "SYSTEM NOTIFICATION" -Double | Out-Null
     Write-Host ""

@@ -56,18 +56,33 @@ function Load-AdventureState {
     $script:AdvState = Get-AdventureDefaults
 }
 
+$script:AdvStateDirty = $false
+
 function Save-AdventureState {
+    param([switch]$Force)
+    if (-not $Force -and -not $script:AdvStateDirty) { return }
     if (-not (Test-Path $script:BuxeStateDir)) {
         New-Item -ItemType Directory -Path $script:BuxeStateDir -Force | Out-Null
     }
-    $tmp = "$script:AdvSaveFile.tmp"
-    $script:AdvState | ConvertTo-Json -Depth 10 | Set-Content $tmp -Force
-    Move-Item $tmp $script:AdvSaveFile -Force
+    $tmp = "$script:AdvSaveFile.$([Guid]::NewGuid().ToString().Substring(0,8)).tmp"
+    $maxRetries = 3
+    for ($i = 0; $i -lt $maxRetries; $i++) {
+        try {
+            $script:AdvState | ConvertTo-Json -Depth 10 | Out-File $tmp -Force
+            Move-Item $tmp $script:AdvSaveFile -Force
+            $script:AdvStateDirty = $false
+            break
+        } catch {
+            if ($i -eq $maxRetries - 1) { throw }
+            Start-Sleep -Milliseconds 100
+        }
+    }
+    if (Test-Path "$script:AdvSaveFile.*.tmp") { Remove-Item "$script:AdvSaveFile.*.tmp" -Force -ErrorAction SilentlyContinue }
 }
 
 function Reset-AdventureState {
     $script:AdvState = Get-AdventureDefaults
-    Save-AdventureState
+    $script:AdvStateDirty = $true
 }
 
 # === ROOM SYSTEM ===
@@ -95,7 +110,7 @@ function Get-Room($Id) { return $script:AdvRooms[$Id] }
 function Add-ToInventory($ItemId, $ItemName) {
     if ($script:AdvState.Inventory -notcontains $ItemId) {
         $script:AdvState.Inventory += $ItemId
-        Save-AdventureState
+        $script:AdvStateDirty = $true
         return $true
     }
     return $false
@@ -103,7 +118,7 @@ function Add-ToInventory($ItemId, $ItemName) {
 
 function Remove-FromInventory($ItemId) {
     $script:AdvState.Inventory = @($script:AdvState.Inventory | Where-Object { $_ -ne $ItemId })
-    Save-AdventureState
+    $script:AdvStateDirty = $true
 }
 
 function Has-Item($ItemId) { return $script:AdvState.Inventory -contains $ItemId }
@@ -252,7 +267,7 @@ function Process-AdventureCommand($Cmd) {
                 $script:AdvState.Visited += $script:AdvState.CurrentRoom
                 $script:AdvState.Score += 5
             }
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             $newRoom = Get-Room $script:AdvState.CurrentRoom
             $oxMsg = ""
             if ($newRoom.Id -eq "eva") { $oxMsg = " Sauerstoff: $($script:AdvState.Oxygen)/10" }
@@ -292,7 +307,7 @@ function Process-AdventureCommand($Cmd) {
                     $result = @{ Success = $false; Message = "Das kannst du nicht mitnehmen."; CompanionContext = "adventure_blocked" }
                 } elseif (Add-ToInventory $Cmd.Noun $obj.Name) {
                     $room.Objects.Remove($Cmd.Noun)
-                    Save-AdventureState
+                    $script:AdvStateDirty = $true
                     $result = @{ Success = $true; Message = "Du nimmst $($obj.Name)."; CompanionContext = "adventure_take" }
                 } else {
                     $result = @{ Success = $false; Message = "Du hast das schon."; CompanionContext = "adventure_confused" }
@@ -340,7 +355,7 @@ function Process-AdventureCommand($Cmd) {
             break
         }
         "save" {
-            Save-AdventureState
+            $script:AdvStateDirty = $true
             $result = @{ Success = $true; Message = "Spiel gespeichert."; CompanionContext = "adventure_save" }
             break
         }
@@ -365,12 +380,12 @@ function Process-AdventureCommand($Cmd) {
                 $script:AdvState.Flags["bridge_unlocked"] = $true
                 $script:AdvRooms["corridor"].Exits["north"] = "bridge"
                 $script:AdvState.Score += 15
-                Save-AdventureState
+                $script:AdvStateDirty = $true
             } elseif ($Cmd.Noun -eq "terminal" -and $Room.Id -eq "medbay" -and -not $script:AdvState.Flags["medbay_unlocked"]) {
                 $result = @{ Success = $true; Message = "Du hackst das Med-Terminal. Patientendaten entschluesselt. Jemand hat Experimente an der Crew durchgefuehrt. Und du hast den Schluessel gefunden: 7-7-7."; CompanionContext = "adventure_unlock" }
                 $script:AdvState.Flags["medbay_unlocked"] = $true
                 $script:AdvState.Score += 10
-                Save-AdventureState
+                $script:AdvStateDirty = $true
             } else {
                 $result = @{ Success = $false; Message = "Das Terminal ist bereits entsperrt oder nicht hackbar."; CompanionContext = "adventure_blocked" }
             }

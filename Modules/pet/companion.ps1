@@ -122,18 +122,18 @@ function Invoke-CompanionAction($action) {
         "work" {
             if ($cp.LastWork -eq $today) { Show-CompanionDialog $cp "Ich habe heute schon gearbeitet."; Wait-Enter; return }
             Show-PetFrame "JOB MARKET" -Double | Out-Null
-            Write-Host "`n  [1] Data Mining    (sicher, 10-20G)" -ForegroundColor White
-            Write-Host "  [2] Security Patrol (mittel, 20-35G)" -ForegroundColor White
-            Write-Host "  [3] Netrunner Mission (riskant, 0 oder 50-80G)" -ForegroundColor White
+            Write-Host "`n  [1] Data Mining    (sicher, 20-40G)" -ForegroundColor White
+            Write-Host "  [2] Security Patrol (mittel, 40-70G)" -ForegroundColor White
+            Write-Host "  [3] Netrunner Mission (riskant, 0 oder 80-150G)" -ForegroundColor White
             Write-Host "  [Q] Abbrechen" -ForegroundColor DarkGray
             $jc = Read-Choice "Job" '^[123Q]$'
             if ($jc -eq 'Q') { return }
             $cp.LastWork = $today; $cp.WorkCount++; $cp.Mood = "Tired"
             $earn = 0; $bonusText = ""
-            if ($jc -eq '1') { $earn = Get-Random -Minimum 10 -Maximum 21 }
-            elseif ($jc -eq '2') { $earn = Get-Random -Minimum 20 -Maximum 36 }
+            if ($jc -eq '1') { $earn = Get-Random -Minimum 20 -Maximum 41 }
+            elseif ($jc -eq '2') { $earn = Get-Random -Minimum 40 -Maximum 71 }
             else {
-                if ((Get-Random -Maximum 2) -eq 0) { $earn = Get-Random -Minimum 50 -Maximum 81 }
+                if ((Get-Random -Maximum 2) -eq 0) { $earn = Get-Random -Minimum 80 -Maximum 151 }
                 else { $bonusText = " | Mission fehlgeschlagen..." }
             }
             if ($earn -gt 0) { $pet.Economy.Gold += $earn }

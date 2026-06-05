@@ -21,6 +21,8 @@ function gb   {
 function gd   { git diff }
 function glog { git log --oneline --graph --decorate -20 }
 function gcm  { git checkout (git branch --show-current) }
+function gundo { git reset --soft HEAD~1 }
+function gunstage { git restore --staged @args }
 
 } catch {
     Write-Host "[engine-aliases-git] CRITICAL ERROR: $($_)" -ForegroundColor Red

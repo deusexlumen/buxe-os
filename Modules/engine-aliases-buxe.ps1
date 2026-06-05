@@ -76,31 +76,27 @@ function status {
     }
     
     $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
-    if ($cp) {
+    if ($cp -and $cp.Bond -gt 0) {
         $bondBar = Show-Bar $cp.Bond 100 20
         Write-Host "`n  COMPANION: $($cp.Name) [$($cp.Role)]" -ForegroundColor Magenta
         Write-Host "     Bond: [$bondBar] $($cp.Bond)/100" -ForegroundColor White
         Write-Host "     Mood: $($cp.Mood)" -ForegroundColor DarkGray
-        if ($cp.Skills) {
-            Write-Host "     Skills: CasinoLuck Lv.$($cp.Skills.CasinoLuck) | StrategyInsight Lv.$($cp.Skills.StrategyInsight)" -ForegroundColor Cyan
-        }
-    } else { Write-Host "`n  COMPANION: None" -ForegroundColor DarkGray }
+    }
     
     $p = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Pet } else { $null }
-    if ($p) {
+    if ($p -and $p.Wins + $p.Losses -gt 0) {
         $hpBar = Show-Bar $p.HP $p.MaxHP 20
         Write-Host "`n  BATTLEPET: $($p.Name) [Lv.$($p.Level)] ($($p.Type))" -ForegroundColor Green
         Write-Host "     HP: [$hpBar] $($p.HP)/$($p.MaxHP)" -ForegroundColor White
-        Write-Host "     ATK: $($p.ATK) | DEF: $($p.DEF) | SPD: $($p.SPD)" -ForegroundColor DarkGray
         Write-Host "     Wins: $($p.Wins) | Losses: $($p.Losses)" -ForegroundColor DarkGray
-    } else { Write-Host "`n  BATTLEPET: None" -ForegroundColor DarkGray }
+    }
     
     $ach = ($script:BuxeState.Achievements | Get-Member -MemberType NoteProperty | Measure-Object).Count
     if ($ach -gt 0) {
         Write-Host "`n  Achievements: $ach" -ForegroundColor Yellow
     }
     Write-Host $bot -ForegroundColor Cyan
-    Wait-Enter
+    Write-Host ""
 }
 
 function capsule {
@@ -115,11 +111,11 @@ function capsule {
             if ($today -ge $openDate) {
                 $days = [math]::Floor(($today - [datetime]::Parse($cap.CreatedDate)).TotalDays)
                 Write-Host "`n  TIME CAPSULE from $days days ago:" -ForegroundColor Yellow
-                Write-Host "  `"$($cap.Message)`"" -ForegroundColor White
+                Write-Host "  $($cap.Message)" -ForegroundColor White
                 $opened++
             } else { $remaining += $cap }
         }
-        if ($opened -eq 0) { Write-Host "`n  No capsules ready yet. Create one with: capsule `"your message`"" -ForegroundColor DarkGray }
+        if ($opened -eq 0) { Write-Host "`n  No capsules ready yet. Create one with: capsule your message" -ForegroundColor DarkGray }
         $script:BuxeState.Capsules = $remaining
         Save-State
         return
@@ -136,48 +132,10 @@ function capsule {
     Write-Host "`n  Capsule sealed! Opens in $openDays days." -ForegroundColor Green
 }
 
-function h {
-    try { Clear-Host } catch {}
-    Show-Frame "BUXE_OS v24.0 COMMANDS" -Double | Out-Null
-    Write-Host ""
-    
-    Load-State
-    $b = $script:BuxeState.Bank
-    if ($b.Gold) { Write-Host "  |  Bank: $($b.Gold) G | Streak: $($b.DailyStreak)" -ForegroundColor Yellow }
-    if ($script:BuxeState.Pet -and $script:BuxeState.Pet.Companion) { 
-        $cp = $script:BuxeState.Pet.Companion
-        Write-Host "  |  Companion: $($cp.Name) [Bond: $($cp.Bond)]" -ForegroundColor Magenta 
-    }
-    if ($script:BuxeState.Pet -and $script:BuxeState.Pet.Pet) { 
-        $ap = $script:BuxeState.Pet.Pet
-        Write-Host "  |  Active Pet: $($ap.Name) [Lv.$($ap.Level)]" -ForegroundColor Green 
-    }
-    Write-Host "  +======================================+" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "  [NAV]      .. ... .... tmp dl docs mkcd" -ForegroundColor DarkGray
-    Write-Host "  [FILES]    ll la touch rmrf c which grep" -ForegroundColor DarkGray
-    Write-Host "  [GIT]      g gs ga gc gp gl gco gb gd glog gcm" -ForegroundColor DarkGray
-    Write-Host "  [SYSTEM]   uptime weather ip port mem sudo reload profile sysinfo" -ForegroundColor DarkGray
-    Write-Host "  [ARCADE]   snake monkeytype wordle zork hangman" -ForegroundColor DarkGray
-    Write-Host "  [CASINO]   blackjack roulette craps hilo baccarat slot" -ForegroundColor DarkGray
-    Write-Host "  [STRATEGY] poker td rogue" -ForegroundColor DarkGray
-    Write-Host "  [PET]      pet (Companion + Battlepet Hub)" -ForegroundColor Magenta
-    Write-Host "  [BANK]     bank daily" -ForegroundColor DarkGray
-    Write-Host "  [STATS]    status achievements ego" -ForegroundColor DarkGray
-    Write-Host "  [FUN]      pomodoro roast" -ForegroundColor DarkGray
-    Write-Host "  [API]      chuck cat dog btc bored kanye dadjoke zen" -ForegroundColor DarkGray
-    Write-Host "  [VOICE]    voices | svoice EN|ML # | Say 'text' [-Wait] | clip-say" -ForegroundColor DarkGray
-    Write-Host "  [RALPH]    kimir kimia kimix kimis" -ForegroundColor DarkGray
-    Write-Host "  [MISC]     capsule h" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Host "  Tip: Type 'status' for a full overview. 'pet' for the unified hub." -ForegroundColor DarkGray
-    Write-Host ""
-}
-
 # === BACKWARD COMPATIBILITY ===
 function companion { pet @args }
 function battlepet { pet @args }
 
 } catch {
-    Write-Host "[engine-aliases-buxe] CRITICAL ERROR: $($_)" -ForegroundColor Red
+    Write-Host "[engine-aliases-buxe] CRITICAL ERROR: $_" -ForegroundColor Red
 }

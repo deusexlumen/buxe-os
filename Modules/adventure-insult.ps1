@@ -210,7 +210,7 @@ function Invoke-InsultGame {
 
     Reset-InsultState
 
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-InsultFrame "INSULT SWORDFIGHTING"
     Write-Host ""
     Write-Host "  Willkommen zum Beleidigungs-Duell!" -ForegroundColor White
@@ -223,7 +223,7 @@ function Invoke-InsultGame {
         $script:InsultState.Round++
         $round = Get-RandomInsultRound
 
-        Clear-Host
+        try { Clear-Host } catch {}
         Show-InsultFrame "Runde $($script:InsultState.Round)"
         Write-Host ""
 
@@ -245,7 +245,7 @@ function Invoke-InsultGame {
 
         $choice = ""
         while ($choice -eq "") {
-            $in = Read-Host "  Wahl"
+            $in = Read-GameInput "  Wahl"
             if ($in -eq "Q" -or $in -eq "q") {
                 Write-Host "  Du hast aufgegeben. $($cp.Name) gewinnt!" -ForegroundColor Red
                 Wait-Enter
@@ -282,7 +282,7 @@ function Invoke-InsultGame {
     }
 
     # Endgame
-    Clear-Host
+    try { Clear-Host } catch {}
     Show-InsultFrame "ERGEBNIS"
     Write-Host ""
     if ($script:InsultState.PlayerScore -gt $script:InsultState.CompanionScore) {

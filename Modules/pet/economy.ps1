@@ -1,20 +1,21 @@
-﻿# BUXE_OS v24.2 — PET ECONOMY v2.0
+# BUXE_OS v24.2 — PET ECONOMY v2.0
 # Work, Shop, Cooking
 
 try {
 
 $script:PetShopItems = @(
-    @{ Type = "Chip"; Name = "Neural Chip"; Cost = 100; Desc = "+3 ATK"; ATK = 3 }
-    @{ Type = "Armor"; Name = "Plasma Armor"; Cost = 100; Desc = "+3 DEF, +10 HP"; DEF = 3; HP = 10 }
-    @{ Type = "Accessory"; Name = "Speed Collar"; Cost = 100; Desc = "+3 SPD"; SPD = 3 }
-    @{ Type = "Chip"; Name = "Quantum Chip"; Cost = 250; Desc = "+6 ATK"; ATK = 6 }
-    @{ Type = "Armor"; Name = "Aegis Plate"; Cost = 250; Desc = "+6 DEF, +20 HP"; DEF = 6; HP = 20 }
+    @{ Type = "Chip"; Name = "Neural Chip"; Cost = 60; Desc = "+3 ATK"; ATK = 3 }
+    @{ Type = "Armor"; Name = "Plasma Armor"; Cost = 60; Desc = "+3 DEF, +10 HP"; DEF = 3; HP = 10 }
+    @{ Type = "Accessory"; Name = "Speed Collar"; Cost = 60; Desc = "+3 SPD"; SPD = 3 }
+    @{ Type = "Chip"; Name = "Quantum Chip"; Cost = 150; Desc = "+6 ATK"; ATK = 6 }
+    @{ Type = "Armor"; Name = "Aegis Plate"; Cost = 150; Desc = "+6 DEF, +20 HP"; DEF = 6; HP = 20 }
+    @{ Type = "Accessory"; Name = "Hyper Loop"; Cost = 150; Desc = "+6 SPD"; SPD = 6 }
 )
 $script:PetRecipes = @(
-    @{ Name = "Ramen"; Desc = "+10% MaxHP"; Buff = @{ Stat = "MaxHP"; Value = 0.10 } }
-    @{ Name = "Energy Drink"; Desc = "+20% SPD"; Buff = @{ Stat = "SPD"; Value = 0.20 } }
-    @{ Name = "Sushi Platter"; Desc = "+15% ATK"; Buff = @{ Stat = "ATK"; Value = 0.15 } }
-    @{ Name = "Golden Curry"; Desc = "+10% All Stats"; Buff = @{ Stat = "ALL"; Value = 0.10 } }
+    @{ Name = "Ramen"; Cost = 15; Desc = "+10% MaxHP (1 Kampf)"; Buff = @{ Stat = "MaxHP"; Value = 0.10 } }
+    @{ Name = "Energy Drink"; Cost = 20; Desc = "+20% SPD (1 Kampf)"; Buff = @{ Stat = "SPD"; Value = 0.20 } }
+    @{ Name = "Sushi Platter"; Cost = 30; Desc = "+15% ATK (1 Kampf)"; Buff = @{ Stat = "ATK"; Value = 0.15 } }
+    @{ Name = "Golden Curry"; Cost = 50; Desc = "+10% All Stats (1 Kampf)"; Buff = @{ Stat = "ALL"; Value = 0.10 } }
 )
 
 function Start-PetShop {
@@ -57,12 +58,18 @@ function Start-PetCook {
     Write-Host ""
     for ($i = 0; $i -lt $script:PetRecipes.Count; $i++) {
         $r = $script:PetRecipes[$i]
-        Write-Host "  [$($i+1)] $($r.Name) — $($r.Desc)" -ForegroundColor White
+        Write-Host "  [$($i+1)] $($r.Name) — $($r.Cost) G | $($r.Desc)" -ForegroundColor White
     }
     Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
     $c = Read-Choice "Waehle" "^([1-$($script:PetRecipes.Count)]|Q)$"
     if ($c -eq 'Q') { return }
     $recipe = $script:PetRecipes[[int]$c - 1]
+    if ($pet.Economy.Gold -lt $recipe.Cost) {
+        Write-Host "`n  Nicht genug Gold! ($($recipe.Cost) G benoetigt)" -ForegroundColor Red
+        Wait-Enter
+        return
+    }
+    $pet.Economy.Gold -= $recipe.Cost
     $p.FoodBuffs = @($recipe.Buff)
     if ($cp.Bond -ge 50 -and (Get-Random -Maximum 3) -eq 0) {
         $p.FoodBuffs += @{ Name = "Mystery Stew"; Desc = "+5% All"; Buff = @{ Stat = "ALL"; Value = 0.05 } }

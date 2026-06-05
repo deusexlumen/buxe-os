@@ -13,7 +13,7 @@ function mkcd { param($p); New-Item -ItemType Directory -Path $p -Force | Out-Nu
 function ll    { Get-ChildItem @args | Format-Table -AutoSize }
 function la    { Get-ChildItem -Force @args }
 function touch { param($p); if (Test-Path $p) { (Get-Item $p).LastWriteTime = Get-Date } else { New-Item -ItemType File -Path $p | Out-Null } }
-function rmrf  { param($p); Remove-Item -Recurse -Force $p }
+function rmrf  { param($p); $target = Resolve-Path $p -ErrorAction SilentlyContinue; if (-not $target) { Write-Host "  Pfad nicht gefunden: $p" -ForegroundColor Red; return }; $confirm = Read-Host "  Wirklich loeschen: $target ? (ja/NEIN)"; if ($confirm -eq 'ja') { Remove-Item -Recurse -Force $target } else { Write-Host "  Abgebrochen." -ForegroundColor DarkGray } }
 function c     { param($p); Get-Content $p }
 function which { param($n); Get-Command $n -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source }
 function grep  { param($p, $f); Select-String -Pattern $p -Path $f }

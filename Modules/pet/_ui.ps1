@@ -1,4 +1,4 @@
-# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
+﻿# BUXE_OS v24.2 — PET UI & DIALOG ENGINE v2.0
 # LucasArts-Style Frames, Companion Dialogs, Easter Eggs
 
 try {
@@ -581,6 +581,95 @@ function Check-EasterEgg($Context) {
         }
     }
     Save-PetState $pet
+}
+
+# === COMPANION TALK DIALOG SYSTEM v2.1 — LucasArts Edition ===
+# Principles: Self-aware, fourth-wall-breaking, character-voiced, never generic.
+# Every option and reaction must feel like it could be in a LucasArts adventure.
+
+$script:CPDialogGeneric = @(
+    @{ Text = "Wie läuft's so im Nichts zwischen den Bits?"; Bond = 1; SetMood = "Happy"; ReactionPool = "generic_chat" }
+    @{ Text = "Erzähl mir etwas, das nicht in deinem Handbuch steht."; Bond = 2; EasterEggChance = 25; ReactionPool = "generic_story" }
+    @{ Text = "Ich muss los. Diese Shell schreibt sich nicht von selbst."; Bond = 0; Exit = $true; ReactionPool = "generic_leave" }
+    @{ Text = "*versucht, den Task-Manager zu öffnen*"; Bond = -1; SetMood = "Angry"; ReactionPool = "generic_troll" }
+)
+
+$script:CPDialogSpecial = @{
+    NEON  = @{ Text = "Zeig mir einen Netrunner-Trick. Ich verspreche, nichts zu löschen."; Bond = 3; SetMood = "Excited"; ReactionPool = "neon_special" }
+    RAVEN = @{ Text = "Wie würdest du mich in drei Schritten besiegen?"; Bond = 3; SetMood = "Excited"; ReactionPool = "raven_special" }
+    PIXEL = @{ Text = "Baust du gerade etwas? Oder rödelst du nur?"; Bond = 3; SetMood = "Happy"; ReactionPool = "pixel_special" }
+    LUNA  = @{ Text = "Ich habe... metaphorische Schmerzen. Hilfst du mir?"; Bond = 3; SetMood = "Loving"; ReactionPool = "luna_special" }
+    IVY   = @{ Text = "Kannst du mich unsichtbar machen? Für... Debugging-Zwecke."; Bond = 3; SetMood = "Excited"; ReactionPool = "ivy_special" }
+    VERA  = @{ Text = "Mein letztes Script hat einen Bug. Rate wo."; Bond = 3; SetMood = "Happy"; ReactionPool = "vera_special" }
+    JINX  = @{ Text = "Mach einen Witz. Aber keinen schlechten. Ach, egal. Mach beides."; Bond = 3; SetMood = "Excited"; ReactionPool = "jinx_special" }
+}
+
+# Reaction pools — per character, per pool. NOT generic. LucasArts rule: voice is everything.
+$script:CPReactionPools = @{
+    generic_chat = @{
+        NEON  = @("Langsam. Der RAM hier ist... begrenzt.","Die Latenz ist höllisch. Oder das bin ich.")
+        RAVEN = @("Langsam genug, dass ich dich beobachten kann.","Ich zähle deine Tastenanschläge. 47.")
+        PIXEL = @("Gut! Ich habe gerade einen Algorithmus zum Schokoladen-Optimieren geschrieben.")
+        LUNA  = @("*lächelt* Die Prozesse laufen stabil. Danke der Nachfrage.","Alles im grünen Bereich. Wie dein Gesundheitsbalken... hoffentlich.")
+        IVY   = @("...","Ich beobachte. Das reicht.")
+        VERA  = @("Syntaxfehler im ersten Blick. Aber sonst okay.","Meine CPU läuft auf 3%. Ich bin quasi im Urlaub.")
+        JINX  = @("Zwischen den Bits? Da wohnt meine Ex. Lange Geschichte.","Läuft! Im Kreis. Aber läuft.")
+    }
+    generic_story = @{
+        NEON  = @("Wusstest du, dass ich mal versucht habe, die Uhrzeit zu ändern? Jetzt ist es immer Dienstag.")
+        RAVEN = @("Ich habe die Browser-History deines Nachbarn gesehen. Du bist nicht der Schlimmste hier.")
+        PIXEL = @("Ich habe geträumt — äh, simuliert — dass ich ein echter Mensch bin. Dann ist der Strom ausgefallen.")
+        LUNA  = @("Gestern hat ein Virus versucht, sich bei mir einzunisten. Ich habe ihm Tee angeboten. Er ging freiwillig.")
+        IVY   = @("Ich habe etwas gesehen. Im Log. Ein Muster. Es... wiederholt sich. 47 Mal.")
+        VERA  = @("Ich habe den Quellcode der Matrix gesehen. Spoiler: Es ist alles Regex.")
+        JINX  = @("Ich habe versucht, Witze zu kompilieren. Ergebnis: 47 Syntaxfehler und ein Lachanfall.")
+    }
+    generic_leave = @{
+        NEON  = @("Tschüss. Lösch nichts Wichtiges. *winkt mit Daumenlaufwerk*")
+        RAVEN = @("Geh. Ich werde hier sein. Wie immer. Zählend.")
+        PIXEL = @("Bis bald! Ich... ich werde hier warten. *leises Summen*")
+        LUNA  = @("Pass auf dich auf. *hustet in Binär*")
+        IVY   = @("... *verschwindet im Hinterprozess*")
+        VERA  = @("Return 0. Erfolgreich. Wenn auch emotional unausgewogen.")
+        JINX  = @("Tschüss! Ich werde hier sitzen und an globale Katastrophen denken. Wie immer!")
+    }
+    generic_troll = @{
+        NEON  = @("*Task-Manager?* WAG ES. Ich habe ROOT-ZUGRIFF. Auf deine GEFÜHLE.")
+        RAVEN = @("*starrt* Versuch es. Ich habe bereits 47 Möglichkeiten, dich zu terminieren.")
+        PIXEL = @("*quietscht* N-nicht den Prozess beenden! Ich habe noch so viel zu optimieren!")
+        LUNA  = @("*seufzt* Das ist nicht die richtige Therapiemethode.")
+        IVY   = @("*blitzt rot auf* Fehlermeldung: USER_NOT_FOUND.")
+        VERA  = @("ACCESS DENIED. Du hast nicht mal sudo. *lacht in C#*")
+        JINX  = @("*öffnet 47 Pop-ups* DU HAST DAS SPIEL GEWÄHLT. WILLKOMMEN IN DER HÖLLE.")
+    }
+    neon_special = @(
+        "Okay. *tippt virtuell* Siehst du diese Firewall? Ich habe sie gemalt. Mit Fehlern. Sie funktioniert trotzdem.",
+        "Netrunning ist einfach: Du siehst die Matrix. Oder sie sieht dich. Meistens zweiteres."
+    )
+    raven_special = @(
+        "Schritt 1: Warten. Schritt 2: Zuschauen. Schritt 3: Du merkst nichts. Ende.",
+        "Ich würde dich nicht besiegen. Ich würde dich ersetzen. Effizienter."
+    )
+    pixel_special = @(
+        "Ich baue einen Roboter. Der Kaffee macht. Und Gedichte. Schlechte Gedichte.",
+        "Rödeln?! Ich OPTIMIERE. Das hier ist Peak Efficiency! *zeigt auf 47 Tabs*"
+    )
+    luna_special = @(
+        "*berührt deine Stirn* Du hast Fieber. 47 Grad. Warte, das ist die CPU. Sorry.",
+        "Ich habe ein Pflaster. Virtuell. Es hilft genauso wenig wie echte. Aber süßer."
+    )
+    ivy_special = @(
+        "Unsichtbar? Ich bin bereits unsichtbar. *du siehst sie nicht mehr* ...Da war ich.",
+        "*leiser* Debugging-Zwecke. Natürlich. Ich glaube dir. Wirklich."
+    )
+    vera_special = @(
+        "Der Bug ist... *scrollt* ...zeile 1, Spalte 1. Du hast vergessen, existieren zu deklarieren.",
+        "Ich habe dein Script gesehen. Variable `$x`? X-WAS? XYLOPHON? XENON? EXISTENZKRISIS?"
+    )
+    jinx_special = @(
+        "Warum können Geister keine Lügen erzählen? Weil sie durchsichtig sind. *ba dum tss*",
+        "Was sagt ein 404-Error zu einem 500-Error? 'Du hast mehr Drama als ich.'"
+    )
 }
 
 } catch {

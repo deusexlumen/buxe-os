@@ -6,14 +6,8 @@ $script:SessionStart = Get-Date
 
 $script:BuxTips = @(
     "Tipp: 'daily' gibt dir jeden Tag Gold + Streak-Bonus.",
-    "Tipp: 'pet status' zeigt Companion + Battlepet auf einen Blick.",
-    "Tipp: CasinoLuck und StrategyInsight leveln sich durch spielen.",
-    "Tipp: 'capsule <text>' erstellt eine Zeitkapsel fuer spaeter.",
-    "Tipp: Jede 5. Runde im Kampf ist ein Boss.",
     "Tipp: 'bank' zeigt deine komplette Finanzhistorie.",
-    "Tipp: TUI-Spiele laufen ohne Clear-Host-Flicker.",
-    "Tipp: Die Companion reagiert auf Uhrzeit, Mood und Easter Eggs.",
-    "Tipp: 'h' listet ALLE verfuegbaren Commands.",
+    "Tipp: 'status' fuer Uebersicht. 'h' fuer Commands.",
     "Tipp: Achievements persistieren ueber Sessions hinweg."
 )
 
@@ -31,15 +25,6 @@ function Invoke-BootSequence {
         
         Write-Host ""
         Write-Host "   BUXE_OS v24.0" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "  [INIT] Module laden..." -ForegroundColor Green
-        Start-Sleep -Milliseconds 200
-        Write-Host "  [OK]   State Manager v24" -ForegroundColor Green
-        Write-Host "  [OK]   UI Framework v24" -ForegroundColor Green
-        Write-Host "  [OK]   Game Engine v24" -ForegroundColor Green
-        Write-Host "  [OK]   OhMyPosh renderer online" -ForegroundColor Green
-        Write-Host "  [OK]   Zoxide memory banks mounted" -ForegroundColor Green
-        Write-Host "  [OK]   User $env:USERNAME authenticated`n" -ForegroundColor Green
         Write-Host "  $greeting, $env:USERNAME." -ForegroundColor White
         
         $loads = $b.Loads
@@ -51,6 +36,7 @@ function Invoke-BootSequence {
         
         $tip = $script:BuxTips | Get-Random
         Write-Host "  $tip" -ForegroundColor DarkGray
+        Write-Host "  Desktop Pet: 'dp-on' zum Aktivieren." -ForegroundColor DarkGray
         
         $petData = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
         if (-not $petData) { $petData = $script:BuxeState.Companion }
@@ -78,9 +64,16 @@ function Invoke-BootSequence {
             }
         }
         
-        mem
+        $m = Get-CimInstance Win32_OperatingSystem
+        $t = [math]::Round($m.TotalVisibleMemorySize / 1MB, 2)
+        $f = [math]::Round($m.FreePhysicalMemory / 1MB, 2)
+        $u = $t - $f; $pct = [math]::Round(($u / $t) * 100)
+        if ($pct -gt 75) {
+            $col = if ($pct -gt 85) { "Red" } else { "Yellow" }
+            Write-Host "  RAM: $u / $t GB ($pct%)" -ForegroundColor $col
+        }
         $ach = ($script:BuxeState.Achievements | Get-Member -MemberType NoteProperty | Measure-Object).Count
-        Write-Host "  Achievements: $ach freigeschaltet." -ForegroundColor DarkCyan
+        if ($ach -gt 0) { Write-Host "  Achievements: $ach freigeschaltet." -ForegroundColor DarkCyan }
         Write-Host ""
     } catch { Write-Host "[boot] Fehler: $_" -ForegroundColor Red }
 }
