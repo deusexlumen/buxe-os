@@ -3,6 +3,18 @@
 
 try {
 
+# Load sub-modules if not already loaded (for direct arcade.ps1 sourcing)
+$modulesDir = if ($PSScriptRoot) { $PSScriptRoot } else { Join-Path (Get-Location) "Modules" }
+$subModules = @(
+    "arcade-legacy.ps1", "arcade-minesweeper.ps1", "arcade-tetris.ps1",
+    "arcade-monkeytype.ps1", "arcade-snake.ps1", "arcade-wordle.ps1",
+    "arcade-breakout.ps1"
+)
+foreach ($sm in $subModules) {
+    $smPath = Join-Path $modulesDir $sm
+    if (Test-Path $smPath) { . $smPath }
+}
+
 function Show-ArcadeStats {
     Load-State
     $a = $script:BuxeState.Arcade
