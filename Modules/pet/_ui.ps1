@@ -454,33 +454,42 @@ function Set-PetTheme {
     if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; return }
     if ($pet.Meta.Level -lt 15) { Write-Host "Meta Level 15 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     $themes = @("Default","Neon","Matrix","Retro","Minimal")
-    try { Clear-Host } catch {}
-    Show-PetFrame "ARCHITECT THEME SELECTOR" -Double | Out-Null
-    Write-Host ""
-    for ($i = 0; $i -lt $themes.Count; $i++) {
-        $marker = if ($cp.Theme -eq $themes[$i]) { " [AKTIV]" } else { "" }
-        Write-Host "  [$($i+1)] $($themes[$i])$marker" -ForegroundColor White
+    while ($true) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "ARCHITECT THEME SELECTOR" -Double | Out-Null
+        Write-Host ""
+        Write-Host "  VORSCHAU:" -ForegroundColor DarkGray
+        Show-PetFrame "$(if($cp.Theme){$cp.Theme}else{'Default'}) Preview" -Double | Out-Null
+        Write-Host ""
+        for ($i = 0; $i -lt $themes.Count; $i++) {
+            $marker = if ($cp.Theme -eq $themes[$i]) { " [AKTIV]" } else { "" }
+            Write-Host "  [$($i+1)] $($themes[$i])$marker" -ForegroundColor White
+        }
+        Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
+        $c = Read-Choice "Waehle" "^([1-$($themes.Count)]|Q)$"
+        if ($c -eq 'Q') { return }
+        $newTheme = $themes[[int]$c - 1]
+        $cp.Theme = $newTheme
+        Save-PetState $pet
+        try { Clear-Host } catch {}
+        Show-PetFrame "THEME: $newTheme" -Double | Out-Null
+        Write-Host ""
+        $themeLine = switch ($cp.Name) {
+            "NEON" { "Neues Theme? Endlich. Dieses Cyan war so... 2023." }
+            "RAVEN" { "Ästhetik geändert. Wie eine neue Tarnung." }
+            "PIXEL" { "Ich habe die CSS-Datei geändert! Naja, virtuell." }
+            "LUNA" { "Eine neue Atmosphäre. Schön." }
+            "IVY" { "... *nickt zustimmend* Besser." }
+            "VERA" { "UI-Redesign abgeschlossen. Produktivität steigt um 0%." }
+            "JINX" { "Neue Farben! Neue Vibes! 47% mehr Stil!" }
+            default { "Theme aktiviert." }
+        }
+        Show-CompanionDialog $cp $themeLine -Fast
+        Write-Host ""
+        Write-Host "  [Enter] Weiter  |  [1] Anderes Theme" -ForegroundColor DarkGray
+        $raw = Read-Host
+        if ($raw -ne '1') { return }
     }
-    Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
-    $c = Read-Choice "Waehle" "^([1-$($themes.Count)]|Q)$"
-    if ($c -eq 'Q') { return }
-    $newTheme = $themes[[int]$c - 1]
-    $cp.Theme = $newTheme
-    Save-PetState $pet
-    Show-PetFrame "THEME: $newTheme" -Double | Out-Null
-    Write-Host ""
-    $themeLine = switch ($cp.Name) {
-        "NEON" { "Neues Theme? Endlich. Dieses Cyan war so... 2023." }
-        "RAVEN" { "Ästhetik geändert. Wie eine neue Tarnung." }
-        "PIXEL" { "Ich habe die CSS-Datei geändert! Naja, virtuell." }
-        "LUNA" { "Eine neue Atmosphäre. Schön." }
-        "IVY" { "... *nickt zustimmend* Besser." }
-        "VERA" { "UI-Redesign abgeschlossen. Produktivität steigt um 0%." }
-        "JINX" { "Neue Farben! Neue Vibes! 47% mehr Stil!" }
-        default { "Theme aktiviert." }
-    }
-    Show-CompanionDialog $cp $themeLine -Fast
-    Wait-Enter
 }
 
 function Show-CompanionDialog($Companion, $Text, [switch]$Fast) {

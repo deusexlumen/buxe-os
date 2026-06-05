@@ -106,6 +106,12 @@ function status {
             $glitchStatus = if ($petMeta.GlitchUsedToday -eq (Get-Date -Format "yyyy-MM-dd")) { "USED" } else { "READY" }
             Write-Host "     Glitch: $glitchStatus" -ForegroundColor $(if($glitchStatus -eq "READY"){"Green"}else{"Red"})
         }
+        if ($petMeta.Level -ge 14 -and $petMeta.ContainsKey("ActionCount")) {
+            $nextLayer = 47 - ($petMeta.ActionCount % 47)
+            $layer = [math]::Floor($petMeta.ActionCount / 47)
+            $progressBar = Show-Bar (47 - $nextLayer) 47 10
+            Write-Host "     Layer 47: Zyklus #$layer | [$progressBar] $nextLayer Aktionen" -ForegroundColor DarkGray
+        }
     }
     Write-Host $bot -ForegroundColor Cyan
     Write-Host ""

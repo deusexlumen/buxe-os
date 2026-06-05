@@ -5,11 +5,18 @@ try {
 
 # === FRAME ===
 function Show-Frame($Title, [int]$Width = 42, [switch]$Double) {
-    $hc = if ($Double) { "=" } else { "-" }
-    $tl = if ($Double) { "#" } else { "+" }
-    $tr = if ($Double) { "#" } else { "+" }
-    $bl = if ($Double) { "#" } else { "+" }
-    $br = if ($Double) { "#" } else { "+" }
+    # Meta 15: Architect Theme — apply companion theme to global frames
+    $theme = "Default"
+    if ($script:BuxeState -and $script:BuxeState.Pet -and $script:BuxeState.Pet.Companion -and $script:BuxeState.Pet.Meta.Level -ge 15) {
+        $theme = if ($script:BuxeState.Pet.Companion.Theme) { $script:BuxeState.Pet.Companion.Theme } else { "Default" }
+    }
+    switch ($theme) {
+        "Neon" { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Magenta" }
+        "Matrix" { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Green" }
+        "Retro" { $hc = if ($Double) { "=" } else { "=" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Yellow" }
+        "Minimal" { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "White" }
+        default { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Cyan" }
+    }
     $line = $hc * $Width
     if ($Title) {
         $t = " $Title "
@@ -21,7 +28,7 @@ function Show-Frame($Title, [int]$Width = 42, [switch]$Double) {
         $topLine = $tl + $line + $tr
     }
     $botLine = $bl + $line + $br
-    Write-Host $topLine -ForegroundColor Cyan
+    Write-Host $topLine -ForegroundColor $fg
     return $botLine
 }
 
