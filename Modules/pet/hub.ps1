@@ -160,6 +160,7 @@ function pet {
             "quests"  { Show-PetQuests }
             "claim"   { Claim-PetQuests }
             "status"  { Show-PetHubStatus }
+            "theme"   { if ($pet.Meta.Level -ge 15) { Set-PetTheme } }
             default   { Write-Host "Unbekannte Aktion: $Action" -ForegroundColor Red }
         }
         return
@@ -199,6 +200,7 @@ function pet {
         if (Is-FeatureUnlocked "breed") { $opts += "[B] Breed"; $keys += "B" }
         if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
+        if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
         $opts += "[M] Memories"; $keys += "M"
         $opts += "[C] Quests"; $keys += "C"
         $opts += "[S] Status"; $keys += "S"
@@ -279,6 +281,10 @@ function pet {
             'L' { 
                 if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen." -Fast }
                 Invoke-SoulLink 
+            }
+            'T' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ein neuer Look? Endlich. Ich war so müde von Cyan." -Fast }
+                Set-PetTheme 
             }
             'S' { Show-PetHubStatus }
             'Q' { return }

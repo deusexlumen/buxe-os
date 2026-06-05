@@ -126,6 +126,7 @@ function Start-PetTutorialFight {
     Invoke-PetLevelUpCheck $p
     if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "fight_win") -Fast }
     Write-Host ""
+    Invoke-Layer47Check
     Wait-Enter
 }
 
@@ -331,6 +332,7 @@ function Start-PetFight {
         Add-PetXP 8 "Fight Draw"
     }
     $p.FoodBuffs = @(); Save-PetState $pet
+    Invoke-Layer47Check
     Wait-Enter
 }
 

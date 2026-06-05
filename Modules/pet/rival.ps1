@@ -88,6 +88,7 @@ function Invoke-PetRivalBattle {
         Add-PetXP 10 "Rival Draw"
     }
     Save-PetState $pet
+    Invoke-Layer47Check
     Wait-Enter
 }
 

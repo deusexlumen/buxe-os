@@ -96,6 +96,7 @@ function Start-PetPvP {
         if ($pet.Companion) { Show-CompanionDialog $pet.Companion "Du bist unglaublich! $newRank! Das ist... das ist ETWAS!" -Fast }
     }
     Save-PetState $pet
+    Invoke-Layer47Check
     Wait-Enter
 }
 

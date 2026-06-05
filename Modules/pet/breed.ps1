@@ -58,6 +58,7 @@ function Start-PetBreed {
         else { Show-CompanionDialog $cp "Du willst mich durch BABIES ersetzen?! *grummel*" -Fast; $cp.Mood = "Angry" }
     }
     Add-PetXP 50 "Breed"
+    Invoke-Layer47Check
     Wait-Enter
 }
 

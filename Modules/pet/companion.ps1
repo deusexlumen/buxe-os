@@ -20,6 +20,7 @@ function New-Companion {
         Skills = @{ CombatBoost = 0; CasinoLuck = 0; StrategyInsight = 0 }
         Sync = 0
         MarryDate = $null
+        Theme = "Default"
     }
     Save-PetState $pet
     Write-Host "`n  $($pet.Companion.Name) ist online." -ForegroundColor $pet.Companion.Color
@@ -178,6 +179,7 @@ function Invoke-CompanionAction($action) {
         }
     }
     Save-PetState $pet
+    Invoke-Layer47Check
     Wait-Enter
 }
 

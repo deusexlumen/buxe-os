@@ -51,6 +51,7 @@ function Start-PetShop {
         Save-PetState $pet
         Check-QuestProgress "shop"
         Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
+        Invoke-Layer47Check
         Wait-Enter
     }
 }
@@ -88,6 +89,7 @@ function Start-PetCook {
     Check-QuestProgress "cook"
     Show-CompanionDialog $cp "Mmm, das riecht gut! Ich habe mein Bestes gegeben!" -Fast
     Write-Host "  $($recipe.Name) fuer $($p.Name)! Naechster Kampf: $($recipe.Desc)" -ForegroundColor Green
+    Invoke-Layer47Check
     Wait-Enter
 }
 
@@ -139,6 +141,7 @@ function Start-PetCrafting {
         Save-PetState $pet
         if ($cp) { Show-CompanionDialog $cp "Handgefertigt. Von mir. Fuer dich. Das ist... romantisch?" -Fast }
         Write-Host "`n  $($item.Name) hergestellt und ausgeruestet!" -ForegroundColor Green
+        Invoke-Layer47Check
         Wait-Enter
     }
 }

@@ -53,6 +53,7 @@ function Invoke-SoulLink {
     Write-Host "`n  *** SOUL LINK AKTIVIERT! ***" -ForegroundColor Magenta
     Write-Host "  MaxHP +50 | ATK/DEF/SPD +5 | Sync +20 | Neue Attacke: SOUL BLAST" -ForegroundColor Yellow
     Add-PetXP 500 "Soul Link"
+    Invoke-Layer47Check
     Wait-Enter
 }
 

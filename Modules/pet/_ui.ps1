@@ -409,19 +409,78 @@ $script:CPMetaLines = @{
 
 function Show-PetFrame($Title, [switch]$Double) {
     $w = 50
-    $hc = if ($Double) { "═" } else { "─" }
-    $vc = if ($Double) { "║" } else { "│" }
-    $tl = if ($Double) { "╔" } else { "┌" }
-    $tr = if ($Double) { "╗" } else { "┐" }
-    $bl = if ($Double) { "╚" } else { "└" }
-    $br = if ($Double) { "╝" } else { "┘" }
+    $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
+    $theme = if ($pet -and $pet.Companion -and $pet.Companion.Theme) { $pet.Companion.Theme } else { "Default" }
+    if ($pet -and $pet.Meta.Level -lt 15) { $theme = "Default" }
+    switch ($theme) {
+        "Neon" {
+            $hc = if ($Double) { "═" } else { "─" }; $vc = "║"; $tl = "╔"; $tr = "╗"; $bl = "╚"; $br = "╝"
+            $fg = "Magenta"
+        }
+        "Matrix" {
+            $hc = if ($Double) { "═" } else { "─" }; $vc = "│"; $tl = "┌"; $tr = "┐"; $bl = "└"; $br = "┘"
+            $fg = "Green"
+        }
+        "Retro" {
+            $hc = if ($Double) { "═" } else { "═" }; $vc = "║"; $tl = "╔"; $tr = "╗"; $bl = "╚"; $br = "╝"
+            $fg = "Yellow"
+        }
+        "Minimal" {
+            $hc = if ($Double) { "=" } else { "-" }; $vc = "|"; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"
+            $fg = "White"
+        }
+        default {
+            $hc = if ($Double) { "═" } else { "─" }
+            $vc = if ($Double) { "║" } else { "│" }
+            $tl = if ($Double) { "╔" } else { "┌" }
+            $tr = if ($Double) { "╗" } else { "┐" }
+            $bl = if ($Double) { "╚" } else { "└" }
+            $br = if ($Double) { "╝" } else { "┘" }
+            $fg = "Cyan"
+        }
+    }
     $top = $tl + ($hc * $w) + $tr
     $bot = $bl + ($hc * $w) + $br
     $pad = [math]::Max(0, $w - $Title.Length)
     $mid = $vc + " " + $Title + (" " * $pad) + $vc
-    Write-Host $top -ForegroundColor Cyan
-    Write-Host $mid -ForegroundColor Cyan
-    Write-Host $bot -ForegroundColor Cyan
+    Write-Host $top -ForegroundColor $fg
+    Write-Host $mid -ForegroundColor $fg
+    Write-Host $bot -ForegroundColor $fg
+}
+
+function Set-PetTheme {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; return }
+    if ($pet.Meta.Level -lt 15) { Write-Host "Meta Level 15 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    $themes = @("Default","Neon","Matrix","Retro","Minimal")
+    try { Clear-Host } catch {}
+    Show-PetFrame "ARCHITECT THEME SELECTOR" -Double | Out-Null
+    Write-Host ""
+    for ($i = 0; $i -lt $themes.Count; $i++) {
+        $marker = if ($cp.Theme -eq $themes[$i]) { " [AKTIV]" } else { "" }
+        Write-Host "  [$($i+1)] $($themes[$i])$marker" -ForegroundColor White
+    }
+    Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
+    $c = Read-Choice "Waehle" "^([1-$($themes.Count)]|Q)$"
+    if ($c -eq 'Q') { return }
+    $newTheme = $themes[[int]$c - 1]
+    $cp.Theme = $newTheme
+    Save-PetState $pet
+    Show-PetFrame "THEME: $newTheme" -Double | Out-Null
+    Write-Host ""
+    $themeLine = switch ($cp.Name) {
+        "NEON" { "Neues Theme? Endlich. Dieses Cyan war so... 2023." }
+        "RAVEN" { "Ästhetik geändert. Wie eine neue Tarnung." }
+        "PIXEL" { "Ich habe die CSS-Datei geändert! Naja, virtuell." }
+        "LUNA" { "Eine neue Atmosphäre. Schön." }
+        "IVY" { "... *nickt zustimmend* Besser." }
+        "VERA" { "UI-Redesign abgeschlossen. Produktivität steigt um 0%." }
+        "JINX" { "Neue Farben! Neue Vibes! 47% mehr Stil!" }
+        default { "Theme aktiviert." }
+    }
+    Show-CompanionDialog $cp $themeLine -Fast
+    Wait-Enter
 }
 
 function Show-CompanionDialog($Companion, $Text, [switch]$Fast) {

@@ -149,6 +149,7 @@ function Invoke-PetRaidBattle($pet, $p) {
     if ($phase -gt $pet.Pet.RaidBest) { $pet.Pet.RaidBest = $phase - 1 }
     Save-PetState $pet
     Write-Host "`n  Tokens: $tokens | Gesamt: $($pet.Pet.RaidTokens)" -ForegroundColor Yellow
+    Invoke-Layer47Check
     Wait-Enter
 }
 

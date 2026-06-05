@@ -39,6 +39,7 @@ function Get-PetDefaults {
             }
             QuestDate = ""
             GlitchUsed = ""
+            ActionCount = 0
         }
         Companion = $null
         Pet = $null
@@ -71,6 +72,11 @@ function Get-PetState {
         # Migration: GlitchUsed field
         if (-not $script:BuxeState.Pet.Meta.ContainsKey("GlitchUsed")) {
             $script:BuxeState.Pet.Meta.GlitchUsed = ""
+            Save-State
+        }
+        # Migration: ActionCount field
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("ActionCount")) {
+            $script:BuxeState.Pet.Meta.ActionCount = 0
             Save-State
         }
     }
@@ -111,6 +117,38 @@ function Get-UnlockedFeatures {
 function Is-FeatureUnlocked($feature) {
     $unlocked = Get-UnlockedFeatures
     return $unlocked -contains $feature
+}
+
+function Invoke-Layer47Check {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { return }
+    if ($pet.Meta.Level -lt 14) { return }
+    $pet.Meta.ActionCount++
+    $count = $pet.Meta.ActionCount
+    Save-PetState $pet
+    if ($count % 47 -eq 0) {
+        $layer = [math]::Floor($count / 47)
+        $bonusGold = 20 + ($layer * 10)
+        $bonusXP = 10 + ($layer * 5)
+        $pet.Economy.Gold += $bonusGold
+        Add-PetXP $bonusXP "Layer 47 — #$layer"
+        if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
+            $l47Line = switch ($cp.Name) {
+                "NEON" { "Layer 47 erreicht. Die Matrix hat einen Herzschlag ausgesetzt. +$bonusGold G." }
+                "RAVEN" { "47 Aktionen. Das Muster wiederholt sich. +$bonusGold G. Wie vorhergesagt." }
+                "PIXEL" { "47! Meine Lieblingszahl! Naja, eine von ihnen. +$bonusGold G!" }
+                "LUNA" { "47 Schritte. Ein Zyklus ist vollendet. +$bonusGold G. Fuehlst du es?" }
+                "IVY" { "... *nickt* 47. +$bonusGold G. Ich habe darauf gewartet." }
+                "VERA" { "Layer $layer erreicht. Berechnungsgenauigkeit: 47%. Ironisch. +$bonusGold G." }
+                "JINX" { "47! 47! ICH HABE EUCH GESAGT ES GIBT EIN MUSTER! +$bonusGold G!" }
+                default { "Layer 47 — Zyklus $layer. +$bonusGold G." }
+            }
+            Show-CompanionDialog $cp $l47Line -Fast
+        }
+        Write-Host "`n  [LAYER 47] Zyklus #$layer — +$bonusGold G | +$bonusXP XP" -ForegroundColor Magenta
+        Save-PetState $pet
+    }
 }
 
 function Unlock-PetFeature($feature) {
