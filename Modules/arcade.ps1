@@ -8,7 +8,7 @@ $modulesDir = if ($PSScriptRoot) { $PSScriptRoot } else { Join-Path (Get-Locatio
 $subModules = @(
     "arcade-legacy.ps1", "arcade-minesweeper.ps1", "arcade-tetris.ps1",
     "arcade-monkeytype.ps1", "arcade-snake.ps1", "arcade-wordle.ps1",
-    "arcade-breakout.ps1"
+    "arcade-breakout.ps1", "arcade-2048.ps1", "arcade-dino.ps1", "arcade-memory.ps1"
 )
 foreach ($sm in $subModules) {
     $smPath = Join-Path $modulesDir $sm
