@@ -1,9 +1,9 @@
-﻿# BUXE_OS v24.2 — PET SYSTEM CORE v2.0
+# BUXE_OS v24.2 — PET SYSTEM CORE v2.0
 # State, Schema, Meta-Progression
 
 try {
 
-$script:PetXPTable = @(0, 10, 30, 80, 150, 300, 600, 1200, 2500, 5000, 10000)
+$script:PetXPTable = @(0, 3, 15, 40, 100, 300, 600, 1200, 2500, 5000, 10000)
 $script:PetFeatureUnlocks = @{
     0 = @("talk", "companion_create")
     1 = @("gift", "mood")
@@ -32,12 +32,18 @@ function Get-PetDefaults {
                 TalkCount = 0; GiftCount = 0; PunishCount = 0
                 FightCount = 0; WorkCount = 0; TrainCount = 0
             }
+            QuestDate = ""
         }
         Companion = $null
         Pet = $null
         Economy = @{ Gold = 500; Inventory = @() }
         Achievements = @()
         Memories = @()
+        Tutorial = @{
+            Completed = $false
+            Step = 0
+            Skipped = $false
+        }
     }
 }
 
@@ -46,6 +52,16 @@ function Get-PetState {
     if (-not $script:BuxeState.Pet) {
         $script:BuxeState.Pet = (Get-PetDefaults)
         Save-State
+    } else {
+        # Migration: existing saves before tutorial feature
+        if (-not $script:BuxeState.Pet.ContainsKey("Tutorial")) {
+            $script:BuxeState.Pet.Tutorial = @{
+                Completed = $true
+                Step = 0
+                Skipped = $false
+            }
+            Save-State
+        }
     }
     return $script:BuxeState.Pet
 }

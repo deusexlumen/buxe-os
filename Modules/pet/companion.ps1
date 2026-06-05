@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — COMPANION CORE v2.0
+# BUXE_OS v24.2 — COMPANION CORE v2.0
 
 try {
 
@@ -18,6 +18,7 @@ function New-Companion {
         Talks = 0; Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0; Headpats = 0
         LastLogin = ""; LastWork = ""; Outfit = "Default"
         Skills = @{ CombatBoost = 0; CasinoLuck = 0; StrategyInsight = 0 }
+        Sync = 0
         MarryDate = $null
     }
     Save-PetState $pet
@@ -41,12 +42,15 @@ function Invoke-CompanionAction($action) {
     }
     switch ($action.ToLower()) {
         "talk" {
+            $isFirstTalk = ($pet.Meta.Stats.TalkCount -eq 0)
             $pet.Meta.Stats.TalkCount++
             $gain = [math]::Min(100, $cp.Bond + 2); $cp.Bond = $gain; $cp.Talks++
             $line = Get-CompanionLine $cp "talk"
             Show-CompanionDialog $cp $line
             Check-EasterEgg "talk"
-            Add-PetXP 1 "Talk"
+            $xpGain = if ($isFirstTalk) { 3 } else { 2 }
+            Add-PetXP $xpGain "Talk"
+            Check-QuestProgress "talk"
         }
         "gift" {
             $pet.Meta.Stats.GiftCount++
@@ -54,6 +58,7 @@ function Invoke-CompanionAction($action) {
             $cp.Mood = if ((Get-Random -Maximum 2) -eq 0) { "Excited" } else { "Loving" }
             Show-CompanionDialog $cp (Get-CompanionLine $cp "gift")
             Add-PetXP 5 "Gift"
+            Check-QuestProgress "gift"
         }
         "date" {
             if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..."; Wait-Enter; return }
@@ -61,6 +66,7 @@ function Invoke-CompanionAction($action) {
             $dateText = @("Ihr schaut euch die digitale Aurora an.","Ihr teilt eine virtuelle Mahlzeit.","Ihr tanzt in Schwerelosigkeit.") | Get-Random
             Write-Host "`n  DATE: $dateText" -ForegroundColor Magenta
             Show-CompanionDialog $cp "*errötet* Das war... schön."
+            if ($cp.Dates -eq 1) { Add-PetMemory "Erstes Date mit $($cp.Name)!" "DATE" }
             Add-PetXP 8 "Date"
         }
         "work" {
@@ -81,7 +87,9 @@ function Invoke-CompanionAction($action) {
                 else { $bonusText = " | Mission fehlgeschlagen..." }
             }
             if ($earn -gt 0) { $pet.Economy.Gold += $earn }
+            if ($cp.WorkCount -eq 1) { Add-PetMemory "Erster Job mit $($cp.Name). Earned $earn G." "WORK" }
             # CasinoLuck skill progression
+            if ($earn -gt 0) { Check-QuestProgress "work" }
             if ($earn -gt 0 -and $cp.Skills.CasinoLuck -lt 10 -and (Get-Random -Maximum 100) -lt 20) {
                 $cp.Skills.CasinoLuck++
                 Write-Host "  [SKILL UP] Casino Luck ist jetzt Level $($cp.Skills.CasinoLuck)!" -ForegroundColor Magenta
@@ -133,6 +141,67 @@ function Show-CompanionStatus($cp) {
     Write-Host "  Mood: $($cp.Mood) | Outfit: $($cp.Outfit) | Work: $($cp.WorkCount)x" -ForegroundColor DarkGray
     Write-Host "  Talks: $($cp.Talks) | Gifts: $($cp.Gifts) | Dates: $($cp.Dates) | Headpats: $($cp.Headpats)" -ForegroundColor DarkGray
     Write-Host ""
+}
+
+function Invoke-CompanionTalk {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { New-Companion; return }
+    $today = Get-Date -Format "yyyy-MM-dd"
+    if ($cp.LastLogin -ne $today) {
+        $cp.LastLogin = $today
+        $pet.Meta.TotalSessions++
+        $bonus = Get-Random -Minimum 3 -Maximum 8
+        $cp.Bond = [math]::Min(100, $cp.Bond + $bonus)
+        Save-PetState $pet
+    }
+    $pet.Meta.Stats.TalkCount++
+    $cp.Talks++
+    $tier = if ($cp.Bond -lt 30) { "Low" } elseif ($cp.Bond -lt 70) { "Med" } else { "High" }
+    # Build dialog options
+    $opts = @()
+    foreach ($g in $script:CPDialogGeneric) {
+        if ($g.BlockMood -and $g.BlockMood -contains $cp.Mood) { continue }
+        $opts += $g
+    }
+    if ($script:CPDialogSpecial.ContainsKey($cp.Name)) {
+        $opts += $script:CPDialogSpecial[$cp.Name]
+    }
+    # Greeting
+    try { Clear-Host } catch {}
+    Show-PetFrame "COMPANION TALK" -Double | Out-Null
+    Write-Host ""
+    $greeting = Get-CompanionLine $cp "talk"
+    Show-CompanionDialog $cp $greeting
+    Write-Host ""
+    # Options
+    for ($i = 0; $i -lt $opts.Count; $i++) {
+        $label = if ($opts[$i].Exit) { "[Q]" } else { "[$($i+1)]" }
+        Write-Host "  $label $($opts[$i].Text)" -ForegroundColor White
+    }
+    Write-Host ""
+    $valid = ""
+    for ($i = 1; $i -le $opts.Count; $i++) { if (-not $opts[$i-1].Exit) { $valid += "$i" } }
+    $valid += "Q"
+    $pattern = "^([$valid])$"
+    $c = Read-Choice "Waehle" $pattern
+    if ($c -eq 'Q') { Wait-Enter; return }
+    $idx = [int]$c - 1
+    $sel = $opts[$idx]
+    # Apply effect
+    if ($sel.Bond -gt 0) {
+        $cp.Bond = [math]::Min(100, $cp.Bond + $sel.Bond)
+    }
+    if ($sel.SetMood) { $cp.Mood = $sel.SetMood }
+    if ($sel.EasterEggChance -and (Get-Random -Maximum 100) -lt $sel.EasterEggChance) {
+        Check-EasterEgg "talk"
+    }
+    Save-PetState $pet
+    # Reaction from character-specific pool
+    $pool = $script:CPReactionPools[$sel.ReactionPool][$cp.Name]
+    if ($pool) { Show-CompanionDialog $cp ($pool | Get-Random) }
+    Add-PetXP 1 "Talk"
+    Wait-Enter
 }
 
 } catch {
