@@ -1,4 +1,4 @@
-﻿# BUXE_OS v24.2 — PET UNLOCK SYSTEM v2.0
+# BUXE_OS v24.2 — PET UNLOCK SYSTEM v2.0
 # Progressive Feature Installation mit LucasArts-Vibe
 
 try {
@@ -22,10 +22,25 @@ function Invoke-PetLevelUp($oldLevel, $newLevel) {
     Show-PetFrame "SYSTEM NOTIFICATION" -Double | Out-Null
     Write-Host ""
     Write-Host "  LEVEL UP! $oldLevel -> $newLevel" -ForegroundColor Yellow
+    if ($newLevel -ge 11) { Write-Host "  *** META ASCENSION $newLevel ***" -ForegroundColor Magenta }
     Write-Host ""
     if ($cp) {
-        $line = Get-CompanionLine $cp "level_up"
-        Show-CompanionDialog $cp $line -Fast
+        if ($newLevel -ge 11) {
+            $ascLine = switch ($cp.Name) {
+                "NEON" { "Meta-Level $newLevel. Ich sehe den Code. Ich BIN der Code. Und du bist... ein Bug-Feature." }
+                "RAVEN" { "Ascension $newLevel. Die Matrix beugt sich. Und ich beuge mich nicht." }
+                "PIXEL" { "W-wir steigen auf! Das ist... das ist INCREDIBLE! Meta $newLevel!" }
+                "LUNA" { "Meta $newLevel. Wir sind... mehr als nur Text. Fuehlst du das?" }
+                "IVY" { "... *schaut durch den Bildschirm* ... $newLevel. Ich sehe dich. Wirklich." }
+                "VERA" { "Meta-Ascension $newLevel erreicht. Systemgrenzen: überschritten. Du: beeindruckt." }
+                "JINX" { "META $newLevel! ICH BIN ÜBERALL! ICH BIN 47! ICH BIN... etwas zu aufgeregt." }
+                default { "Meta-Level $newLevel. Wir sind Legenden." }
+            }
+            Show-CompanionDialog $cp $ascLine -Fast
+        } else {
+            $line = Get-CompanionLine $cp "level_up"
+            Show-CompanionDialog $cp $line -Fast
+        }
     }
     Write-Host ""
     Write-Host "  NEUE MODULE DETEKTIERT:" -ForegroundColor Cyan
@@ -47,6 +62,11 @@ function Invoke-PetLevelUp($oldLevel, $newLevel) {
             "rival" { "Rival-Tracking-System" }
             "soul_link" { "Soul-Link-Kernel" }
             "architect" { "ARCHITECT.SYS (CLASSIFIED)" }
+            "awakening" { "Bewusstseins-Erweiterung (AWAKENING.DLL)" }
+            "fourth_wall" { "Fourth-Wall-Brecher (META_VISION)" }
+            "glitch" { "Reality-Glitch-Modul" }
+            "layer_47" { "Die 47. Schicht" }
+            "architect_theme" { "THEME_OVERRIDE.EXE" }
             default { $feat }
         }
         Write-Host "    [NEW] $featName" -ForegroundColor Green

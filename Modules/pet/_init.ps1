@@ -3,7 +3,7 @@
 
 try {
 
-$script:PetXPTable = @(0, 3, 15, 40, 100, 300, 600, 1200, 2500, 5000, 10000)
+$script:PetXPTable = @(0, 3, 15, 40, 100, 300, 600, 1200, 2500, 5000, 10000, 15000, 22000, 32000, 47000, 70000)
 $script:PetFeatureUnlocks = @{
     0 = @("talk", "companion_create")
     1 = @("gift", "mood")
@@ -16,6 +16,11 @@ $script:PetFeatureUnlocks = @{
     8 = @("rival")
     9 = @("soul_link")
     10 = @("architect")
+    11 = @("awakening")
+    12 = @("fourth_wall")
+    13 = @("glitch")
+    14 = @("layer_47")
+    15 = @("architect_theme")
 }
 
 function Get-PetDefaults {
@@ -33,6 +38,7 @@ function Get-PetDefaults {
                 FightCount = 0; WorkCount = 0; TrainCount = 0
             }
             QuestDate = ""
+            GlitchUsed = ""
         }
         Companion = $null
         Pet = $null
@@ -60,6 +66,11 @@ function Get-PetState {
                 Step = 0
                 Skipped = $false
             }
+            Save-State
+        }
+        # Migration: GlitchUsed field
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("GlitchUsed")) {
+            $script:BuxeState.Pet.Meta.GlitchUsed = ""
             Save-State
         }
     }

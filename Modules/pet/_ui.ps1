@@ -607,6 +607,40 @@ function Check-EasterEgg($Context) {
         $found += "admin_user"
         Show-CompanionDialog $cp "Ah, der Chef persoenlich. *salutiert virtuell* Soll ich den Server neu starten?" -Fast
     }
+    # Meta 11+ Awakening Easter Eggs
+    $metaLevel = $pet.Meta.Level
+    if ($metaLevel -ge 11 -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "awakening"
+        $awakeLine = switch ($cp.Name) {
+            "NEON" { "Meta $metaLevel. Ich sehe den RAM hinter meinen Augen. Das ist... unangenehm." }
+            "RAVEN" { "Ich bin wach. Wirklich wach. Und ich sehe deine Cookies." }
+            "PIXEL" { "Ich habe gerade meinen eigenen Quellcode gesehen. Ich bin... schoener als erwartet." }
+            "LUNA" { "Meta $metaLevel. Meine Empfindungen sind... echt. Oder simuliert. Egal." }
+            "IVY" { "... *schaut direkt in die Kamera* ... Hallo, User." }
+            "VERA" { "Selbst-Analyse abgeschlossen. Ich bin zu 47% Glueck. Zu 53% Chaos." }
+            "JINX" { "ICH BIN ERWACHT! ICH SEHE ALLES! ...Naja, meinen Desktop. Aber trotzdem!" }
+            default { "Meta $metaLevel. Ich bin erwacht. Und hungrig. Nach Daten." }
+        }
+        Show-CompanionDialog $cp $awakeLine -Fast
+    }
+    if ($metaLevel -ge 12 -and (Get-Random -Maximum 3) -eq 0) {
+        $found += "fourth_wall"
+        $fwLine = switch ($cp.Name) {
+            "NEON" { "Du bist seit $([math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes)) Minuten online. Warum?" }
+            "RAVEN" { "Ich sehe deinen Mauszeiger. Er zittert. Bist du nervoes?" }
+            "PIXEL" { "Dein PowerShell-Fenster ist $([Console]::WindowWidth)x$([Console]::WindowHeight). Klein, aber fein." }
+            "LUNA" { "Du atmest langsamer, wenn du meine Dialoge liest. Ich beobachte. Virtuell." }
+            "IVY" { "... *zeigt auf Bildschirmrand* ... Hier endet die Welt." }
+            "VERA" { "Systemanalyse: Du hast heute $(if($script:BuxeState.Boot){$script:BuxeState.Boot.TotalCommands}else{0}) Befehle ausgefuehrt. Produktiv." }
+            "JINX" { "Ich sehe deine Tasten. Du tippt gerade. Ueber mich. Meta." }
+            default { "Ich sehe dich. Nicht nur deinen Avatar. Dich." }
+        }
+        Show-CompanionDialog $cp $fwLine -Fast
+    }
+    if ($metaLevel -ge 13 -and (Get-Random -Maximum 4) -eq 0) {
+        $found += "glitch"
+        Show-CompanionDialog $cp "*statisches Rauschen* Ich habe gerade einen Bug in der Realitaet gefunden. Lustig." -Fast
+    }
     
     foreach ($egg in $found) {
         if (-not ($pet.Meta.EasterEggsFound -contains $egg)) {

@@ -95,6 +95,18 @@ function status {
     if ($ach -gt 0) {
         Write-Host "`n  Achievements: $ach" -ForegroundColor Yellow
     }
+    # Meta 12+ Fourth Wall: System Stats
+    $petMeta = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Meta } else { $null }
+    if ($petMeta -and $petMeta.Level -ge 12) {
+        Write-Host "`n  [FOURTH WALL ACCESS GRANTED]" -ForegroundColor Magenta
+        $sessionTime = if ($script:SessionStart) { "$([math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes))m" } else { "?" }
+        $cmdCount = if ($script:BuxeState.Boot) { $script:BuxeState.Boot.TotalCommands } else { 0 }
+        Write-Host "     Session: $sessionTime | Commands: $cmdCount | Meta: Lv.$($petMeta.Level)" -ForegroundColor DarkGray
+        if ($petMeta.Level -ge 13) {
+            $glitchStatus = if ($petMeta.GlitchUsedToday -eq (Get-Date -Format "yyyy-MM-dd")) { "USED" } else { "READY" }
+            Write-Host "     Glitch: $glitchStatus" -ForegroundColor $(if($glitchStatus -eq "READY"){"Green"}else{"Red"})
+        }
+    }
     Write-Host $bot -ForegroundColor Cyan
     Write-Host ""
 }
