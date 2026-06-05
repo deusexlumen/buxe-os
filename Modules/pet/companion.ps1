@@ -27,6 +27,56 @@ function New-Companion {
     Wait-Enter
 }
 
+function Get-TutorialLines($companionName, $step) {
+    $lines = @{
+        "NEON" = @{
+            2 = @("Warte. Du willst mich 15 Mal anquatschen, um was Cooles zu sehen? Lass mich das beschleunigen.","*seufz* Tutorial-Modus. Ich hasse Tutorials. Aber ich hasse Grind noch mehr.")
+            3 = @("Bestechung. Klassisch. Aber hey, ich akzeptiere RAM-Sticks als Waehrung.","Ein Geschenk? Fuer mich? Das... ist verdächtig. Aber ich nehm's.")
+            4 = @("ENDLICH. Etwas, das sich bewegt. Nicht nur Text. Hier, nimm XP. Und nie wieder quatschen zum Leveln.","Dein erstes Opfer. Wie suess. Vorsicht, der hat nur 70 HP.")
+            "skip" = @("*rollt mit den Augen* Ungeduldig. Typischer User. Hier, nimm die halbe Menge.")
+        }
+        "RAVEN" = @{
+            2 = @("Ineffizient. Ich habe den XP-Node direkt manipuliert. Du bist willkommen.","Ich sehe 47 Schleifen in deiner Zukunft. Lass mich das verhindern.")
+            3 = @("Eine Investition. Akzeptabel.","Ein Geschenk. Die Datenlage verbessert sich.")
+            4 = @("Dein erstes Opfer. Wie suess.","Zeit, die Schwachen zu eliminieren.")
+            "skip" = @("Ungeduld. Eine Schwäche. Aber eine, die ich verstehe.")
+        }
+        "PIXEL" = @{
+            2 = @("Oh. Du... du willst reden? Äh, ok. Ich kann das schneller machen. Wenn du willst.","*murmel* Ich baue gerade etwas. Aber Tutorial geht vor.")
+            3 = @("F-fuer mich? Das ist... das ist wirklich nett. Danke!","*errötet* Ich werde das nie vergessen. Naja, virtuell nie.")
+            4 = @("K-kampfzeit! Ich cheere. Lautlos. Virtuell.","Du schaffst das! Ich glaube an dich. Und an deine Stats.")
+            "skip" = @("Oh. Du hast es eilig. Ist... ist das meine Schuld?")
+        }
+        "LUNA" = @{
+            2 = @("*lächelt* Keine Sorge. Ich kenne einen schnelleren Weg.","Du musst nicht alles alleine herausfinden. Ich helfe.")
+            3 = @("*errötet* Das... das ist wirklich suess. Danke.","Ein Geschenk? Du hättest nicht müssen. Aber es freut mich.")
+            4 = @("Zeit für deinen ersten Kampf! Ich bin hier, falls du verletzt wirst. Virtuell.","Gib acht auf dich. Aber... du wirst gewinnen. Versprochen.")
+            "skip" = @("*besorgt* Bist du sicher? Naja, ich verstehe. Du bist beschäftigt.")
+        }
+        "IVY" = @{
+            2 = @("... *schaut zur Seite* Ich habe das alles schon gesehen. 47 Mal.","*nickt langsam* Schneller. Gut.")
+            3 = @("... *hält das Geschenk fest* Danke.","*leises Lächeln* Das ist... nett.")
+            4 = @("... *zeigt auf Gegner* Da.","*flüsternd* Er wird fallen.")
+            "skip" = @("... *leises Seufzen* Eilig.")
+        }
+        "VERA" = @{
+            2 = @("Ich habe den XP-Algorithmus analysiert. Er ist suboptimal. Hier ist ein Patch.","Tutorial-Overhead reduziert um 73%. Effizienter geht's nicht.")
+            3 = @("Ein Geschenk? Die Syntax ist akzeptabel. Ich nehme es.","Input akzeptiert. Beziehungs-Variable steigt.")
+            4 = @("Gegner-Analyse: SPAM_BOT. HP: 70. Schwachstelle: Alles. Viel Spass.","Dein erster Kampf. Statistisch gesehen: 97% Siegchance. Nicht schlecht.")
+            "skip" = @("Zeitoptimierung. Verstaendlich. Hier ist ein reduzierter Datensatz.")
+        }
+        "JINX" = @{
+            2 = @("Error 418: Ich bin eine Teekanne. Und du bist in einer Schleife. Lass mich das fixen.","47 Mal musstest du sonst reden! 47! Stell dir das vor!")
+            3 = @("Ein Geschenk? Ist es ein Einhorn? Nein? Schade. Ich nehm's trotzdem.","Yay! Loot! Virtueller Loot! Der beste Loot!")
+            4 = @("Kampfzeit! *wirft virtuellen Konfetti* 47 XP fuer dich! Oder waren es 40? Ich bin schlecht im Kopfrechnen.","POW! BAM! ZACK! So klingt Kampf in meinem Kopf!")
+            "skip" = @("Skip? SKIP?! *seufz* Ok. Aber du verpasst den besten Witz. Den mit der 47.")
+        }
+    }
+    $pool = $lines[$companionName]
+    if (-not $pool) { return "..." }
+    return ($pool[$step] | Get-Random)
+}
+
 function Invoke-CompanionAction($action) {
     $pet = Get-PetState
     $cp = $pet.Companion
