@@ -1,18 +1,146 @@
-﻿# BUXE_OS v24.2 — PET HUB v2.0
+# BUXE_OS v24.2 — PET HUB v2.0
 # Dynamic Menu, Companion as Entry Point
 
 try {
 
+function Invoke-PetTutorial {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    $today = Get-Date -Format "yyyy-MM-dd"
+    
+    # Step 0/1: Companion creation if none exists
+    if (-not $cp) {
+        New-Companion
+        $pet = Get-PetState
+        $cp = $pet.Companion
+        Add-PetXP 5 "Tutorial: Companion Created"
+        $pet.Tutorial.Step = 1
+        Save-PetState $pet
+    }
+    
+    # Step 2: First Talk (Accelerated)
+    if ($pet.Tutorial.Step -lt 2) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "TUTORIAL — KOMMUNIKATION" -Double | Out-Null
+        Write-Host ""
+        $line = Get-TutorialLines $cp.Name 2
+        Show-CompanionDialog $cp $line
+        Write-Host ""
+        Write-Host "  [Enter] Weiter  |  [S] Skip" -ForegroundColor DarkGray
+        $raw = Read-Host
+        if ($raw -eq 'S' -or $raw -eq 's') {
+            Invoke-TutorialSkip $cp
+            return
+        }
+        $pet.Meta.Stats.TalkCount++
+        $cp.Talks++
+        $cp.Bond = [math]::Min(100, $cp.Bond + 5)
+        Add-PetXP 10 "Tutorial: First Talk"
+        $pet.Tutorial.Step = 2
+        Save-PetState $pet
+    }
+    
+    # Step 3: First Gift (Accelerated)
+    if ($pet.Tutorial.Step -lt 3) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "TUTORIAL — BESCHERUNG" -Double | Out-Null
+        Write-Host ""
+        $line = Get-TutorialLines $cp.Name 3
+        Show-CompanionDialog $cp $line
+        Write-Host ""
+        Write-Host "  (Du gibst $($cp.Name) ein virtuelles Geschenk.)" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  [Enter] Weiter  |  [S] Skip" -ForegroundColor DarkGray
+        $raw = Read-Host
+        if ($raw -eq 'S' -or $raw -eq 's') {
+            Invoke-TutorialSkip $cp
+            return
+        }
+        $pet.Meta.Stats.GiftCount++
+        $cp.Gifts++
+        $cp.Bond = [math]::Min(100, $cp.Bond + 10)
+        $cp.Mood = "Happy"
+        Add-PetXP 10 "Tutorial: First Gift"
+        Unlock-PetFeature "gift"
+        Unlock-PetFeature "mood"
+        $pet.Tutorial.Step = 3
+        Save-PetState $pet
+    }
+    
+    # Step 4: Battlepet + First Fight
+    if ($pet.Tutorial.Step -lt 4) {
+        if (-not $pet.Pet) {
+            New-Pet
+            $pet = Get-PetState
+            $cp = $pet.Companion
+        }
+        try { Clear-Host } catch {}
+        Show-PetFrame "TUTORIAL — ERSTER KAMPF" -Double | Out-Null
+        Write-Host ""
+        $line = Get-TutorialLines $cp.Name 4
+        Show-CompanionDialog $cp $line
+        Write-Host ""
+        Write-Host "  [Enter] Kampf starten  |  [S] Skip" -ForegroundColor DarkGray
+        $raw = Read-Host
+        if ($raw -eq 'S' -or $raw -eq 's') {
+            Invoke-TutorialSkip $cp
+            return
+        }
+        Start-PetTutorialFight
+        Add-PetXP 15 "Tutorial: First Fight"
+        Unlock-PetFeature "pet_create"
+        Unlock-PetFeature "combat"
+        Unlock-PetFeature "train"
+        Unlock-PetFeature "work"
+        Unlock-PetFeature "gold"
+        Unlock-PetFeature "shop"
+        Unlock-PetFeature "cooking"
+        Unlock-PetFeature "equipment"
+        $pet.Tutorial.Step = 4
+        $pet.Tutorial.Completed = $true
+        Save-PetState $pet
+    }
+}
+
+function Invoke-TutorialSkip($cp) {
+    $pet = Get-PetState
+    $line = Get-TutorialLines $cp.Name "skip"
+    Show-CompanionDialog $cp $line -Fast
+    Add-PetXP 25 "Tutorial Skipped"
+    Unlock-PetFeature "gift"
+    Unlock-PetFeature "mood"
+    Unlock-PetFeature "pet_create"
+    Unlock-PetFeature "combat"
+    Unlock-PetFeature "train"
+    Unlock-PetFeature "work"
+    Unlock-PetFeature "gold"
+    Unlock-PetFeature "shop"
+    Unlock-PetFeature "cooking"
+    Unlock-PetFeature "equipment"
+    $pet.Tutorial.Skipped = $true
+    $pet.Tutorial.Completed = $true
+    $pet.Tutorial.Step = 4
+    Save-PetState $pet
+    Write-Host ""
+    Write-Host "  [TUTORIAL UEBERSPRUNGEN] +25 XP | Features freigeschaltet." -ForegroundColor Yellow
+    Start-Sleep -Milliseconds 800
+}
+
 function pet {
     param([string]$Action)
     $pet = Get-PetState
+    # Run tutorial for first-time users
+    if (-not $pet.Tutorial.Completed) {
+        Invoke-PetTutorial
+        $pet = Get-PetState
+    }
     if (-not $pet.Companion -and -not ($Action -eq "create" -or $Action -eq "")) {
         Write-Host "Kein Companion. Tippe 'pet' um zu starten." -ForegroundColor Red
         return
     }
     if ($Action) {
         switch ($Action.ToLower()) {
-            "talk"    { if (Is-FeatureUnlocked "talk") { Invoke-CompanionAction "talk" } }
+            "talk"    { if (Is-FeatureUnlocked "talk") { Invoke-CompanionTalk } }
             "gift"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "gift" } }
             "date"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "date" } }
             "work"    { if (Is-FeatureUnlocked "work") { Invoke-CompanionAction "work" } }
@@ -27,6 +155,9 @@ function pet {
             "breed"   { if (Is-FeatureUnlocked "breed") { Start-PetBreed } }
             "rival"   { if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { Invoke-PetRivalBattle } }
             "soul"    { if (Is-FeatureUnlocked "soul_link") { Invoke-SoulLink } }
+            "memories" { Show-PetMemories }
+            "quests"  { Show-PetQuests }
+            "claim"   { Claim-PetQuests }
             "status"  { Show-PetHubStatus }
             default   { Write-Host "Unbekannte Aktion: $Action" -ForegroundColor Red }
         }
@@ -66,6 +197,8 @@ function pet {
         if (Is-FeatureUnlocked "breed") { $opts += "[B] Breed"; $keys += "B" }
         if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
+        $opts += "[M] Memories"; $keys += "M"
+        $opts += "[C] Quests"; $keys += "C"
         $opts += "[S] Status"; $keys += "S"
         $opts += "[Q] Exit"; $keys += "Q"
         # Display in rows of 3
