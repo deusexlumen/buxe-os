@@ -44,6 +44,10 @@ Test-Assert "Fire vs Water" ((Get-ElementModifier "FIRE" "WATER") -eq 0.5)
 # Test 6: Pet System v2.0
 Test-Assert "Pet state loads" ((Get-PetState) -ne $null)
 Test-Assert "Pet defaults level 0" ((Get-PetDefaults).Meta.Level -eq 0)
+Test-Assert "Pet defaults have Tutorial" ((Get-PetDefaults).ContainsKey("Tutorial"))
+Test-Assert "Pet Tutorial defaults not completed" ((Get-PetDefaults).Tutorial.Completed -eq $false)
+Test-Assert "Pet Tutorial defaults step 0" ((Get-PetDefaults).Tutorial.Step -eq 0)
+Test-Assert "Pet XP Table Lv1 threshold is 3" ($script:PetXPTable[1] -eq 3)
 
 # Test 7: Pet effective stats
 $testPet = @{ MaxHP = 100; ATK = 10; DEF = 5; SPD = 8; Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }; BonusMaxHP = 0; BonusATK = 0; BonusDEF = 0; BonusSPD = 0; CritBonus = 0; CritResist = 0 }
@@ -106,6 +110,23 @@ Test-Assert "Pet shop items" ($script:PetShopItems.Count -ge 3)
 
 # Test 14: Pet hub function
 Test-Assert "Pet hub exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Tutorial orchestrator exists" ((Get-Command Invoke-PetTutorial -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Tutorial skip exists" ((Get-Command Invoke-TutorialSkip -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Tutorial dialog engine exists" ((Get-Command Get-TutorialLines -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Tutorial fight exists" ((Get-Command Start-PetTutorialFight -ErrorAction SilentlyContinue) -ne $null)
+
+# Test 14b: Tutorial dialog returns non-empty string
+$tutLine = Get-TutorialLines "NEON" 2
+Test-Assert "Tutorial dialog returns string" ($tutLine -is [string] -and $tutLine.Length -gt 0)
+$tutSkip = Get-TutorialLines "JINX" "skip"
+Test-Assert "Tutorial skip dialog returns string" ($tutSkip -is [string] -and $tutSkip.Length -gt 0)
+
+# Test 14c: Existing state migration (simulate old save without Tutorial)
+Load-State
+$script:BuxeState.Pet.Remove("Tutorial")
+Save-State
+$pet = Get-PetState
+Test-Assert "Pet state migration sets Tutorial.Completed=true" ($pet.Tutorial.Completed -eq $true)
 
 # Test 15: Adventure engine loads
 Test-Assert "Adventure engine loaded" ((Get-Command Invoke-Adventure -ErrorAction SilentlyContinue) -ne $null)
@@ -115,7 +136,7 @@ Test-Assert "Adventure alias 'adv' exists" ((Get-Command adv -ErrorAction Silent
 $script:AdvState = Get-AdventureDefaults
 $script:AdvState.CurrentRoom = "lab"
 $script:AdvState.Inventory = @("card", "battery")
-Save-AdventureState
+Save-AdventureState -Force
 Load-AdventureState
 Test-Assert "Adventure state save/load" ($script:AdvState.CurrentRoom -eq "lab" -and $script:AdvState.Inventory -contains "card")
 
@@ -152,7 +173,7 @@ Test-Assert "Companion AI functions exist" ($aiMissing -eq 0)
 # Test 20: Companion AI state roundtrip
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 $script:AdvState.CompanionAI.Mood = "Excited"
-Save-AdventureState
+Save-AdventureState -Force
 Load-AdventureState
 $ai = Get-CompanionAI
 Test-Assert "Companion AI state persists" ($ai.Mood -eq "Excited")
@@ -161,7 +182,7 @@ Test-Assert "Companion AI state persists" ($ai.Mood -eq "Excited")
 $ai = Get-CompanionAI
 $ai.RunningGags = @{}
 $script:AdvState.CompanionAI = $ai
-Save-AdventureState
+Save-AdventureState -Force
 Test-RunningGag "go" "north" | Out-Null
 Test-RunningGag "go" "north" | Out-Null
 $gag = Test-RunningGag "go" "north"
@@ -214,7 +235,7 @@ Test-Assert "Tree in secret" ((Get-Room "secret").Objects.ContainsKey("tree"))
 # Test 31: Insult pairs expanded
 Test-Assert "Insult pairs = 29" ($script:InsultPairs.Count -eq 29)
 
-# Test 24: Companion hint system
+# Test 26: Companion hint system
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 $script:AdvState.CompanionAI.MovesWithoutProgress = 10
 $script:AdvState.Flags = @{}
@@ -224,18 +245,18 @@ $hasCompanion = $false
 try { $hasCompanion = (Get-PetState).Companion -ne $null } catch {}
 Test-Assert "Companion gives hint when stuck (hasCompanion=$hasCompanion)" ($hint -ne $null -or -not $hasCompanion)
 
-# Test 25: Desktop Pet functions exist
+# Test 27: Desktop Pet functions exist
 Test-Assert "Desktop Pet functions exist" ((Get-Command Get-DesktopPetComment -ErrorAction SilentlyContinue) -ne $null)
 
-# Test 26: Desktop Pet comment generation
+# Test 28: Desktop Pet comment generation
 $comment = Get-DesktopPetComment "git push --force"
 Test-Assert "Desktop Pet detects force push" ($comment -ne $null)
 
-# Test 27: Insult Swordfighting functions exist
+# Test 29: Insult Swordfighting functions exist
 Test-Assert "Insult game function exists" ((Get-Command Invoke-InsultGame -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Insult alias exists" ((Get-Command insult -ErrorAction SilentlyContinue) -ne $null)
 
-# Test 28: Insult pairs integrity
+# Test 30: Insult pairs integrity
 $insults = $script:InsultPairs
 $valid = 0
 foreach ($i in $insults) { if ($i.Insult -and $i.Correct -and $i.Wrongs.Count -eq 3) { $valid++ } }
