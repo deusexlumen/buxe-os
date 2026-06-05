@@ -140,7 +140,7 @@ Write-Output "TD: PASSED"
 Mock-ReadBetOnce 10
 Set-Item function:Wait-Enter { }
 Enable-MockInput
-Queue-MockInput "1Q"
+Queue-MockInput "3Q"
 try { roulette } catch { Write-Output "ROULETTE FAILED: $_"; $e2eErrors += "roulette" }
 Disable-MockInput
 Set-Item function:Read-Bet $origReadBet
