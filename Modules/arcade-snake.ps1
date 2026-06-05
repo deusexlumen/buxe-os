@@ -1,65 +1,123 @@
-# BUXE_OS v24.3 -- SNAKE (Frame-basiert)
-# Pilot fuer das neue TUI-Framework.
+# BUXE_OS v24.4 -- SNAKE (TUI)
+# Echte Snake-Mechanik: Wachsender Schwanz, Kollisionserkennung, Game Over.
 
 try {
 
 function snake {
-    $score = 0; $maxScore = 10
-    $px = 5; $py = 5
-    $fx = Get-Random -Minimum 1 -Maximum 11
-    $fy = Get-Random -Minimum 1 -Maximum 11
-    $gridW = 12; $gridH = 12
+    try { Show-GameCompanionComment "game_snake_start" } catch {}
+    
+    $gridW = 16; $gridH = 12
     $frameW = $gridW * 2 + 4
     $frameH = $gridH + 4
     
-    # Build scene once, update elements in tick
-    $scene = New-Scene $frameW $frameH
-    Add-SceneFrame $scene 0 0 $frameW $frameH "SNAKE" 'Green'
-    Add-SceneText $scene 2 1 "Score: $score / $maxScore" 'Yellow'
-    
-    $init = {
-        # Init done in outer scope
+    $game = @{
+        Body = @(@{ X = [math]::Floor($gridW / 2); Y = [math]::Floor($gridH / 2) })
+        Dir = "RIGHT"
+        NextDir = "RIGHT"
+        Food = @{ X = 0; Y = 0 }
+        Score = 0
+        Over = $false
     }
+    
+    # Spawn initial food
+    $validPos = $false
+    while (-not $validPos) {
+        $fx = Get-Random -Minimum 0 -Maximum $gridW
+        $fy = Get-Random -Minimum 0 -Maximum $gridH
+        $validPos = $true
+        foreach ($seg in $game.Body) {
+            if ($seg.X -eq $fx -and $seg.Y -eq $fy) { $validPos = $false; break }
+        }
+    }
+    $game.Food = @{ X = $fx; Y = $fy }
+    
+    $init = { }
     
     $inputHandler = {
         param($evt, $tick)
         switch ($evt.Key) {
-            'W' { if ($py -gt 0) { $py-- } }
-            'S' { if ($py -lt ($gridH - 1)) { $py++ } }
-            'A' { if ($px -gt 0) { $px-- } }
-            'D' { if ($px -lt ($gridW - 1)) { $px-- } }
-            'UpArrow' { if ($py -gt 0) { $py-- } }
-            'DownArrow' { if ($py -lt ($gridH - 1)) { $py++ } }
-            'LeftArrow' { if ($px -gt 0) { $px-- } }
-            'RightArrow' { if ($px -lt ($gridW - 1)) { $px-- } }
-            'Escape' { return 'QUIT' }
+            'W' { if ($game.Dir -ne "DOWN") { $game.NextDir = "UP" } }
+            'S' { if ($game.Dir -ne "UP") { $game.NextDir = "DOWN" } }
+            'A' { if ($game.Dir -ne "RIGHT") { $game.NextDir = "LEFT" } }
+            'D' { if ($game.Dir -ne "LEFT") { $game.NextDir = "RIGHT" } }
+            'UpArrow' { if ($game.Dir -ne "DOWN") { $game.NextDir = "UP" } }
+            'DownArrow' { if ($game.Dir -ne "UP") { $game.NextDir = "DOWN" } }
+            'LeftArrow' { if ($game.Dir -ne "RIGHT") { $game.NextDir = "LEFT" } }
+            'RightArrow' { if ($game.Dir -ne "LEFT") { $game.NextDir = "RIGHT" } }
+            'Escape' { $game.Over = $true; return 'QUIT' }
         }
     }
     
     $tick = {
         param($tickCount)
+        $game.Dir = $game.NextDir
+        $head = $game.Body[0]
+        $nx = $head.X
+        $ny = $head.Y
+        switch ($game.Dir) {
+            "UP" { $ny-- }
+            "DOWN" { $ny++ }
+            "LEFT" { $nx-- }
+            "RIGHT" { $nx++ }
+        }
         
-        # Check food collision
-        if ($px -eq $fx -and $py -eq $fy) {
-            $score++
-            $fx = Get-Random -Minimum 0 -Maximum $gridW
-            $fy = Get-Random -Minimum 0 -Maximum $gridH
-            if ($score -ge $maxScore) {
+        # Wall collision
+        if ($nx -lt 0 -or $nx -ge $gridW -or $ny -lt 0 -or $ny -ge $gridH) {
+            $game.Over = $true
+            return 'QUIT'
+        }
+        
+        # Self collision
+        foreach ($seg in $game.Body) {
+            if ($seg.X -eq $nx -and $seg.Y -eq $ny) {
+                $game.Over = $true
                 return 'QUIT'
             }
         }
         
-        # Rebuild scene
+        $newHead = @{ X = $nx; Y = $ny }
+        $eating = ($nx -eq $game.Food.X -and $ny -eq $game.Food.Y)
+        
+        # Build new body: prepend head
+        $newBody = @($newHead)
+        foreach ($seg in $game.Body) {
+            $newBody += @{ X = $seg.X; Y = $seg.Y }
+        }
+        if (-not $eating) {
+            $newBody = $newBody[0..($newBody.Count - 2)]
+        } else {
+            $game.Score++
+            # Spawn new food
+            $validPos = $false
+            while (-not $validPos) {
+                $fx = Get-Random -Minimum 0 -Maximum $gridW
+                $fy = Get-Random -Minimum 0 -Maximum $gridH
+                $validPos = $true
+                foreach ($seg in $newBody) {
+                    if ($seg.X -eq $fx -and $seg.Y -eq $fy) { $validPos = $false; break }
+                }
+            }
+            $game.Food = @{ X = $fx; Y = $fy }
+        }
+        $game.Body = $newBody
+        
+        # Render
         $scene = New-Scene $frameW $frameH
         Add-SceneFrame $scene 0 0 $frameW $frameH "SNAKE" 'Green'
-        Add-SceneText $scene 2 1 "Score: $score / $maxScore" 'Yellow'
+        Add-SceneText $scene 2 1 "Score: $($game.Score)" 'Yellow'
         
-        # Draw grid
         for ($y = 0; $y -lt $gridH; $y++) {
             $line = ""
             for ($x = 0; $x -lt $gridW; $x++) {
-                if ($x -eq $px -and $y -eq $py) { $line += "O " }
-                elseif ($x -eq $fx -and $y -eq $fy) { $line += "X " }
+                $isHead = ($game.Body[0].X -eq $x -and $game.Body[0].Y -eq $y)
+                $isBody = $false
+                for ($b = 1; $b -lt $game.Body.Count; $b++) {
+                    if ($game.Body[$b].X -eq $x -and $game.Body[$b].Y -eq $y) { $isBody = $true; break }
+                }
+                $isFood = ($game.Food.X -eq $x -and $game.Food.Y -eq $y)
+                if ($isHead) { $line += "O " }
+                elseif ($isBody) { $line += "o " }
+                elseif ($isFood) { $line += "X " }
                 else { $line += ". " }
             }
             Add-SceneText $scene 2 ($y + 2) $line 'DarkGray'
@@ -69,14 +127,28 @@ function snake {
     }
     
     $cleanup = {
-        if ($score -ge $maxScore) {
-            Write-Host "`n  GEWONNEN! Score: $score" -ForegroundColor Green
-            Load-State
-            $stats = Get-ArcadeStats "Snake"
-            if ($score -gt $stats.BestScore) { $stats.BestScore = $score; Set-ArcadeStats "Snake" $stats }
-            Unlock-Achievement "Snake Charmer"
+        Load-State
+        $stats = Get-ArcadeStats "Snake"
+        if (-not $stats.Games) { $stats.Games = 0 }
+        $stats.Games = $stats.Games + 1
+        $isHigh = $false
+        if (-not $stats.BestScore) { $stats.BestScore = 0 }
+        if ($game.Score -gt $stats.BestScore) {
+            $stats.BestScore = $game.Score
+            $isHigh = $true
+        }
+        Set-ArcadeStats "Snake" $stats
+        Save-State
+        
+        if ($game.Over) {
+            Write-Host "`n  GAME OVER! Score: $($game.Score)" -ForegroundColor Red
+            try { Show-GameCompanionComment "game_snake_over" } catch {}
+            if ($isHigh) {
+                Write-Host "  NEUER REKORD!" -ForegroundColor Yellow
+                try { Show-GameCompanionComment "game_highscore" } catch {}
+            }
         } else {
-            Write-Host "`n  Abgebrochen. Score: $score" -ForegroundColor DarkGray
+            Write-Host "`n  Abgebrochen. Score: $($game.Score)" -ForegroundColor DarkGray
         }
         Wait-Enter
     }

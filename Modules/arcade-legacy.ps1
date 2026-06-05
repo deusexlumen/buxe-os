@@ -1,94 +1,173 @@
-# BUXE_OS v24.3 -- ZORK & HANGMAN (TUI)
-# Migriert auf TUI-Framework: Show-Scene + Read-GameChoice / Read-Host.
+# BUXE_OS v24.4 -- ZORK & HANGMAN (TUI)
+# Zork erweitert auf 8 Raeume, Items, Boss, State-Tracking.
 
 try {
 
 function zork {
     $rooms = @{
-        "Start" = @{ Desc = "Du stehst in einem Wald. Pfade fuehren nach Norden und Osten."; N = "Hoehle"; E = "See"; Items = @() }
-        "Hoehle" = @{ Desc = "Eine dunkle Hoehle. Du siehst etwas glitzern."; S = "Start"; Items = @("Schluessel") }
-        "See" = @{ Desc = "Ein ruhiger See. Ein Boot liegt am Ufer."; W = "Start"; N = "Turm"; Items = @() }
-        "Turm" = @{ Desc = "Ein alter Turm. Oben leuchtet ein Kristall."; S = "See"; Items = @("Kristall") }
+        "Start" = @{ Desc = "Du stehst in einem Wald. Pfade fuehren nach Norden, Osten und Sueden. Du fuehlst dich beobachtet... von einer PowerShell-Session."; N = "Hoehle"; E = "See"; S = "Garden"; Items = @() }
+        "Hoehle" = @{ Desc = "Eine dunkle Hoehle. Du siehst etwas glitzern. Der Echo deiner Schritte klingt wie ein Syntaxfehler."; S = "Start"; E = "Dungeon"; Items = @("Schluessel") }
+        "See" = @{ Desc = "Ein ruhiger See. Ein Boot liegt am Ufer. Die Wellen fluestern: 'Das ist nur ein Text-Adventure in einem PowerShell-Profil...'"; W = "Start"; N = "Turm"; S = "Kitchen"; Items = @() }
+        "Turm" = @{ Desc = "Ein alter Turm. Oben leuchtet ein Kristall. Eine Treppe fuehrt nach oben."; S = "See"; U = "TowerTop"; Items = @("Kristall") }
+        "Garden" = @{ Desc = "Ein verwunschener Garten mit toten Pixeln. Die Blumen sehen aus wie ASCII-Art."; N = "Start"; E = "Kitchen"; Items = @("Trank") }
+        "Kitchen" = @{ Desc = "Eine verlassene Kueche. Der Geruch von altem Ramen liegt in der Luft."; W = "Garden"; N = "See"; E = "Library"; Items = @() }
+        "Library" = @{ Desc = "Ein staubiges Archiv voller vergessener Module. Jemand hat '47' in ein Buch gekritzelt."; W = "Kitchen"; Items = @("Schwert") }
+        "Dungeon" = @{ Desc = "Ein feuchter Kerker. Die Waende sind aus rostigen Gittern."; W = "Hoehle"; Items = @() }
+        "TowerTop" = @{ Desc = "Der Gipfel des Turms. Ein riesiger Troll blockiert den Weg! Er bruellt: 'Kein Exit ohne Kampf, PowerShell-User!'"; D = "Turm"; Boss = "Troll"; Items = @() }
+        "SecretPassage" = @{ Desc = "Ein geheimer Gang! Die Waende sind mit Source Code tapeziert. Hier endet das Adventure... fuer jetzt."; Items = @() }
     }
     $inventory = @()
     $current = "Start"
+    $roomsExplored = @("Start")
+    $bossDefeated = $false
+    $itemsFound = 0
     
     Reset-RenderBuffer
-    $w = 50; $h = 16
+    $w = 55; $h = 18
     
     while ($true) {
         $room = $rooms[$current]
-        $exits = ($room.GetEnumerator() | Where-Object { $_.Key -in @('N','S','E','W') } | ForEach-Object { $_.Key }) -join ', '
+        $exits = ($room.GetEnumerator() | Where-Object { $_.Key -in @('N','S','E','W','U','D') } | ForEach-Object { $_.Key }) -join ', '
         
         $s = New-Scene $w $h
         Add-SceneFrame $s 0 0 $w $h "ZORK" 'Cyan' -Double
         Add-SceneText $s 4 2 $room.Desc 'White'
+        
+        $y = 4
         if ($room.Items.Count -gt 0) {
-            Add-SceneText $s 4 4 "Items hier: $($room.Items -join ', ')" 'Yellow'
+            Add-SceneText $s 4 $y "Items hier: $($room.Items -join ', ')" 'Yellow'
+            $y++
         }
-        Add-SceneText $s 4 6 "Wege: $exits" 'DarkGray'
-        Add-SceneText $s 4 7 "Inventar: $($inventory -join ', ')" 'Green'
-        Add-SceneText $s 4 9 "[N]ord  [S]ued  [O]st  [W]est" 'White'
-        Add-SceneText $s 4 10 "[T]ake  [I]nv   [Q]uit" 'White'
+        if ($room.Boss -and -not $bossDefeated) {
+            Add-SceneText $s 4 $y "BOSS: $($room.Boss)!" 'Red'
+            $y++
+        }
+        
+        Add-SceneText $s 4 ($y + 1) "Wege: $exits" 'DarkGray'
+        Add-SceneText $s 4 ($y + 2) "Inventar: $($inventory -join ', ')" 'Green'
+        Add-SceneText $s 4 ($y + 4) "[N]ord  [S]ued  [O]st  [W]est  [H]och  [R]unter" 'White'
+        Add-SceneText $s 4 ($y + 5) "[T]ake  [I]nv   [Q]uit" 'White'
         Show-Scene $s -Force
         
-        $cmd = Read-GameChoice "" "^[NSOEWTIQ]$"
-        switch ($cmd) {
-            'N' { if ($room.N) { $current = $room.N } else { 
-                $err = New-Scene $w $h
-                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
-                Show-Scene $err -Force
-                Start-Sleep -Milliseconds 400
-            } }
-            'S' { if ($room.S) { $current = $room.S } else {
-                $err = New-Scene $w $h
-                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
-                Show-Scene $err -Force
-                Start-Sleep -Milliseconds 400
-            } }
-            'E' { if ($room.E) { $current = $room.E } else {
-                $err = New-Scene $w $h
-                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
-                Show-Scene $err -Force
-                Start-Sleep -Milliseconds 400
-            } }
-            'W' { if ($room.W) { $current = $room.W } else {
-                $err = New-Scene $w $h
-                Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $err 4 5 "Geht nicht!" 'Red'
-                Show-Scene $err -Force
-                Start-Sleep -Milliseconds 400
-            } }
-            'T' { if ($room.Items.Count -gt 0) { 
-                $inventory += $room.Items[0]; $room.Items = @()
-                $ok = New-Scene $w $h
-                Add-SceneFrame $ok 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $ok 4 5 "Aufgehoben!" 'Green'
-                Show-Scene $ok -Force
-                Start-Sleep -Milliseconds 400
-            } }
-            'I' {
-                $inv = New-Scene $w $h
-                Add-SceneFrame $inv 0 0 $w $h "ZORK" 'Cyan' -Double
-                Add-SceneText $inv 4 5 "Inventar: $($inventory -join ', ')" 'Green'
-                Show-Scene $inv -Force
-                Wait-Enter
+        # Boss encounter
+        if ($current -eq "TowerTop" -and -not $bossDefeated) {
+            $bs = New-Scene $w $h
+            Add-SceneFrame $bs 0 0 $w $h "ZORK - BOSS" 'Red' -Double
+            Add-SceneText $bs 4 2 "Der Troll stemmt sich in den Weg!" 'Red'
+            Add-SceneText $bs 4 3 "[K]aempfen  [S]chwert benutzen  [F]luechten" 'White'
+            Show-Scene $bs -Force
+            
+            $bcmd = Read-GameChoice "" "^[KSFQ]$"
+            switch ($bcmd) {
+                'K' {
+                    $err = New-Scene $w $h
+                    Add-SceneFrame $err 0 0 $w $h "ZORK" 'Red' -Double
+                    Add-SceneText $err 4 5 "Der Troll haut dich mit einem Exception-Stacktrace um!" 'Red'
+                    Add-SceneText $err 4 6 "Du fliehst zurueck zum Turm..." 'Yellow'
+                    Show-Scene $err -Force
+                    Start-Sleep -Milliseconds 800
+                    $current = "Turm"
+                    continue
+                }
+                'S' {
+                    if ($inventory -contains "Schwert") {
+                        $ok = New-Scene $w $h
+                        Add-SceneFrame $ok 0 0 $w $h "ZORK" 'Green' -Double
+                        Add-SceneText $ok 4 5 "Du durchbohrst den Troll mit dem Schwert!" 'Green'
+                        Add-SceneText $ok 4 6 "Er zerfaellt in 404-Seiten!" 'Green'
+                        Show-Scene $ok -Force
+                        Start-Sleep -Milliseconds 800
+                        $bossDefeated = $true
+                    } else {
+                        $err = New-Scene $w $h
+                        Add-SceneFrame $err 0 0 $w $h "ZORK" 'Red' -Double
+                        Add-SceneText $err 4 5 "Du hast kein Schwert!" 'Red'
+                        Add-SceneText $err 4 6 "Der Troll lacht: 'Nackt im Terminal, was?'" 'Yellow'
+                        Show-Scene $err -Force
+                        Start-Sleep -Milliseconds 800
+                        $current = "Turm"
+                        continue
+                    }
+                }
+                'F' {
+                    $current = "Turm"
+                    continue
+                }
+                'Q' { Save-ZorkState $roomsExplored $itemsFound $bossDefeated; return }
             }
-            'Q' { return }
         }
-        if ($inventory -contains "Kristall") {
+        
+        $cmd = Read-GameChoice "" "^[NSOEWHRUDTIQ]$"
+        switch ($cmd) {
+            'N' { if ($room.N) { $current = $room.N } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'S' { if ($room.S) { $current = $room.S } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'O' { if ($room.E) { $current = $room.E } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'E' { if ($room.E) { $current = $room.E } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'W' { if ($room.W) { $current = $room.W } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'H' { if ($room.U) { $current = $room.U } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'R' { if ($room.D) { $current = $room.D } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'U' { if ($room.U) { $current = $room.U } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'D' { if ($room.D) { $current = $room.D } else { Show-ZorkError $w $h "Geht nicht!" } }
+            'T' { 
+                if ($room.Items.Count -gt 0) { 
+                    $inventory += $room.Items[0]
+                    $itemsFound++
+                    $room.Items = @()
+                    Show-ZorkMessage $w $h "Aufgehoben!" "Green"
+                } 
+            }
+            'I' { Show-ZorkMessage $w $h "Inventar: $($inventory -join ', ')" "Green" }
+            'Q' { 
+                Save-ZorkState $roomsExplored $itemsFound $bossDefeated
+                return 
+            }
+        }
+        
+        if ($roomsExplored -notcontains $current) {
+            $roomsExplored += $current
+        }
+        
+        if ($bossDefeated) {
             $win = New-Scene $w $h
-            Add-SceneFrame $win 0 0 $w $h "ZORK" 'Cyan' -Double
-            Add-SceneText $win 4 5 "Du hast den Kristall gefunden!" 'Magenta'
-            Add-SceneText $win 4 6 "Du gewinnst!" 'Magenta'
+            Add-SceneFrame $win 0 0 $w $h "ZORK" 'Green' -Double
+            Add-SceneText $win 4 5 "Du hast den Troll besiegt!" 'Green'
+            Add-SceneText $win 4 6 "Das PowerShell-Profil ist gerettet!" 'Magenta'
             Show-Scene $win -Force
             Unlock-Achievement "Zork Survivor"
-            Wait-Enter; return
+            Save-ZorkState $roomsExplored $itemsFound $true
+            Wait-Enter
+            return
         }
     }
+}
+
+function Show-ZorkError($w, $h, $msg) {
+    $err = New-Scene $w $h
+    Add-SceneFrame $err 0 0 $w $h "ZORK" 'Cyan' -Double
+    Add-SceneText $err 4 5 $msg 'Red'
+    Show-Scene $err -Force
+    Start-Sleep -Milliseconds 400
+}
+
+function Show-ZorkMessage($w, $h, $msg, $color) {
+    $s = New-Scene $w $h
+    Add-SceneFrame $s 0 0 $w $h "ZORK" 'Cyan' -Double
+    Add-SceneText $s 4 5 $msg $color
+    Show-Scene $s -Force
+    Start-Sleep -Milliseconds 400
+}
+
+function Save-ZorkState($explored, $items, $boss) {
+    Load-State
+    $stats = Get-ArcadeStats "Zork"
+    if (-not $stats.RoomsExplored) { $stats.RoomsExplored = 0 }
+    if (-not $stats.ItemsFound) { $stats.ItemsFound = 0 }
+    if (-not $stats.BossDefeated) { $stats.BossDefeated = $false }
+    $stats.RoomsExplored = $explored.Count
+    $stats.ItemsFound = $items
+    if ($boss) { $stats.BossDefeated = $true }
+    Set-ArcadeStats "Zork" $stats
+    Save-State
 }
 
 function hangman {
