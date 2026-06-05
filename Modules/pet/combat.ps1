@@ -299,6 +299,16 @@ function Start-PetFight {
         if ($isBoss) { $gold += 25 }
         $p.Wins++; $p.XP += $xp; $p.HP = [math]::Min($p.HP + [math]::Round($stats.MaxHP * 0.2), $stats.MaxHP)
         $pet.Economy.Gold += $gold
+        # PvE Loot drop
+        $lootChance = if ($isBoss) { 40 } else { 15 }
+        $lootText = ""
+        if ((Get-Random -Maximum 100) -lt $lootChance) {
+            $lootItems = @("Scrap Metal","Data Shard","Energy Cell")
+            if ($isBoss) { $lootItems += @("Rare Chip","Boss Core") }
+            $loot = $lootItems | Get-Random
+            $pet.Economy.Inventory += $loot
+            $lootText = " | Loot: $loot"
+        }
         # Sync level up
         if ($cp) {
             $cp.Sync++
@@ -306,7 +316,7 @@ function Start-PetFight {
                 Write-Host "`n  SYNC LEVEL UP! $($cp.Sync) erreicht!" -ForegroundColor Magenta
             }
         }
-        Write-Host "`n  SIEG! +$xp XP | +$gold G" -ForegroundColor Green
+        Write-Host "`n  SIEG! +$xp XP | +$gold G$lootText" -ForegroundColor Green
         Invoke-PetLevelUpCheck $p
         if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "fight_win") -Fast }
         Add-PetXP ($xp / 2) "Fight Win"
