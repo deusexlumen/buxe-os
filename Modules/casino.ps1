@@ -31,6 +31,12 @@ function Show-CasinoStats {
     Write-Host "    Spins: $($cs.Slot.Spins) | Jackpots: $($cs.Slot.JackpotWins) | Won: $($cs.Slot.TotalWon)G | Spent: $($cs.Slot.TotalSpent)G" -ForegroundColor White
     Write-Host "    Profit: $profit G" -ForegroundColor $profitColor
     Write-Host ""
+    Write-Host "  KENO" -ForegroundColor Cyan
+    Write-Host "    Played: $($cs.Keno.Played) | BestWin: $($cs.Keno.BestWin)G | Won: $($cs.Keno.TotalWon)G | Spent: $($cs.Keno.TotalSpent)G" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  WHEEL OF FORTUNE" -ForegroundColor Cyan
+    Write-Host "    Spins: $($cs.Wheel.Spins) | BestWin: $($cs.Wheel.BestWin)G | Bankrupts: $($cs.Wheel.Bankrupts) | Jackpots: $($cs.Wheel.Jackpots)" -ForegroundColor White
+    Write-Host ""
     Wait-Enter
 }
 
@@ -45,11 +51,13 @@ function casino {
             "Craps",
             "Hi-Lo",
             "Baccarat",
-            "Slot"
+            "Slot",
+            "Keno",
+            "Wheel of Fortune"
         ) | Out-Null
         Write-Host "  [S] Stats | [Q] Zurueck" -ForegroundColor DarkGray
         
-        $c = Read-Choice "Waehle" '^[1-6SQ]$'
+        $c = Read-Choice "Waehle" '^[1-8SQ]$'
         switch ($c) {
             '1' { blackjack }
             '2' { roulette }
@@ -57,6 +65,8 @@ function casino {
             '4' { hilo }
             '5' { baccarat }
             '6' { slot }
+            '7' { keno }
+            '8' { wheel }
             'S' { Show-CasinoStats }
             'Q' { return }
         }

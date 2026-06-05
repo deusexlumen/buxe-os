@@ -32,6 +32,8 @@ function Get-StateDefaults {
             HiLo      = @{ BestStreak = 0; Rounds = 0 }
             Baccarat  = @{ Hands = 0; BankerWins = 0; PlayerWins = 0; Ties = 0 }
             Slot      = @{ Spins = 0; JackpotWins = 0; TotalWon = 0; TotalSpent = 0; ProgressiveJackpot = 500 }
+            Keno      = @{ Played = 0; BestWin = 0; TotalWon = 0; TotalSpent = 0 }
+            Wheel     = @{ Spins = 0; BestWin = 0; Bankrupts = 0; Jackpots = 0 }
         }
         Strategy = @{
             Poker = @{ HandsPlayed = 0; HandsWon = 0; BiggestPot = 0 }

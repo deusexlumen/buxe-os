@@ -320,12 +320,23 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino-keno.ps1","casino-wheel.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}
 }
 Test-Assert "All modules load" ($loadOk -eq $allMods.Count)
+
+# === KENO TESTS ===
+Write-Host "`n  Testing Keno..." -ForegroundColor Yellow
+Test-Assert "Keno function exists" ((Get-Command keno -ErrorAction SilentlyContinue) -ne $null)
+$defaults = Get-StateDefaults
+Test-Assert "Keno state defaults" ($defaults.Casino.Keno.Played -eq 0 -and $defaults.Casino.Keno.BestWin -eq 0)
+
+# === WHEEL OF FORTUNE TESTS ===
+Write-Host "`n  Testing Wheel of Fortune..." -ForegroundColor Yellow
+Test-Assert "Wheel function exists" ((Get-Command wheel -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Wheel state defaults" ($defaults.Casino.Wheel.Spins -eq 0 -and $defaults.Casino.Wheel.Bankrupts -eq 0)
 
 # === DESKTOP PET TESTS ===
 Write-Host "`n  Testing Desktop Pet..." -ForegroundColor Yellow

@@ -30,6 +30,8 @@ Load-State
 . "$modulesDir\casino-hilo.ps1"
 . "$modulesDir\casino-baccarat.ps1"
 . "$modulesDir\casino-slot.ps1"
+. "$modulesDir\casino-keno.ps1"
+. "$modulesDir\casino-wheel.ps1"
 . "$modulesDir\casino.ps1"
 . "$modulesDir\arcade.ps1"
 . "$modulesDir\strategy-poker.ps1"
