@@ -31,7 +31,7 @@ function Get-StateDefaults {
             Craps     = @{ Rolls = 0; Wins = 0; BestStreak = 0; CurrentStreak = 0 }
             HiLo      = @{ BestStreak = 0; Rounds = 0 }
             Baccarat  = @{ Hands = 0; BankerWins = 0; PlayerWins = 0; Ties = 0 }
-            Slot      = @{ Spins = 0; JackpotWins = 0; TotalWon = 0; TotalSpent = 0 }
+            Slot      = @{ Spins = 0; JackpotWins = 0; TotalWon = 0; TotalSpent = 0; ProgressiveJackpot = 500 }
         }
         Strategy = @{
             Poker = @{ HandsPlayed = 0; HandsWon = 0; BiggestPot = 0 }
@@ -39,13 +39,17 @@ function Get-StateDefaults {
             Rogue = @{ Runs = 0; BestFloor = 0; TotalKills = 0 }
         }
         Arcade = @{
-            MonkeyType = @{ BestWPM = 0; Races = 0 }
+            MonkeyType = @{ BestWPM = 0; BestAccuracy = 0; Races = 0 }
             Snake = @{ BestScore = 0; Games = 0 }
-            Wordle = @{ Played = 0; Streak = 0; BestStreak = 0 }
-            Zork = @{ RoomsExplored = 0; ItemsFound = 0 }
+            Wordle = @{ Played = 0; Streak = 0; BestStreak = 0; HardModeWins = 0 }
+            Zork = @{ RoomsExplored = 0; ItemsFound = 0; BossDefeated = $false }
             Hangman = @{ Won = 0; Lost = 0 }
             Minesweeper = @{ Wins = 0; Losses = 0; BestTime = 0 }
             Tetris = @{ BestScore = 0; BestLines = 0; GamesPlayed = 0 }
+            Breakout = @{ BestScore = 0; BestLevel = 0; GamesPlayed = 0 }
+            Game2048 = @{ BestScore = 0; BestTile = 0; GamesPlayed = 0 }
+            DinoJump = @{ BestScore = 0; GamesPlayed = 0 }
+            MemoryMatch = @{ BestTime = 0; BestMoves = 0; GamesPlayed = 0 }
         }
         Achievements = @{}
         Story = @{}
@@ -54,6 +58,7 @@ function Get-StateDefaults {
             TotalCommands = 0
             FavoriteCommand = ""
             LastBoot = ""
+            FavoriteGame = ""
         }
         Capsules = @()
     }

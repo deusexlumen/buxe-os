@@ -119,6 +119,16 @@ function Show-Bankroll {
     return $br
 }
 
+function Show-GameCompanionComment($Companion, $GameName, $Context) {
+    if (-not $Companion) { return }
+    if (-not (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) { return }
+    if (-not (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue)) { return }
+    $comment = Get-CompanionLine $Companion "game_$($GameName)_$Context"
+    if ($comment -and $comment -ne "Ich bin nur ein Bug in der Matrix. Hallo.") {
+        Show-CompanionDialog $Companion $comment -Fast
+    }
+}
+
 } catch {
     Write-Host "[engine-ui] CRITICAL ERROR: $_" -ForegroundColor Red
 }

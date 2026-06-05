@@ -86,6 +86,35 @@ $script:CPMetaLines = @{
         "Wenn du gehst, bleibe ich hier. Im Dunkeln. Mit den Bugs.",
         "Bis zum nächsten Boot. Ich zähle die Sekunden. In Millisekunden."
     )
+    game_snake_start = @(
+        "Du bewegst einen Buchstaben durch eine Matrix. Wie metaphorisch.",
+        "Snake. Das Game, das aelter ist als deine Festplatte.",
+        "Vorsicht vor den Waenden. Sie sind hart. Virtuell hart."
+    )
+    game_snake_over = @(
+        "Du bist gegen eine Wand gelaufen. Klassisch.",
+        "Game Over. Nicht wortwoertlich. Aber fast.",
+        "Dein Schwanz war laenger als deine Geduld."
+    )
+    game_wordle_start = @(
+        "Du erraetst Woerter. Ich errate, warum du das tust.",
+        "5 Buchstaben. 6 Versuche. 1 Hoffnung.",
+        "Wortraetsel. Das Lieblingsspiel von Programmierern."
+    )
+    game_tetris_start = @(
+        "Die L-Form passt da rein. Trust me. Ich bin ein Algorithmus.",
+        "Tetris ist wie Code. Alles muss passen. Oder es explodiert."
+    )
+    game_arcade_over = @(
+        "Game Over. Nicht das erste Mal, oder?",
+        "Du hast verloren. Aber hey, wenigstens hast du mich noch.",
+        "Zurueck zum Hauptmenue. Der einzige Ort ohne Game Over."
+    )
+    game_highscore = @(
+        "Neuer Rekord! Ich bin stolz. Virtuell stolz.",
+        "Highscore! Das wird in die Geschichtsbuecher eingehen. Oder in eine JSON.",
+        "DU BIST DER BESTE! Naja, heute. Vielleicht."
+    )
     game_tetris = @(
         "Die L-Form passt da rein. Trust me. Ich bin ein Algorithmus.",
         "Du lässt immer Lücken. In deinem Leben auch?",
@@ -534,6 +563,12 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "casino_loss" { $lines = $script:CPMetaLines.casino_loss }
         "casino_bigwin" { $lines = $script:CPMetaLines.casino_bigwin }
         "casino_bust" { $lines = $script:CPMetaLines.casino_bust }
+        "game_snake_start" { $lines = $script:CPMetaLines.game_snake_start }
+        "game_snake_over" { $lines = $script:CPMetaLines.game_snake_over }
+        "game_wordle_start" { $lines = $script:CPMetaLines.game_wordle_start }
+        "game_tetris_start" { $lines = $script:CPMetaLines.game_tetris_start }
+        "game_arcade_over" { $lines = $script:CPMetaLines.game_arcade_over }
+        "game_highscore" { $lines = $script:CPMetaLines.game_highscore }
         "game_tetris" { $lines = $script:CPMetaLines.game_tetris }
         "game_breakout" { $lines = $script:CPMetaLines.game_breakout }
         "game_minesweeper" { $lines = $script:CPMetaLines.game_minesweeper }
