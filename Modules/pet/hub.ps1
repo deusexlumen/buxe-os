@@ -152,6 +152,7 @@ function pet {
             "raid"    { if (Is-FeatureUnlocked "raid") { Start-PetRaid } }
             "shop"    { if (Is-FeatureUnlocked "shop") { Start-PetShop } }
             "cook"    { if (Is-FeatureUnlocked "cooking") { Start-PetCook } }
+            "craft"   { if (Is-FeatureUnlocked "shop") { Start-PetCrafting } }
             "breed"   { if (Is-FeatureUnlocked "breed") { Start-PetBreed } }
             "rival"   { if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { Invoke-PetRivalBattle } }
             "soul"    { if (Is-FeatureUnlocked "soul_link") { Invoke-SoulLink } }
@@ -192,6 +193,7 @@ function pet {
         if (Is-FeatureUnlocked "train") { $opts += "[5] Train"; $keys += "5" }
         if (Is-FeatureUnlocked "shop") { $opts += "[6] Shop"; $keys += "6" }
         if (Is-FeatureUnlocked "cooking") { $opts += "[7] Cook"; $keys += "7" }
+        if (Is-FeatureUnlocked "shop") { $opts += "[K] Craft"; $keys += "K" }
         if (Is-FeatureUnlocked "pvp") { $opts += "[8] PvP"; $keys += "8" }
         if (Is-FeatureUnlocked "raid") { $opts += "[9] Raid"; $keys += "9" }
         if (Is-FeatureUnlocked "breed") { $opts += "[B] Breed"; $keys += "B" }
@@ -253,6 +255,10 @@ function pet {
             '7' { 
                 if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ich koche. Virtuell. Du isst. Auch virtuell. Perfekt." -Fast }
                 Start-PetCook 
+            }
+            'K' { 
+                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Handwerk. Die aelteste Kunst. Auch in der Matrix." -Fast }
+                Start-PetCrafting 
             }
             '8' { 
                 if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "PvP! Zeig ihnen wer hier der Boss ist! Du. Du bist der Boss." -Fast }

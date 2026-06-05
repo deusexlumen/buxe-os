@@ -17,6 +17,14 @@ $script:PetRecipes = @(
     @{ Name = "Sushi Platter"; Cost = 30; Desc = "+15% ATK (1 Kampf)"; Buff = @{ Stat = "ATK"; Value = 0.15 } }
     @{ Name = "Golden Curry"; Cost = 50; Desc = "+10% All Stats (1 Kampf)"; Buff = @{ Stat = "ALL"; Value = 0.10 } }
 )
+$script:CraftedItems = @(
+    @{ Type = "Chip"; Name = "Custom Chip"; Materials = @{ "Scrap Metal" = 3 }; Desc = "+4 ATK"; ATK = 4 }
+    @{ Type = "Armor"; Name = "Plasma Injector"; Materials = @{ "Data Shard" = 2; "Energy Cell" = 1 }; Desc = "+10 HP, +2 ATK"; HP = 10; ATK = 2 }
+    @{ Type = "Accessory"; Name = "Speed Module"; Materials = @{ "Energy Cell" = 2; "Data Shard" = 1 }; Desc = "+5 SPD"; SPD = 5 }
+    @{ Type = "Chip"; Name = "Omega Weapon"; Materials = @{ "Rare Chip" = 1; "Boss Core" = 2 }; Desc = "+12 ATK"; ATK = 12 }
+    @{ Type = "Armor"; Name = "Titan Shield"; Materials = @{ "Boss Core" = 1; "Scrap Metal" = 2 }; Desc = "+8 DEF, +20 HP"; DEF = 8; HP = 20 }
+    @{ Type = "Accessory"; Name = "Hyper Drive"; Materials = @{ "Rare Chip" = 1; "Boss Core" = 1; "Energy Cell" = 1 }; Desc = "+8 SPD"; SPD = 8 }
+)
 
 function Start-PetShop {
     $pet = Get-PetState
@@ -81,6 +89,58 @@ function Start-PetCook {
     Show-CompanionDialog $cp "Mmm, das riecht gut! Ich habe mein Bestes gegeben!" -Fast
     Write-Host "  $($recipe.Name) fuer $($p.Name)! Naechster Kampf: $($recipe.Desc)" -ForegroundColor Green
     Wait-Enter
+}
+
+function Start-PetCrafting {
+    $pet = Get-PetState
+    $p = $pet.Pet
+    $cp = $pet.Companion
+    if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    while ($true) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "CRAFTING WERKSTATT" -Double | Out-Null
+        $invDisplay = if ($pet.Economy.Inventory.Count -gt 0) { $pet.Economy.Inventory -join ', ' } else { 'keine' }
+        Write-Host "`n  Materialien: $invDisplay" -ForegroundColor Yellow
+        Write-Host ""
+        for ($i = 0; $i -lt $script:CraftedItems.Count; $i++) {
+            $it = $script:CraftedItems[$i]
+            $matText = ($it.Materials.GetEnumerator() | ForEach-Object { "$($_.Value)x $($_.Key)" }) -join ', '
+            Write-Host "  [$($i+1)] $($it.Name) [$($it.Type)] | $matText | $($it.Desc)" -ForegroundColor White
+        }
+        Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
+        $c = Read-Choice "Waehle" "^([1-$($script:CraftedItems.Count)]|Q)$"
+        if ($c -eq 'Q') { return }
+        $item = $script:CraftedItems[[int]$c - 1]
+        # Check materials
+        $canCraft = $true
+        $missing = @()
+        foreach ($mat in $item.Materials.GetEnumerator()) {
+            $have = ($pet.Economy.Inventory | Where-Object { $_ -eq $mat.Key } | Measure-Object).Count
+            if ($have -lt $mat.Value) {
+                $canCraft = $false
+                $missing += "$($mat.Value - $have)x $($mat.Key)"
+            }
+        }
+        if (-not $canCraft) {
+            Write-Host "`n  Nicht genug Materialien! Fehlt: $($missing -join ', ')" -ForegroundColor Red
+            Wait-Enter
+            continue
+        }
+        # Consume materials using ArrayList
+        $invList = [System.Collections.ArrayList]::new(@($pet.Economy.Inventory))
+        foreach ($mat in $item.Materials.GetEnumerator()) {
+            for ($j = 0; $j -lt $mat.Value; $j++) {
+                $invList.Remove($mat.Key) | Out-Null
+            }
+        }
+        $pet.Economy.Inventory = @($invList)
+        $slot = $item.Type.ToLower()
+        $p.Equipment.$slot = $item.Name
+        Save-PetState $pet
+        if ($cp) { Show-CompanionDialog $cp "Handgefertigt. Von mir. Fuer dich. Das ist... romantisch?" -Fast }
+        Write-Host "`n  $($item.Name) hergestellt und ausgeruestet!" -ForegroundColor Green
+        Wait-Enter
+    }
 }
 
 } catch {

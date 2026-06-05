@@ -133,7 +133,7 @@ function Get-EffectiveStats($p, $companion = $null) {
     $eq = $p.Equipment
     $hp = 0; $atk = 0; $def = 0; $spd = 0
     # Resolve equipment from shop tables
-    $allItems = @($script:PetShopItems) + @($script:RaidShopItems)
+    $allItems = @($script:PetShopItems) + @($script:RaidShopItems) + @($script:CraftedItems)
     foreach ($slot in @("Armor","Chip","Accessory")) {
         $itemName = $eq.$slot
         if ($itemName) {
