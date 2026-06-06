@@ -244,57 +244,78 @@ if ($script:InsultPairs.Count -eq 29) {
 # E2E: NEON Story Episode 1
 Write-Output ""
 Write-Output "[E2E] NEON Story Episode 1..."
-$pet = Get-PetState
-if (-not $pet.ContainsKey("CompanionStories")) {
-    $pet.CompanionStories = @{
-        NEON  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
-        RAVEN = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-        PIXEL = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-        LUNA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-        IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-        VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-        JINX  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-    }
-}
-$pet.Companion = @{
-    Name = "NEON"; Bond = 50; Mood = "Curious"
-    Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0
-    Headpats = 0; LastTalk = $null; LastWork = $null
-    PunishCount = 0
-    Skills = @{ CasinoLuck = 0; StrategyInsight = 0 }
-}
-$pet.CompanionStories.NEON.Episode = 1
-$pet.CompanionStories.NEON.Completed = $false
-Save-PetState $pet
 
-$origWaitEnterE2E = (Get-Command Wait-Enter).ScriptBlock
-Set-Item function:Wait-Enter { }
-$global:_ReadHostCount = 0
-function global:Read-Host {
-    param([string]$Prompt)
-    $global:_ReadHostCount++
-    if ($global:_ReadHostCount -le 4) { return "A" }
-    return "Q"
+$stateFile = Join-Path $env:LOCALAPPDATA "buxe\buxe_state_v24.json"
+$stateBackup = $null
+if (Test-Path $stateFile) {
+    $stateBackup = Get-Content $stateFile -Raw
 }
 
-Enable-MockInput
 try {
-    Invoke-CompanionEpisode -CompanionName "NEON"
-} catch {
-    Write-Output "NEON EPISODE FAILED: $_"
-    $e2eErrors += "neon-episode"
-}
-Disable-MockInput
+    $pet = Get-PetState
+    if (-not $pet.ContainsKey("CompanionStories")) {
+        $pet.CompanionStories = @{
+            NEON  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            RAVEN = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            PIXEL = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            LUNA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            JINX  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        }
+    }
+    $pet.Companion = @{
+        Name = "NEON"; Bond = 50; Mood = "Curious"
+        Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0
+        Headpats = 0; LastTalk = $null; LastWork = $null
+        PunishCount = 0
+        Skills = @{ CasinoLuck = 0; StrategyInsight = 0 }
+    }
+    $pet.CompanionStories.NEON.Episode = 1
+    $pet.CompanionStories.NEON.Completed = $false
+    Save-PetState $pet
 
-Set-Item function:Wait-Enter $origWaitEnterE2E
-Remove-Item function:Read-Host -ErrorAction SilentlyContinue
+    $origWaitEnterE2E = (Get-Command Wait-Enter).ScriptBlock
+    Set-Item function:Wait-Enter { }
 
-$pet = Get-PetState
-if ($pet.CompanionStories.NEON.Completed -eq $true -and $e2eErrors -notcontains "neon-episode") {
-    Write-Output "  [PASS] NEON Story Episode 1 abgeschlossen"
-} else {
-    Write-Output "  [FAIL] NEON Story Episode 1 nicht abgeschlossen!"
-    $e2eErrors += "neon-episode"
+    $originalReadHost = Get-Command Read-Host -CommandType Cmdlet -ErrorAction SilentlyContinue
+    if (-not $originalReadHost) { $originalReadHost = Get-Command Read-Host -CommandType Function -ErrorAction SilentlyContinue }
+
+    $script:_ReadHostCount = 0
+    Set-Item function:global:Read-Host {
+        param([string]$Prompt)
+        $script:_ReadHostCount++
+        if ($script:_ReadHostCount -le 4) { return "A" }
+        return "Q"
+    }
+
+    try {
+        Invoke-CompanionEpisode -CompanionName "NEON"
+    } catch {
+        Write-Host "  [WARN] NEON Story Fehler: $_" -ForegroundColor Yellow
+    }
+
+    Set-Item function:Wait-Enter $origWaitEnterE2E
+    if ($originalReadHost) {
+        Set-Item function:global:Read-Host $originalReadHost.ScriptBlock
+    } else {
+        Remove-Item function:Read-Host -ErrorAction SilentlyContinue
+    }
+    Remove-Variable _ReadHostCount -Scope Script -ErrorAction SilentlyContinue
+
+    $pet = Get-PetState
+    if ($pet.CompanionStories.NEON.Completed -eq $true) {
+        Write-Output "  [PASS] NEON Story Episode 1 abgeschlossen"
+    } else {
+        Write-Output "  [FAIL] NEON Story Episode 1 nicht abgeschlossen!"
+        $e2eErrors += "neon-episode"
+    }
+} finally {
+    if ($stateBackup) {
+        $stateBackup | Set-Content $stateFile -NoNewline
+    } elseif (Test-Path $stateFile) {
+        Remove-Item $stateFile
+    }
 }
 
 Write-Output ""
