@@ -150,6 +150,49 @@ function capsule {
     Write-Host "`n  Capsule sealed! Opens in $openDays days." -ForegroundColor Green
 }
 
+function reset-buxe {
+    param([switch]$Force)
+    try { Clear-Host } catch {}
+    Show-Frame "BUXE_OS RESET" -Double | Out-Null
+    Write-Host ""
+    Write-Host "  WARNUNG: Dies wird ALLE Fortschritte löschen." -ForegroundColor Red
+    Write-Host "  Bank, Pet, Casino, Achievements — alles auf Null." -ForegroundColor Yellow
+    Write-Host ""
+    if (-not $Force) {
+        Write-Host "  Tippen Sie 'RESET' zur Bestätigung:" -ForegroundColor DarkGray
+        $confirm = Read-Host
+        if ($confirm -ne "RESET") {
+            Write-Host "  Abgebrochen. Nichts wurde gelöscht." -ForegroundColor Green
+            return
+        }
+    }
+    # Backup vor dem Löschen
+    $backupDir = Join-Path $script:BuxeStateDir "reset_backups"
+    if (-not (Test-Path $backupDir)) { New-Item -ItemType Directory -Path $backupDir -Force | Out-Null }
+    $ts = Get-Date -Format "yyyyMMdd_HHmmss"
+    $backupFile = Join-Path $backupDir "buxe_state_reset_$ts.json"
+    if (Test-Path $script:BuxeStateFile) {
+        Copy-Item $script:BuxeStateFile $backupFile -Force
+        Write-Host "  Backup erstellt: $backupFile" -ForegroundColor DarkGray
+    }
+    # State löschen
+    Remove-Item $script:BuxeStateFile -Force -ErrorAction SilentlyContinue
+    Remove-Item "$script:BuxeStateFile.bak*" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$script:BuxeStateDir\buxe_adventure.json" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$script:BuxeStateDir\buxe_audit.log" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$script:BuxeStateDir\buxe_history_cache.json" -Force -ErrorAction SilentlyContinue
+    # Alle corrupt Backups löschen
+    Get-ChildItem "$script:BuxeStateDir\buxe_state_v24.json.corrupt.*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    # Fresh State
+    $script:BuxeState = Get-StateDefaults
+    Save-State
+    Write-Host ""
+    Write-Host "  [RESET COMPLETE] Alle Fortschritte zurückgesetzt." -ForegroundColor Green
+    Write-Host "  Bank: 500 G | Meta-Level: 0 | Kein Companion" -ForegroundColor Yellow
+    Write-Host "  Das Spiel beginnt... von vorne. Wie ein Loop." -ForegroundColor DarkGray
+    Write-Host ""
+}
+
 # === BACKWARD COMPATIBILITY ===
 function companion { pet @args }
 function battlepet { pet @args }

@@ -73,7 +73,6 @@ BUXE_OS ist jetzt in **40+ Module** aufgeteilt, organisiert nach dem Prinzip:
 **Boot & Fun:**
 - `boot.ps1` -- Boot-Sequenz mit Companion-Gruß, Time-Capsel-Check, Random Tips
 - `fun.ps1` -- APIs, TTS, Entertainment
-- `ralph-loop.ps1` -- Kimi CLI Wrapper
 
 **Handbook:**
 - `handbook.ps1` + 9 Sub-Module -- In-Game Hilfe (`h` Command)
@@ -161,6 +160,41 @@ Beim ersten Start werden alte v23 JSON-Dateien automatisch in das neue unified F
 | `ego` | Session-Stats, Bank, Achievements-Count |
 | `capsule <text>` | Zeitkapsel erstellen (oeffnet nach 1-14 Tagen) |
 | `h` | Alle verfuegbaren Commands auf einen Blick |
+| `reset-buxe` | ALLE Fortschritte zurücksetzen (mit Bestätigung + Backup) |
+
+---
+
+## Meta Cheats (LucasArts-Style — Deep Integration)
+
+Jeder Cheat ist **self-aware**, bricht die **vierte Wand** und reagiert auf deinen **Companion-Bond**.
+
+| Command | Funktion | System-Integration |
+|---------|----------|-------------------|
+| `motherlode` | +50.000 G | 7 Companions × 3 Bond-Level = 21 einzigartige Dialoge. Triggert Pet-Memory. |
+| `rosebud` | +1.000 G | 10x hintereinander = motherlode (Running Gag). |
+| `konami` | Konami-Code (↑↑↓↓←→←→BA) | **47 Sekunden** Konami-Mode: +50% Casino-Luck, +50% Pet-XP. |
+| `iddqd` | Doom-Godmode | 1 Casino-Runde ohne Verluste möglich. Danach abgelaufen. |
+| `matrix` | Matrix-Regen / Layer 47 | Meta-Level 14+: Forcierter Layer 47 Trigger. Sonst: Regen. |
+| `meta-debug` | Interne State-Diagnose | Easter-Egg-Fortschritt, Konami/IDDQD-Status, Companion-Mood. |
+| `noclip` | Durch Wände gehen | Setzt Adventure-NoClip-Flag. Companion kommentiert. |
+| `fourthwall` | Meta-Stats | TotalCommands, FavoriteCommand, Casino W/L, Achievements. |
+| `useless` | Useless Fact of the Day | LucasArts-Style Absurd-Comedy. |
+| `delorean` | Time Travel | Daily-Streak retten (gestern simulieren). 88 Meilen/Stunde. |
+| `bsod` | Fake Bluescreen | Prank. Companion bekommt Herzinfarkt. |
+| `shiny` | Seltenes Pet | 1% Chance auf Regenbogen-Variante. Pokemon-Referenz. |
+| `hunt` | Easter Egg Hunt | Hinweise auf Rubber Chicken, Skull, Tree. |
+| `chaos` | Chaos-Modus | Zufälliger Effekt: +/- Geld, Mood, XP, Streak, Kapsel. |
+| `summon` | Companion-Summon | Ruft zufälligen Companion mit einzigartigem Dialog. |
+| `tpose` | T-Pose Dominance | ASCII-Art T-Pose. Companion reagiert mit Respekt/Angst. |
+| `inventory` | Adventure-Items | Zeigt 8 versteckte Items + Fundstatus. Theoretische Items inklusive. |
+| `sv_cheats` | Cheat-Übersicht | Liste aller verfügbaren Cheats. |
+
+**LucasArts-Design:**
+- Companion-Dialoge ändern sich basierend auf **Bond-Level** (0-30, 30-70, 70-100)
+- Jeder Companion hat eine **unverwechselbare Stimme** (NEON=sarkastisch, RAVEN=berechnend, PIXEL=hyperaktiv, LUNA=mystisch, IVY=stillschweigend, VERA=bürokratisch, JINX=chaotisch)
+- Cheats werden als **Pet-Memories** gespeichert
+- Alle Cheats triggern **Achievements**
+- Die Zahl **47** ist überall präsent (Konami-Mode-Dauer, Layer 47)
 
 ---
 
@@ -352,17 +386,6 @@ Rookie (0) -> Veteran (5) -> Elite (15) -> Master (30) -> Legend (50) -> Net God
 
 ---
 
-## Ralph Loop (Kimi CLI)
-
-| Command | Funktion |
-|---------|----------|
-| `kimir` | Kimi Reasoning |
-| `kimia` | Kimi Architect |
-| `kimix` | Kimi Mixed |
-| `kimis` | Kimi Summary |
-
----
-
 ## Self-Aware Boot & Achievements
 
 Das Profil ist selbstbewusst. Es trackt:
@@ -468,7 +491,7 @@ _init.ps1, _ui.ps1, _unlock.ps1, companion.ps1, combat.ps1, economy.ps1,
 events.ps1, hub.ps1, pvp.ps1, raid.ps1, breed.ps1, rival.ps1, soul.ps1
 
 # Boot, Fun, Handbook, Tests
-boot.ps1, fun.ps1, ralph-loop.ps1
+boot.ps1, fun.ps1
 handbook.ps1, handbook-casino.ps1, handbook-combat.ps1, handbook-commands.ps1,
 handbook-companion.ps1, handbook-core.ps1, handbook-elements.ps1,
 handbook-equipment.ps1, handbook-skills.ps1, handbook-status.ps1

@@ -163,44 +163,6 @@ function Get-StrategyInsightModifier {
     return $result
 }
 
-# === LEVEL UP ENGINE (DEPRECATED — pet/combat.ps1 hat eigene Logik) ===
-function Invoke-LevelUp($entity, $xpGain, $attacksTable, $skillsTable) {
-    $entity.XP += $xpGain
-    $leveled = $false
-    while ($entity.XP -ge $entity.NextXP) {
-        $entity.XP -= $entity.NextXP
-        $entity.Level++
-        $entity.NextXP = $entity.Level * 50
-        $entity.MaxHP += (Get-Random -Minimum 5 -Maximum 15)
-        $entity.ATK += (Get-Random -Minimum 2 -Maximum 5)
-        $entity.DEF += (Get-Random -Minimum 1 -Maximum 4)
-        $entity.SPD += (Get-Random -Minimum 1 -Maximum 3)
-        $entity.HP = $entity.MaxHP
-        $leveled = $true
-        Write-Host "`n  LEVEL UP! $($entity.Name) is now Level $($entity.Level)!" -ForegroundColor Magenta
-        Write-Host "  HP:$($entity.MaxHP) ATK:$($entity.ATK) DEF:$($entity.DEF) SPD:$($entity.SPD)" -ForegroundColor Cyan
-        if ($attacksTable -and $attacksTable.ContainsKey($entity.Level)) {
-            $newAtk = $attacksTable[$entity.Level]
-            if ($entity.Attacks -notcontains $newAtk) {
-                $entity.Attacks += $newAtk
-                Write-Host "  New attack learned: $newAtk!" -ForegroundColor Yellow
-            }
-        }
-        if ($skillsTable -and $entity.Skills.Count -lt 4) {
-            $maxSkills = [math]::Min(4, [math]::Floor($entity.Level / 5) + 1)
-            if ($entity.Skills.Count -lt $maxSkills -and (Get-Random -Minimum 1 -Maximum 101) -le 25) {
-                $available = @($skillsTable.Keys) | Where-Object { $entity.Skills -notcontains $_ }
-                if ($available.Count -gt 0) {
-                    $newSkill = $available | Get-Random
-                    $entity.Skills += $newSkill
-                    Write-Host "  New skill learned: $newSkill!" -ForegroundColor Green
-                }
-            }
-        }
-    }
-    return $leveled
-}
-
 } catch {
     Write-Host "[engine-game] CRITICAL ERROR: $_" -ForegroundColor Red
 }

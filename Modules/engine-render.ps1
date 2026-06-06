@@ -192,10 +192,10 @@ function Render-Frame($Frame, [switch]$ForceFull) {
         }
     }
     
-    # Store hashes for next frame (kein Deep-Copy mehr noetig)
-    $script:LastRenderedHashes = @()
+    # Store hashes for next frame (List statt Array += fuer bessere Performance)
+    $script:LastRenderedHashes = [System.Collections.Generic.List[string]]::new($Frame.Height)
     for ($y = 0; $y -lt $Frame.Height; $y++) {
-        $script:LastRenderedHashes += (Get-FrameRowHash $Frame $y)
+        $script:LastRenderedHashes.Add((Get-FrameRowHash $Frame $y))
     }
 }
 

@@ -33,7 +33,7 @@ function Invoke-CasinoGame {
             if ($petMeta.GlitchUsed -ne $today) {
                 $glitchActive = $true
                 $petMeta.GlitchUsed = $today
-                Save-State
+                # GlitchUsed wird spaeter via Set-Bankroll -> Save-State persistiert
                 if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
                     $cp = $script:BuxeState.Pet.Companion
                     if ($cp) {
@@ -73,12 +73,23 @@ function Invoke-CasinoGame {
         
         # Apply casino luck bonus
         $luckMod = Get-CasinoLuckModifier
+        # Konami-Mode: +50% Casino Luck fuer 47 Sekunden
+        if ($script:KonamiModeUntil -and (Get-Date) -lt $script:KonamiModeUntil) {
+            $luckMod = $luckMod * 1.5
+            Write-Host "  [KONAMI MODE] Casino-Luck verdoppelt!" -ForegroundColor Cyan
+        }
         $winAmount = $result.Win
         $bonus = 0
         if ($winAmount -gt 0 -and $luckMod -gt 1.0) {
             $bonus = [math]::Floor($winAmount * ($luckMod - 1.0))
             $winAmount += $bonus
             if ($bonus -gt 0) { $result.Win = $winAmount }
+        }
+        # IDDQD: Godmode — keine Verluste moeglich
+        if ($script:IddqdActive -and $result.Loss -gt 0) {
+            Write-Host "  [IDDQD] Verlust verhindert! Gottmodus ist OP." -ForegroundColor Red -BackgroundColor Black
+            $result.Loss = 0
+            $script:IddqdActive = $false
         }
         # Cap suspicious wins
         $maxWin = $bet * 100
@@ -123,7 +134,7 @@ function Invoke-CasinoGame {
         Load-State
         $cp = $script:BuxeState.Companion
         if ($cp -and (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) {
-            if ($bank -le 0) {
+            if ($script:BuxeState.Bank.Gold -le 0) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bust") -Fast
             } elseif ($result.Win -gt 500) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bigwin") -Fast

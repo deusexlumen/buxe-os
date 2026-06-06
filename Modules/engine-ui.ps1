@@ -5,11 +5,8 @@ try {
 
 # === FRAME ===
 function Show-Frame($Title, [int]$Width = 42, [switch]$Double) {
-    # Meta 15: Architect Theme — apply companion theme to global frames
-    $theme = "Default"
-    if ($script:BuxeState -and $script:BuxeState.Pet -and $script:BuxeState.Pet.Companion -and $script:BuxeState.Pet.Meta.Level -ge 15) {
-        $theme = if ($script:BuxeState.Pet.Companion.Theme) { $script:BuxeState.Pet.Companion.Theme } else { "Default" }
-    }
+    # Meta 15: Architect Theme — cached to avoid repeated hashtable lookups
+    $theme = if ($script:CachedFrameTheme) { $script:CachedFrameTheme } else { "Default" }
     switch ($theme) {
         "Neon" { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Magenta" }
         "Matrix" { $hc = if ($Double) { "=" } else { "-" }; $tl = "+"; $tr = "+"; $bl = "+"; $br = "+"; $fg = "Green" }
@@ -61,8 +58,9 @@ function Show-Menu($Title, [array]$Options, [switch]$Clear) {
 
 # === INPUT ===
 function Wait-Enter {
-    Write-Host "`n  [Enter] dr??cken zum Fortfahren..." -ForegroundColor DarkGray
+    Write-Host "`n  [Enter] druecken zum Fortfahren..." -ForegroundColor DarkGray
     $null = Read-Host
+    if (Get-Command Flush-State -ErrorAction SilentlyContinue) { Flush-State }
 }
 
 function Read-Choice($Prompt, $ValidPattern, $QuitChar = 'Q') {

@@ -69,6 +69,12 @@ function Get-StateDefaults {
 # === ATOMIC SAVE / LOAD ===
 function Save-State {
     if ($script:BuxeStateTransactionDepth -gt 0) { return }
+    # Throttle: max 1 Save pro 500ms (vermeidet I/O-Overhead bei schnellen Aktionen)
+    $now = Get-Date
+    if ($script:BuxeStateLastSave -and ($now - $script:BuxeStateLastSave).TotalMilliseconds -lt 500) {
+        $script:BuxeStatePendingSave = $true
+        return
+    }
     if (-not (Test-Path $script:BuxeStateDir)) {
         New-Item -ItemType Directory -Path $script:BuxeStateDir -Force | Out-Null
     }
@@ -92,10 +98,21 @@ function Save-State {
     try {
         $script:BuxeState | ConvertTo-Json -Depth 20 | Out-File $tempFile -Encoding utf8 -ErrorAction Stop
         Move-Item -Path $tempFile -Destination $script:BuxeStateFile -Force -ErrorAction Stop
+        $script:BuxeStateLastSave = Get-Date
+        $script:BuxeStatePendingSave = $false
         try { $script:BuxeStateLoadedAt = (Get-Item $script:BuxeStateFile).LastWriteTime } catch {}
     } catch {
         Write-Warning "[StateManager] Failed to save state: $_"
         if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+function Flush-State {
+    # Speichert sofort, auch wenn Throttle aktiv ist (fuer interaktive Endpunkte)
+    if ($script:BuxeStatePendingSave) {
+        $script:BuxeStateLastSave = $null
+        $script:BuxeStatePendingSave = $false
+        Save-State
     }
 }
 
@@ -120,6 +137,28 @@ function Load-State {
             Merge-Defaults $script:BuxeState $defaults
             if (-not $script:BuxeState.Version -or $script:BuxeState.Version -lt $script:BuxeStateVersion) {
                 Migrate-State $script:BuxeState.Version
+            }
+            # Cache Frame-Theme fuer Show-Frame (vermeidet wiederholte Hashtable-Lookups)
+            $script:CachedFrameTheme = "Default"
+            if ($script:BuxeState.Pet -and $script:BuxeState.Pet.Companion -and $script:BuxeState.Pet.Meta.Level -ge 15) {
+                $script:CachedFrameTheme = if ($script:BuxeState.Pet.Companion.Theme) { $script:BuxeState.Pet.Companion.Theme } else { "Default" }
+            }
+            # Pet-System Migration (einmalig beim State-Load)
+            if ($script:BuxeState.Pet) {
+                $petMigrated = $false
+                if (-not $script:BuxeState.Pet.ContainsKey("Tutorial")) {
+                    $script:BuxeState.Pet.Tutorial = @{ Completed = $true; Step = 0; Skipped = $false }
+                    $petMigrated = $true
+                }
+                if (-not $script:BuxeState.Pet.Meta.ContainsKey("GlitchUsed")) {
+                    $script:BuxeState.Pet.Meta.GlitchUsed = ""
+                    $petMigrated = $true
+                }
+                if (-not $script:BuxeState.Pet.Meta.ContainsKey("ActionCount")) {
+                    $script:BuxeState.Pet.Meta.ActionCount = 0
+                    $petMigrated = $true
+                }
+                if ($petMigrated) { Save-State }
             }
             return
         } catch {
@@ -174,8 +213,15 @@ function Migrate-State($fromVersion) {
 # === AUDIT LOG ===
 function Write-AuditLog($Action, $Amount, $BalanceBefore, $BalanceAfter, $Reason) {
     $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $line = "$ts | $Action | $Amount | $BalanceBefore | $BalanceAfter | $Reason"
-    Add-Content -Path $script:BuxeAuditFile -Value $line -Encoding utf8 -ErrorAction SilentlyContinue
+    $entry = @{
+        ts = $ts
+        action = $Action
+        amount = $Amount
+        before = $BalanceBefore
+        after = $BalanceAfter
+        reason = $Reason
+    } | ConvertTo-Json -Compress
+    Add-Content -Path $script:BuxeAuditFile -Value $entry -Encoding utf8 -ErrorAction SilentlyContinue
 }
 
 # === CONVENIENCE ACCESSORS ===

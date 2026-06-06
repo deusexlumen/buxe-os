@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","adventure-insult","desktop-pet","handbook","boot","fun","ralph-loop")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","adventure-insult","desktop-pet","handbook","boot","fun","tts-engine")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0
@@ -55,7 +55,7 @@ $es = Get-EffectiveStats $testPet
 Test-Assert "Effective stats calc" ($es.MaxHP -eq 100 -and $es.ATK -eq 10)
 
 # Test 8: Required functions exist
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","handbook","snake","monkeytype","wordle","zork","hangman","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","handbook","snake","monkeytype","wordle","zork","hangman","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","say","chuck","mem","sysinfo","uptime","weather","ip","port","reload")
 $missing = 0
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing++ }
