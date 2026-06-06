@@ -89,6 +89,17 @@ function Get-PetState {
             $script:BuxeState.Pet.Meta.ActionCount = 0
             Save-State
         }
+        # Lazy migration: CompanionGames (Phase 2)
+        if (-not $script:BuxeState.Pet.ContainsKey("CompanionGames")) {
+            $script:BuxeState.Pet.CompanionGames = @{
+                Wins = 0
+                Losses = 0
+                ChaosChipsHighscore = 0
+                MemoryBestTime = 999
+                FortyTwoBestGuesses = 999
+            }
+            Save-State
+        }
     }
     return $script:BuxeState.Pet
 }
