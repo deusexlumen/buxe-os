@@ -297,7 +297,11 @@ try {
 
     Set-Item function:Wait-Enter $origWaitEnterE2E
     if ($originalReadHost) {
-        Set-Item function:global:Read-Host $originalReadHost.ScriptBlock
+        if ($originalReadHost.CommandType -eq 'Function') {
+            Set-Item function:global:Read-Host $originalReadHost.ScriptBlock
+        } else {
+            Remove-Item function:global:Read-Host -ErrorAction SilentlyContinue
+        }
     } else {
         Remove-Item function:Read-Host -ErrorAction SilentlyContinue
     }
@@ -311,7 +315,7 @@ try {
         $e2eErrors += "neon-episode"
     }
 } finally {
-    if ($stateBackup) {
+    if ($null -ne $stateBackup) {
         $stateBackup | Set-Content $stateFile -NoNewline
     } elseif (Test-Path $stateFile) {
         Remove-Item $stateFile
