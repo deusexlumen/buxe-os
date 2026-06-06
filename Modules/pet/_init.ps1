@@ -21,6 +21,7 @@ $script:PetFeatureUnlocks = @{
     13 = @("glitch")
     14 = @("layer_47")
     15 = @("architect_theme")
+    companion_story = 3
 }
 
 function Get-PetDefaults {
@@ -43,6 +44,15 @@ function Get-PetDefaults {
         }
         Companion = $null
         Pet = $null
+        CompanionStories = @{
+            NEON  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            RAVEN = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            PIXEL = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            LUNA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            JINX  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+        }
         Economy = @{ Gold = 500; Inventory = @() }
         Achievements = @()
         Memories = @()
@@ -60,21 +70,15 @@ function Get-PetState {
         $script:BuxeState.Pet = (Get-PetDefaults)
         Save-State
     } else {
-        # Migration: existing saves before tutorial feature
+        # Lazy Migration: nur wenn Load-State sie noch nicht durchgefuehrt hat
         if (-not $script:BuxeState.Pet.ContainsKey("Tutorial")) {
-            $script:BuxeState.Pet.Tutorial = @{
-                Completed = $true
-                Step = 0
-                Skipped = $false
-            }
+            $script:BuxeState.Pet.Tutorial = @{ Completed = $true; Step = 0; Skipped = $false }
             Save-State
         }
-        # Migration: GlitchUsed field
         if (-not $script:BuxeState.Pet.Meta.ContainsKey("GlitchUsed")) {
             $script:BuxeState.Pet.Meta.GlitchUsed = ""
             Save-State
         }
-        # Migration: ActionCount field
         if (-not $script:BuxeState.Pet.Meta.ContainsKey("ActionCount")) {
             $script:BuxeState.Pet.Meta.ActionCount = 0
             Save-State
@@ -90,6 +94,10 @@ function Save-PetState($state) {
 }
 
 function Add-PetXP($amount, $reason = "") {
+    # Konami-Mode: +50% XP fuer 47 Sekunden
+    if ($script:KonamiModeUntil -and (Get-Date) -lt $script:KonamiModeUntil) {
+        $amount = [math]::Floor($amount * 1.5)
+    }
     $pet = Get-PetState
     $pet.Meta.XP += $amount
     $oldLevel = $pet.Meta.Level
