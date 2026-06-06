@@ -28,6 +28,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "NEON seufzt. 'Typisch. Immer wegsehen.'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 2
@@ -48,6 +49,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "NEON starrt dich an. 'Allein? Nach allem?'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 3
@@ -63,6 +65,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "NEON schnaubt. 'Besser spaet als nie, oder?'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 4
@@ -114,6 +117,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "JINX starrt dich an. 'Zufall? ZUFALL?'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 2
@@ -130,6 +134,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "JINX grinst. 'Das... ist die MILLIONEN-GOLD-FRAGE.'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 3
@@ -146,6 +151,7 @@ $script:CompanionEpisodeData = @{
                             Outcome = "JINX sammelt das Popcorn auf. 'Zu spaet. Du hast es verspielt.'"
                         }
                     )
+                    NextScene = -1
                 },
                 @{
                     Id = 4
