@@ -80,40 +80,22 @@ Test-Assert "Pet hub function exists" ((Get-Command pet -ErrorAction SilentlyCon
 
 # === STORY ENGINE TESTS ===
 Write-Host "`n  Testing Story Engine..." -ForegroundColor Yellow
-$storyFuncs = @('Invoke-CompanionEpisode', 'Get-CompanionEpisodeData')
-foreach ($fn in $storyFuncs) {
-    $test = Get-Command $fn -ErrorAction SilentlyContinue
-    if (-not $test) { Write-Host "  [FAIL] Story function $fn fehlt!" -ForegroundColor Red; $errors++; continue }
-    Write-Host "  [PASS] Story function $fn vorhanden" -ForegroundColor Green
-}
+# Story Engine Smoke Tests
+Test-Assert "Story function Invoke-CompanionEpisode vorhanden" `
+    ((Get-Command Invoke-CompanionEpisode -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Story function Get-CompanionEpisodeData vorhanden" `
+    ((Get-Command Get-CompanionEpisodeData -ErrorAction SilentlyContinue) -ne $null)
 
-# Story state defaults
 $petDefaults = Get-PetDefaults
-if ($petDefaults.CompanionStories) {
-    Write-Host "  [PASS] CompanionStories State-Branch vorhanden" -ForegroundColor Green
-} else {
-    Write-Host "  [FAIL] CompanionStories fehlt in Defaults!" -ForegroundColor Red; $errors++
-}
+Test-Assert "CompanionStories State-Branch vorhanden" `
+    ($petDefaults.CompanionStories -ne $null)
+Test-Assert "NEON Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.NEON.Episode -eq 1)
+Test-Assert "JINX Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.JINX.Episode -eq 1)
 
-if ($petDefaults.CompanionStories.NEON -and $petDefaults.CompanionStories.NEON.Episode -eq 1) {
-    Write-Host "  [PASS] NEON Episode 1 default korrekt" -ForegroundColor Green
-} else {
-    Write-Host "  [FAIL] NEON Episode 1 default fehlerhaft!" -ForegroundColor Red; $errors++
-}
-
-if ($petDefaults.CompanionStories.JINX -and $petDefaults.CompanionStories.JINX.Episode -eq 1) {
-    Write-Host "  [PASS] JINX Episode 1 default korrekt" -ForegroundColor Green
-} else {
-    Write-Host "  [FAIL] JINX Episode 1 default fehlerhaft!" -ForegroundColor Red; $errors++
-}
-
-# Story data file exists
 $storyDataPath = Join-Path $modDir "pet\companion-story-data.ps1"
-if (Test-Path $storyDataPath) {
-    Write-Host "  [PASS] Story data file existiert" -ForegroundColor Green
-} else {
-    Write-Host "  [FAIL] Story data file fehlt!" -ForegroundColor Red; $errors++
-}
+Test-Assert "Story data file existiert" (Test-Path $storyDataPath)
 
 # === STATE ACCESSORS ===
 Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
