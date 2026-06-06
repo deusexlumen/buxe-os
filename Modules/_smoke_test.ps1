@@ -78,6 +78,43 @@ Test-Assert "Show-PetFrame runs without error" ($? -eq $true)
 
 Test-Assert "Pet hub function exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
 
+# === STORY ENGINE TESTS ===
+Write-Host "`n  Testing Story Engine..." -ForegroundColor Yellow
+$storyFuncs = @('Invoke-CompanionEpisode', 'Get-CompanionEpisodeData')
+foreach ($fn in $storyFuncs) {
+    $test = Get-Command $fn -ErrorAction SilentlyContinue
+    if (-not $test) { Write-Host "  [FAIL] Story function $fn fehlt!" -ForegroundColor Red; $errors++; continue }
+    Write-Host "  [PASS] Story function $fn vorhanden" -ForegroundColor Green
+}
+
+# Story state defaults
+$petDefaults = Get-PetDefaults
+if ($petDefaults.CompanionStories) {
+    Write-Host "  [PASS] CompanionStories State-Branch vorhanden" -ForegroundColor Green
+} else {
+    Write-Host "  [FAIL] CompanionStories fehlt in Defaults!" -ForegroundColor Red; $errors++
+}
+
+if ($petDefaults.CompanionStories.NEON -and $petDefaults.CompanionStories.NEON.Episode -eq 1) {
+    Write-Host "  [PASS] NEON Episode 1 default korrekt" -ForegroundColor Green
+} else {
+    Write-Host "  [FAIL] NEON Episode 1 default fehlerhaft!" -ForegroundColor Red; $errors++
+}
+
+if ($petDefaults.CompanionStories.JINX -and $petDefaults.CompanionStories.JINX.Episode -eq 1) {
+    Write-Host "  [PASS] JINX Episode 1 default korrekt" -ForegroundColor Green
+} else {
+    Write-Host "  [FAIL] JINX Episode 1 default fehlerhaft!" -ForegroundColor Red; $errors++
+}
+
+# Story data file exists
+$storyDataPath = Join-Path $modDir "pet\companion-story-data.ps1"
+if (Test-Path $storyDataPath) {
+    Write-Host "  [PASS] Story data file existiert" -ForegroundColor Green
+} else {
+    Write-Host "  [FAIL] Story data file fehlt!" -ForegroundColor Red; $errors++
+}
+
 # === STATE ACCESSORS ===
 Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
 Test-Assert "Get-Bankroll" ((Get-Bankroll) -ge 0)
@@ -300,11 +337,11 @@ Test-Assert "Breakout score increased" ($bg.Score -gt 0)
 Write-Host "`n  Testing Backup Rotation..." -ForegroundColor Yellow
 $bakPattern = "$script:BuxeStateFile.bak*"
 Remove-Item $bakPattern -Force -ErrorAction SilentlyContinue
-# Save 6 times to trigger rotation
+# Save 6 times to trigger rotation (600ms Pause fuer Throttle)
 for ($i = 1; $i -le 6; $i++) {
     $script:BuxeState.Bank.Gold = 500 + $i
     Save-State
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds 600
 }
 Test-Assert "bak1 exists" (Test-Path "$script:BuxeStateFile.bak1")
 Test-Assert "bak5 exists" (Test-Path "$script:BuxeStateFile.bak5")
@@ -320,7 +357,7 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino-keno.ps1","casino-wheel.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","ralph-loop.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino-keno.ps1","casino-wheel.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}
