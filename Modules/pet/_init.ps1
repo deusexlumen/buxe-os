@@ -7,7 +7,7 @@ $script:PetXPTable = @(0, 3, 15, 40, 100, 300, 600, 1200, 2500, 5000, 10000, 150
 $script:PetFeatureUnlocks = @{
     0 = @("talk", "companion_create")
     1 = @("gift", "mood")
-    2 = @("pet_create", "combat")
+    2 = @("pet_create", "combat", "companion_games")
     3 = @("train", "work", "gold", "companion_story")
     4 = @("shop", "cooking", "equipment")
     5 = @("pvp")
@@ -51,6 +51,13 @@ function Get-PetDefaults {
             IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
             VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
             JINX  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+        }
+        CompanionGames = @{
+            Wins = 0
+            Losses = 0
+            ChaosChipsHighscore = 0
+            MemoryBestTime = 999
+            FortyTwoBestGuesses = 999
         }
         Economy = @{ Gold = 500; Inventory = @() }
         Achievements = @()
