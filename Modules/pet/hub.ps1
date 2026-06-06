@@ -201,6 +201,7 @@ function pet {
         if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
         if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
+        if ($pet.Meta.Level -ge 2) { $opts += "[G] Spiele"; $keys += "G" }
         if ($pet.Meta.Level -ge 3) { $opts += "[S] Story"; $keys += "S" }
         $opts += "[M] Memories"; $keys += "M"
         $opts += "[C] Quests"; $keys += "C"
@@ -245,6 +246,7 @@ function pet {
             'B' = 'Babys. Kleine digitale Babys. Niedlich. Und beunruhigend.'
             'R' = 'Rival! Zeit für Rache. Oder Gerechtigkeit. Oder Chaos.'
             'L' = 'Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen.'
+            'G' = 'Spiele? Endlich etwas Action!'
             'T' = 'Ein neuer Look? Endlich. Ich war so müde von Cyan.'
             'S' = 'Eine Story? Fuer MICH? Endlich etwas mit Plot.'
             'Z' = 'Status check. Alles im gruenen Bereich. Oder rot. Oder cyan.'
@@ -267,6 +269,7 @@ function pet {
             'R' { Invoke-PetRivalBattle }
             'L' { Invoke-SoulLink }
             'T' { Set-PetTheme }
+            'G' { if ($pet.Meta.Level -ge 2) { Invoke-CompanionGame } }
             'S' { if ($pet.Meta.Level -ge 3) { Invoke-CompanionEpisode -CompanionName $cp.Name } }
             'Z' { Show-PetHubStatus }
             'Q' { return }
