@@ -177,6 +177,155 @@ function Play-FortyTwoOr47($pet, $cp) {
     Wait-Enter
 }
 
+function Play-Memory($pet, $cp) {
+    $symbols = @('♥','♦','♠','♣','★','☆','●','○')
+    $deck = $symbols + $symbols | Sort-Object { Get-Random }
+    $revealed = @($false) * 16
+    $companionMemory = @{}  # Companion "remembers" cards
+    $playerScore = 0; $companionScore = 0
+    $currentPlayer = "player"
+    $turns = 0
+
+    # Bond affects companion memory accuracy
+    $companionMemoryChance = if ($cp.Bond -lt 30) { 0.3 } elseif ($cp.Bond -gt 70) { 0.8 } else { 0.5 }
+
+    while ($playerScore + $companionScore -lt 8) {
+        $turns++
+        try { Clear-Host } catch {}
+        Show-PetFrame "MEMORY — Du: $playerScore | $($cp.Name): $companionScore" -Double | Out-Null
+
+        # Render grid
+        Write-Host ""
+        for ($row = 0; $row -lt 4; $row++) {
+            $line = "  "
+            for ($col = 0; $col -lt 4; $col++) {
+                $idx = $row * 4 + $col
+                if ($revealed[$idx]) {
+                    $line += "[$($deck[$idx])] "
+                } else {
+                    $line += "[$(($idx + 1).ToString("D2"))] "
+                }
+            }
+            Write-Host $line -ForegroundColor White
+        }
+
+        if ($currentPlayer -eq "player") {
+            Write-Host "`n  Waehle zwei Karten (1-16, Q zum Beenden):" -ForegroundColor Cyan
+            $first = Read-Choice "Erste Karte" '^([1-9]|1[0-6]|Q)$'
+            if ($first -eq 'Q') { Save-PetState $pet; return }
+            $idx1 = [int]$first - 1
+            if ($revealed[$idx1]) { Show-CompanionDialog $cp "Die ist schon aufgedeckt. Sei aufmerksam!" -Fast; Start-Sleep -Milliseconds 500; continue }
+
+            $revealed[$idx1] = $true
+            try { Clear-Host } catch {}
+            Show-PetFrame "MEMORY — Du: $playerScore | $($cp.Name): $companionScore" -Double | Out-Null
+            Write-Host ""
+            for ($row = 0; $row -lt 4; $row++) {
+                $line = "  "
+                for ($col = 0; $col -lt 4; $col++) {
+                    $idx = $row * 4 + $col
+                    if ($revealed[$idx]) {
+                        $line += "[$($deck[$idx])] "
+                    } else {
+                        $line += "[$(($idx + 1).ToString("D2"))] "
+                    }
+                }
+                Write-Host $line -ForegroundColor White
+            }
+
+            $second = Read-Choice "Zweite Karte" '^([1-9]|1[0-6]|Q)$'
+            if ($second -eq 'Q') { $revealed[$idx1] = $false; Save-PetState $pet; return }
+            $idx2 = [int]$second - 1
+            if ($revealed[$idx2] -or $idx1 -eq $idx2) {
+                Show-CompanionDialog $cp "Ungueltige Wahl. Versuch es nochmal." -Fast
+                $revealed[$idx1] = $false
+                Start-Sleep -Milliseconds 500
+                continue
+            }
+            $revealed[$idx2] = $true
+
+            if ($deck[$idx1] -eq $deck[$idx2]) {
+                Write-Host "`n  MATCH! $($deck[$idx1])" -ForegroundColor Green
+                $playerScore++
+                Show-CompanionDialog $cp (@("Gut gemacht!","Du hast ein gutes Gedaechtnis.","Pah. Zufall.") | Get-Random) -Fast
+            } else {
+                Write-Host "`n  Kein Match. $($deck[$idx1]) vs $($deck[$idx2])" -ForegroundColor Red
+                Show-CompanionDialog $cp (@("Falsch!","Neeein.","Beobachte genauer.") | Get-Random) -Fast
+                Start-Sleep -Milliseconds 800
+                $revealed[$idx1] = $false
+                $revealed[$idx2] = $false
+            }
+            $currentPlayer = "companion"
+        } else {
+            # Companion turn
+            Write-Host "`n  $($cp.Name) ist dran..." -ForegroundColor Magenta
+            Start-Sleep -Milliseconds 800
+
+            $available = 0..15 | Where-Object { -not $revealed[$_] }
+            $pick1 = $available | Get-Random
+            $companionMemory[$pick1] = $deck[$pick1]
+
+            # Try to find match from memory
+            $match = $null
+            if ((Get-Random -Maximum 100) -lt ($companionMemoryChance * 100)) {
+                $sym = $deck[$pick1]
+                $match = $companionMemory.GetEnumerator() | Where-Object { $_.Value -eq $sym -and $_.Key -ne $pick1 -and ($available -contains $_.Key) } | Select-Object -First 1
+            }
+
+            if ($match) {
+                $pick2 = $match.Key
+            } else {
+                $available2 = $available | Where-Object { $_ -ne $pick1 }
+                $pick2 = $available2 | Get-Random
+                $companionMemory[$pick2] = $deck[$pick2]
+            }
+
+            $revealed[$pick1] = $true; $revealed[$pick2] = $true
+            Write-Host "  $($cp.Name) waehlt Karten $($pick1 + 1) und $($pick2 + 1)..." -ForegroundColor Magenta
+            Start-Sleep -Milliseconds 600
+
+            if ($deck[$pick1] -eq $deck[$pick2]) {
+                Write-Host "  MATCH! $($deck[$pick1])" -ForegroundColor Magenta
+                $companionScore++
+                Show-CompanionDialog $cp "Haha! Algorithmen schlagen Menschen!" -Fast
+            } else {
+                Write-Host "  Kein Match." -ForegroundColor DarkGray
+                Show-CompanionDialog $cp (@("Mist.","Nur ein Fehler.","Du hast das bestimmt genossen.") | Get-Random) -Fast
+                Start-Sleep -Milliseconds 600
+                $revealed[$pick1] = $false
+                $revealed[$pick2] = $false
+            }
+            $currentPlayer = "player"
+        }
+    }
+
+    try { Clear-Host } catch {}
+    Show-PetFrame "MEMORY — ERGEBNIS" -Double | Out-Null
+    Write-Host "`n  Du: $playerScore | $($cp.Name): $companionScore" -ForegroundColor White
+
+    if ($playerScore -gt $companionScore) {
+        Write-Host "`n  DU GEWINNST!" -ForegroundColor Green
+        $pet.CompanionGames.Wins++
+        Show-CompanionDialog $cp (Get-CompanionLine $cp "game_win") -Fast
+    } elseif ($playerScore -lt $companionScore) {
+        Write-Host "`n  $($cp.Name) GEWINNT!" -ForegroundColor Red
+        $pet.CompanionGames.Losses++
+        Show-CompanionDialog $cp (Get-CompanionLine $cp "game_lose") -Fast
+    } else {
+        Write-Host "`n  UNENTSCHIEDEN!" -ForegroundColor Yellow
+        Show-CompanionDialog $cp "Ein Unentschieden? Wie langweilig." -Fast
+    }
+
+    if ($turns -lt $pet.CompanionGames.MemoryBestTime) {
+        $pet.CompanionGames.MemoryBestTime = $turns
+        Write-Host "  NEUER REKORD: $turns Runden!" -ForegroundColor Green
+    }
+
+    Add-PetXP 8 "Memory"
+    Save-PetState $pet
+    Wait-Enter
+}
+
 } catch {
     Write-Host "Fehler in companion-games.ps1: $_" -ForegroundColor Red
 }
