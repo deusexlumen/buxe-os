@@ -8,7 +8,7 @@ $script:PetFeatureUnlocks = @{
     0 = @("talk", "companion_create")
     1 = @("gift", "mood")
     2 = @("pet_create", "combat")
-    3 = @("train", "work", "gold")
+    3 = @("train", "work", "gold", "companion_story")
     4 = @("shop", "cooking", "equipment")
     5 = @("pvp")
     6 = @("raid")
@@ -21,7 +21,6 @@ $script:PetFeatureUnlocks = @{
     13 = @("glitch")
     14 = @("layer_47")
     15 = @("architect_theme")
-    companion_story = 3
 }
 
 function Get-PetDefaults {
