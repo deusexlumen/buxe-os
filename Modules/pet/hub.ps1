@@ -132,7 +132,7 @@ function pet {
     # Run tutorial for first-time users
     if (-not $pet.Tutorial.Completed) {
         Invoke-PetTutorial
-        $pet = Get-PetState
+        $pet = $script:BuxeState.Pet
     }
     if (-not $pet.Companion -and -not ($Action -eq "create" -or $Action -eq "")) {
         Write-Host "Kein Companion. Tippe 'pet' um zu starten." -ForegroundColor Red
@@ -167,7 +167,7 @@ function pet {
     }
     # Interactive hub
     while ($true) {
-        $pet = Get-PetState
+        $pet = $script:BuxeState.Pet
         $cp = $pet.Companion
     try { Clear-Host } catch {}
         Show-PetFrame "BUXE_PET OS v2.0 — HUB" -Double | Out-Null
@@ -201,9 +201,10 @@ function pet {
         if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
         if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
+        if ($pet.Meta.Level -ge 3) { $opts += "[S] Story"; $keys += "S" }
         $opts += "[M] Memories"; $keys += "M"
         $opts += "[C] Quests"; $keys += "C"
-        $opts += "[S] Status"; $keys += "S"
+        $opts += "[Z] Status"; $keys += "Z"
         $opts += "[Q] Exit"; $keys += "Q"
         # Display in rows of 3
         for ($i = 0; $i -lt $opts.Count; $i += 3) {
@@ -229,64 +230,45 @@ function pet {
         }
         if (-not $cp -and $c -eq '1') { New-Companion; continue }
         $cp = $pet.Companion
+        # Flavor-Dialoge fuer Aktionen (einmalig statt in jedem Switch-Case)
+        $HubFlavorLines = @{
+            '1' = 'Reden? Wieder? Na gut. Ich bin ja nur Text.'
+            '2' = 'Ein Geschenk? Für mich? Das... ist verdächtig.'
+            '3' = 'Kampfzeit! Ich cheere. Lautlos. Virtuell.'
+            '4' = 'Arbeiten. Die Freude meines digitalen Lebens.'
+            '5' = 'Training! Meine Threads werden zu Muskeln. Theoretisch.'
+            '6' = 'Einkaufen. Der Weg zum Glück. Oder zum Ruin.'
+            '7' = 'Ich koche. Virtuell. Du isst. Auch virtuell. Perfekt.'
+            'K' = 'Handwerk. Die aelteste Kunst. Auch in der Matrix.'
+            '8' = 'PvP! Zeig ihnen wer hier der Boss ist! Du. Du bist der Boss.'
+            '9' = 'Raid. Drei Phasen. Kein Save Point. Spannend!'
+            'B' = 'Babys. Kleine digitale Babys. Niedlich. Und beunruhigend.'
+            'R' = 'Rival! Zeit für Rache. Oder Gerechtigkeit. Oder Chaos.'
+            'L' = 'Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen.'
+            'T' = 'Ein neuer Look? Endlich. Ich war so müde von Cyan.'
+            'S' = @('Eine Story? Fuer MICH? Endlich etwas mit Plot.','Hoffentlich gibt es einen Twist.','*macht Popcorn-Geraeusche*')
+            'Z' = 'Status check. Alles im gruenen Bereich. Oder rot. Oder cyan.'
+        }
+        if ($cp -and $HubFlavorLines[$c] -and (Get-Random -Maximum 3) -eq 0) {
+            Show-CompanionDialog $cp $HubFlavorLines[$c] -Fast
+        }
         switch ($c) {
-            '1' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Reden? Wieder? Na gut. Ich bin ja nur Text." -Fast }
-                Invoke-CompanionAction "talk" 
-            }
-            '2' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ein Geschenk? Für mich? Das... ist verdächtig." -Fast }
-                Invoke-CompanionAction "gift" 
-            }
-            '3' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Kampfzeit! Ich cheere. Lautlos. Virtuell." -Fast }
-                Start-PetFight 
-            }
-            '4' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Arbeiten. Die Freude meines digitalen Lebens." -Fast }
-                Invoke-CompanionAction "work" 
-            }
-            '5' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Training! Meine Threads werden zu Muskeln. Theoretisch." -Fast }
-                Invoke-CompanionAction "train" 
-            }
-            '6' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Einkaufen. Der Weg zum Glück. Oder zum Ruin." -Fast }
-                Start-PetShop 
-            }
-            '7' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ich koche. Virtuell. Du isst. Auch virtuell. Perfekt." -Fast }
-                Start-PetCook 
-            }
-            'K' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Handwerk. Die aelteste Kunst. Auch in der Matrix." -Fast }
-                Start-PetCrafting 
-            }
-            '8' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "PvP! Zeig ihnen wer hier der Boss ist! Du. Du bist der Boss." -Fast }
-                Start-PetPvP 
-            }
-            '9' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Raid. Drei Phasen. Kein Save Point. Spannend!" -Fast }
-                Start-PetRaid 
-            }
-            'B' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Babys. Kleine digitale Babys. Niedlich. Und beunruhigend." -Fast }
-                Start-PetBreed 
-            }
-            'R' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Rival! Zeit für Rache. Oder Gerechtigkeit. Oder Chaos." -Fast }
-                Invoke-PetRivalBattle 
-            }
-            'L' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen." -Fast }
-                Invoke-SoulLink 
-            }
-            'T' { 
-                if ($cp -and (Get-Random -Maximum 3) -eq 0) { Show-CompanionDialog $cp "Ein neuer Look? Endlich. Ich war so müde von Cyan." -Fast }
-                Set-PetTheme 
-            }
-            'S' { Show-PetHubStatus }
+            '1' { Invoke-CompanionAction "talk" }
+            '2' { Invoke-CompanionAction "gift" }
+            '3' { Start-PetFight }
+            '4' { Invoke-CompanionAction "work" }
+            '5' { Invoke-CompanionAction "train" }
+            '6' { Start-PetShop }
+            '7' { Start-PetCook }
+            'K' { Start-PetCrafting }
+            '8' { Start-PetPvP }
+            '9' { Start-PetRaid }
+            'B' { Start-PetBreed }
+            'R' { Invoke-PetRivalBattle }
+            'L' { Invoke-SoulLink }
+            'T' { Set-PetTheme }
+            'S' { if ($pet.Meta.Level -ge 3) { Invoke-CompanionEpisode -CompanionName $cp.Name } }
+            'Z' { Show-PetHubStatus }
             'Q' { return }
         }
         Check-PetRival | Out-Null
