@@ -178,6 +178,19 @@ function Play-FortyTwoOr47($pet, $cp) {
 }
 
 function Play-Memory($pet, $cp) {
+    function Show-MemoryGrid($deck, $revealed) {
+        Write-Host ""
+        for ($row = 0; $row -lt 4; $row++) {
+            $line = "  "
+            for ($col = 0; $col -lt 4; $col++) {
+                $idx = $row * 4 + $col
+                if ($revealed[$idx]) { $line += "[$($deck[$idx])] " }
+                else { $line += "[$(($idx + 1).ToString("D2"))] " }
+            }
+            Write-Host $line -ForegroundColor White
+        }
+    }
+
     $symbols = @('♥','♦','♠','♣','★','☆','●','○')
     $deck = $symbols + $symbols | Sort-Object { Get-Random }
     $revealed = @($false) * 16
@@ -195,19 +208,7 @@ function Play-Memory($pet, $cp) {
         Show-PetFrame "MEMORY — Du: $playerScore | $($cp.Name): $companionScore" -Double | Out-Null
 
         # Render grid
-        Write-Host ""
-        for ($row = 0; $row -lt 4; $row++) {
-            $line = "  "
-            for ($col = 0; $col -lt 4; $col++) {
-                $idx = $row * 4 + $col
-                if ($revealed[$idx]) {
-                    $line += "[$($deck[$idx])] "
-                } else {
-                    $line += "[$(($idx + 1).ToString("D2"))] "
-                }
-            }
-            Write-Host $line -ForegroundColor White
-        }
+        Show-MemoryGrid $deck $revealed
 
         if ($currentPlayer -eq "player") {
             Write-Host "`n  Waehle zwei Karten (1-16, Q zum Beenden):" -ForegroundColor Cyan
@@ -219,19 +220,7 @@ function Play-Memory($pet, $cp) {
             $revealed[$idx1] = $true
             try { Clear-Host } catch {}
             Show-PetFrame "MEMORY — Du: $playerScore | $($cp.Name): $companionScore" -Double | Out-Null
-            Write-Host ""
-            for ($row = 0; $row -lt 4; $row++) {
-                $line = "  "
-                for ($col = 0; $col -lt 4; $col++) {
-                    $idx = $row * 4 + $col
-                    if ($revealed[$idx]) {
-                        $line += "[$($deck[$idx])] "
-                    } else {
-                        $line += "[$(($idx + 1).ToString("D2"))] "
-                    }
-                }
-                Write-Host $line -ForegroundColor White
-            }
+            Show-MemoryGrid $deck $revealed
 
             $second = Read-Choice "Zweite Karte" '^([1-9]|1[0-6]|Q)$'
             if ($second -eq 'Q') { $revealed[$idx1] = $false; Save-PetState $pet; return }
