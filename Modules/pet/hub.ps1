@@ -246,7 +246,7 @@ function pet {
             'R' = 'Rival! Zeit für Rache. Oder Gerechtigkeit. Oder Chaos.'
             'L' = 'Soul Link. Für immer. Ewig. Kein Taskkill kann uns trennen.'
             'T' = 'Ein neuer Look? Endlich. Ich war so müde von Cyan.'
-            'S' = @('Eine Story? Fuer MICH? Endlich etwas mit Plot.','Hoffentlich gibt es einen Twist.','*macht Popcorn-Geraeusche*')
+            'S' = 'Eine Story? Fuer MICH? Endlich etwas mit Plot.'
             'Z' = 'Status check. Alles im gruenen Bereich. Oder rot. Oder cyan.'
         }
         if ($cp -and $HubFlavorLines[$c] -and (Get-Random -Maximum 3) -eq 0) {
