@@ -322,6 +322,117 @@ try {
     }
 }
 
+# E2E: Chaos-Chips
+Write-Host "`n[E2E] Chaos-Chips..." -ForegroundColor Cyan
+$pet = Get-PetState
+$pet.Companion = @{
+    Name = "NEON"; Bond = 50; Mood = "Curious"
+    Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0
+    Headpats = 0; LastTalk = $null; LastWork = $null
+    PunishCount = 0
+    Skills = @{ CasinoLuck = 0; StrategyInsight = 0 }
+}
+$pet.CompanionGames = @{ Wins = 0; Losses = 0 }
+Save-PetState $pet
+
+$stateFile = Join-Path $env:LOCALAPPDATA "buxe\buxe_state_v24.json"
+$stateBackup = $null
+if (Test-Path $stateFile) { $stateBackup = Get-Content $stateFile -Raw }
+
+try {
+    $originalWaitEnter = Get-Command Wait-Enter -CommandType Function
+    Set-Item function:Wait-Enter {}
+
+    # Mock Read-Choice: Enter for dice rolls, Q to quit result screen
+    $script:_ccCount = 0
+    $originalReadChoice = Get-Command Read-Choice -CommandType Function
+    Set-Item function:global:Read-Choice {
+        param($prompt, $pattern)
+        $script:_ccCount++
+        if ($script:_ccCount -le 3) { return "`r" }
+        return "Q"
+    }
+
+    Play-ChaosChips $pet $pet.Companion
+
+    if ($originalReadChoice.CommandType -eq 'Function') {
+        Set-Item function:global:Read-Choice $originalReadChoice.ScriptBlock
+    } else {
+        Remove-Item function:global:Read-Choice -ErrorAction SilentlyContinue
+    }
+    Remove-Variable _ccCount -Scope Script -ErrorAction SilentlyContinue
+    Set-Item function:Wait-Enter $originalWaitEnter.ScriptBlock
+
+    $pet = Get-PetState
+    if ($pet.CompanionGames.Wins -gt 0 -or $pet.CompanionGames.Losses -gt 0) {
+        Write-Host "  [PASS] Chaos-Chips gespielt" -ForegroundColor Green; $pass++
+    } else {
+        Write-Host "  [FAIL] Chaos-Chips nicht korrekt beendet!" -ForegroundColor Red; $fail++
+        $e2eErrors += "chaoschips"
+    }
+} catch {
+    Write-Host "  [WARN] Chaos-Chips Fehler: $_" -ForegroundColor Yellow
+    $e2eErrors += "chaoschips"
+} finally {
+    if ($null -ne $stateBackup) { $stateBackup | Set-Content $stateFile -NoNewline }
+    elseif (Test-Path $stateFile) { Remove-Item $stateFile }
+}
+
+# E2E: 42 oder 47
+Write-Host "`n[E2E] 42 oder 47..." -ForegroundColor Cyan
+$pet = Get-PetState
+$pet.Companion = @{
+    Name = "JINX"; Bond = 50; Mood = "Excited"
+    Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0
+    Headpats = 0; LastTalk = $null; LastWork = $null
+    PunishCount = 0
+    Skills = @{ CasinoLuck = 0; StrategyInsight = 0 }
+}
+$pet.CompanionGames = @{ Wins = 0; Losses = 0 }
+Save-PetState $pet
+
+$stateBackup = $null
+if (Test-Path $stateFile) { $stateBackup = Get-Content $stateFile -Raw }
+
+try {
+    $originalWaitEnter = Get-Command Wait-Enter -CommandType Function
+    Set-Item function:Wait-Enter {}
+
+    # Mock Read-Host: guess 50, then Q to quit
+    $script:_ftCount = 0
+    $originalReadHost = Get-Command Read-Host -CommandType Cmdlet -ErrorAction SilentlyContinue
+    if (-not $originalReadHost) { $originalReadHost = Get-Command Read-Host -CommandType Function -ErrorAction SilentlyContinue }
+    Set-Item function:global:Read-Host {
+        $script:_ftCount++
+        if ($script:_ftCount -eq 1) { return "50" }
+        return "Q"
+    }
+
+    Play-FortyTwoOr47 $pet $pet.Companion
+
+    if ($originalReadHost.CommandType -eq 'Function') {
+        Set-Item function:global:Read-Host $originalReadHost.ScriptBlock
+    } else {
+        Remove-Item function:global:Read-Host -ErrorAction SilentlyContinue
+    }
+    Remove-Variable _ftCount -Scope Script -ErrorAction SilentlyContinue
+    Set-Item function:Wait-Enter $originalWaitEnter.ScriptBlock
+
+    $pet = Get-PetState
+    if ($pet.CompanionGames.Wins -gt 0 -or $pet.CompanionGames.Losses -gt 0) {
+        Write-Host "  [PASS] 42 oder 47 gespielt" -ForegroundColor Green; $pass++
+    } else {
+        Write-Host "  [FAIL] 42 oder 47 nicht korrekt beendet!" -ForegroundColor Red; $fail++
+        $e2eErrors += "42or47"
+    }
+} catch {
+    Write-Host "  [WARN] 42 oder 47 Fehler: $_" -ForegroundColor Yellow
+    $e2eErrors += "42or47"
+} finally {
+    if ($null -ne $stateBackup) { $stateBackup | Set-Content $stateFile -NoNewline }
+    elseif (Test-Path $stateFile) { Remove-Item $stateFile }
+}
+
 Write-Output ""
 if ($e2eErrors.Count -gt 0) {
     Write-Output "=== E2E FAILURES: $($e2eErrors -join ', ') ==="
