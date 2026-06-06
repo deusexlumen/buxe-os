@@ -36,8 +36,12 @@ function Invoke-CompanionEpisode {
     $choicesMade = @()
 
     while ($currentSceneId -ne -1) {
-        $scene = $episode.Scenes | Where-Object { $_.Id -eq $currentSceneId }
-        if (-not $scene) { break }
+        $scene = $episode.Scenes | Where-Object { $_.Id -eq $currentSceneId } | Select-Object -First 1
+        if (-not $scene) {
+            Write-Host "  [FEHLER] Szene $currentSceneId nicht gefunden." -ForegroundColor Red
+            Wait-Enter
+            return
+        }
 
         try { Clear-Host } catch {}
         Show-PetFrame "$($episode.Title) — Szene $currentSceneId" -Double | Out-Null
@@ -66,7 +70,10 @@ function Invoke-CompanionEpisode {
             $validPattern = '^[' + ($choiceKeys -join '') + 'Q]$'
             $input = Read-Choice "Waehle" $validPattern
 
-            if ($input -eq 'Q') { return }
+            if ($input -eq 'Q') {
+                Save-PetState $pet
+                return
+            }
 
             $selected = $scene.Choices[$choiceKeys.IndexOf($input)]
             $choicesMade += @{ Scene = $currentSceneId; Choice = $input; Text = $selected.Text }
@@ -89,7 +96,7 @@ function Invoke-CompanionEpisode {
 
     $story.Completed = $true
     $story.Choices = $choicesMade
-    $story.LastPlayed = (Get-Date).ToString("yyyy-MM-dd")
+    $story.LastPlayed = (Get-Date).ToString("yyyy-MM-dd HH:mm")
 
     $nextEpisode = Get-CompanionEpisodeData -Companion $CompanionName -Episode ($episodeNum + 1)
     if ($nextEpisode) {
@@ -111,7 +118,9 @@ function Get-CompanionEpisodeData {
 
     if (-not $script:CompanionEpisodeData) {
         $dataPath = Join-Path $PSScriptRoot "companion-story-data.ps1"
-        if (Test-Path $dataPath) { . $dataPath }
+        if (Test-Path $dataPath) {
+            try { . $dataPath } catch { return $null }
+        }
     }
 
     if ($script:CompanionEpisodeData -and $script:CompanionEpisodeData[$Companion]) {
