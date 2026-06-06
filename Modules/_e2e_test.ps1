@@ -13,7 +13,7 @@ try {
 
 Write-Output ""
 Write-Output "=== VERIFYING FUNCTIONS ==="
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","insult","say","chuck","kimir","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","insult","say","chuck","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
 $missing = @()
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing += $fn }
@@ -239,6 +239,62 @@ if ($script:InsultPairs.Count -eq 29) {
 } else {
     Write-Output "INSULT 29 PAIRS FAILED: $($script:InsultPairs.Count)"
     exit 1
+}
+
+# E2E: NEON Story Episode 1
+Write-Output ""
+Write-Output "[E2E] NEON Story Episode 1..."
+$pet = Get-PetState
+if (-not $pet.ContainsKey("CompanionStories")) {
+    $pet.CompanionStories = @{
+        NEON  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+        RAVEN = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        PIXEL = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        LUNA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+        JINX  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+    }
+}
+$pet.Companion = @{
+    Name = "NEON"; Bond = 50; Mood = "Curious"
+    Gifts = 0; Dates = 0; WorkCount = 0; Trains = 0
+    Headpats = 0; LastTalk = $null; LastWork = $null
+    PunishCount = 0
+    Skills = @{ CasinoLuck = 0; StrategyInsight = 0 }
+}
+$pet.CompanionStories.NEON.Episode = 1
+$pet.CompanionStories.NEON.Completed = $false
+Save-PetState $pet
+
+$origWaitEnterE2E = (Get-Command Wait-Enter).ScriptBlock
+Set-Item function:Wait-Enter { }
+$global:_ReadHostCount = 0
+function global:Read-Host {
+    param([string]$Prompt)
+    $global:_ReadHostCount++
+    if ($global:_ReadHostCount -le 4) { return "A" }
+    return "Q"
+}
+
+Enable-MockInput
+try {
+    Invoke-CompanionEpisode -CompanionName "NEON"
+} catch {
+    Write-Output "NEON EPISODE FAILED: $_"
+    $e2eErrors += "neon-episode"
+}
+Disable-MockInput
+
+Set-Item function:Wait-Enter $origWaitEnterE2E
+Remove-Item function:Read-Host -ErrorAction SilentlyContinue
+
+$pet = Get-PetState
+if ($pet.CompanionStories.NEON.Completed -eq $true -and $e2eErrors -notcontains "neon-episode") {
+    Write-Output "  [PASS] NEON Story Episode 1 abgeschlossen"
+} else {
+    Write-Output "  [FAIL] NEON Story Episode 1 nicht abgeschlossen!"
+    $e2eErrors += "neon-episode"
 }
 
 Write-Output ""
