@@ -97,6 +97,23 @@ Test-Assert "JINX Episode 1 default korrekt" `
 $storyDataPath = Join-Path $modDir "pet\companion-story-data.ps1"
 Test-Assert "Story data file existiert" (Test-Path $storyDataPath)
 
+# Companion Games Smoke Tests
+$gameFuncs = @('Invoke-CompanionGame', 'Play-ChaosChips', 'Play-FortyTwoOr47', 'Play-Memory')
+foreach ($fn in $gameFuncs) {
+    Test-Assert "Game function $fn vorhanden" `
+        ((Get-Command $fn -ErrorAction SilentlyContinue) -ne $null)
+}
+
+$petDefaults = Get-PetDefaults
+Test-Assert "CompanionGames State-Branch vorhanden" `
+    ($petDefaults.CompanionGames -ne $null)
+Test-Assert "CompanionGames Wins default 0" `
+    ($petDefaults.CompanionGames.Wins -eq 0)
+Test-Assert "CompanionGames ChaosChipsHighscore default 0" `
+    ($petDefaults.CompanionGames.ChaosChipsHighscore -eq 0)
+Test-Assert "CompanionGames MemoryBestTime default 999" `
+    ($petDefaults.CompanionGames.MemoryBestTime -eq 999)
+
 # === STATE ACCESSORS ===
 Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
 Test-Assert "Get-Bankroll" ((Get-Bankroll) -ge 0)
