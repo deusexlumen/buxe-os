@@ -1,4 +1,4 @@
-# BUXE_OS v25.0 — COMPANION GAMES v1.0
+# BUXE_OS v24.6 — COMPANION GAMES v1.0
 # Mini-games with your companion
 
 try {
@@ -29,7 +29,7 @@ function Invoke-CompanionGame {
 
         switch ($c) {
             "1" { Play-ChaosChips $pet $cp }
-            "2" { Play-42or47 $pet $cp }
+            "2" { Play-FortyTwoOr47 $pet $cp }
             "3" { Play-Memory $pet $cp }
         }
     }
