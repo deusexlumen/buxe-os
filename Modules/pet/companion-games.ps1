@@ -105,17 +105,31 @@ function Play-FortyTwoOr47($pet, $cp) {
     Show-CompanionDialog $cp "Bereit? Die Zahl ist... nicht 47. Oder doch?" -Fast
 
     $target = Get-Random -Minimum 1 -Maximum 101
-    $guesses = 0; $maxGuesses = 7
+    $guesses = 0; $maxGuesses = 7; $guess = $null
 
     while ($guesses -lt $maxGuesses) {
         try { Clear-Host } catch {}
         Show-PetFrame "42 ODER 47 — Versuch $($guesses + 1)/$maxGuesses" -Double | Out-Null
 
         Write-Host "`n  Gib eine Zahl ein (1-100):" -ForegroundColor Cyan
-        $input = Read-Host "  Zahl"
-        if (-not [int]::TryParse($input, [ref]$null)) { continue }
-        $guess = [int]$input
-        if ($guess -lt 1 -or $guess -gt 100) { continue }
+        Write-Host "  [Q] Aufgeben" -ForegroundColor DarkGray
+        $inputStr = Read-Host "  Zahl"
+        if ($inputStr -eq "Q") {
+            Write-Host "`n  Aufgegeben. Die Zahl war $target." -ForegroundColor Red
+            $pet.CompanionGames.Losses++
+            Show-CompanionDialog $cp (Get-CompanionLine $cp "game_lose") -Fast
+            Add-PetXP 3 "42or47"
+            Save-PetState $pet
+            Wait-Enter
+            return
+        }
+        $guessVal = 0
+        if (-not [int]::TryParse($inputStr, [ref]$guessVal) -or $guessVal -lt 1 -or $guessVal -gt 100) {
+            Write-Host "  Ungueltige Eingabe. Bitte 1-100 oder Q." -ForegroundColor Red
+            Start-Sleep -Milliseconds 500
+            continue
+        }
+        $guess = $guessVal
 
         $guesses++
 
@@ -152,7 +166,7 @@ function Play-FortyTwoOr47($pet, $cp) {
         Start-Sleep -Milliseconds 400
     }
 
-    if ($guess -ne $target) {
+    if ($guess -ne $target -or $null -eq $guess) {
         Write-Host "`n  Die Zahl war $target. Du hast verloren." -ForegroundColor Red
         $pet.CompanionGames.Losses++
         Show-CompanionDialog $cp (Get-CompanionLine $cp "game_lose") -Fast
