@@ -140,6 +140,21 @@ function snake {
         Set-ArcadeStats "Snake" $stats
         Save-State
         
+        # Layer 5 ARG trigger
+        if ($game.Score -eq 1337) {
+            Load-State
+            $arg = $script:BuxeState.Arg
+            if ($arg.Layer4.Solved -eq $true -and $arg.Layer5.Solved -eq $false -and $arg.Layer5.HintSeen -eq $false) {
+                Write-Host ""
+                Write-Host "  [PIXEL_BREAK] Score 1337 erreicht." -ForegroundColor Red
+                Write-Host "  Die Schlange... sie hat ein Symbol gefressen." -ForegroundColor Red
+                Write-Host "  Ein Buchstabe. Ein 'L'." -ForegroundColor Red
+                Write-Host "  LOOK_CLOSER" -ForegroundColor DarkGray
+                $arg.Layer5.HintSeen = $true
+                Save-State
+            }
+        }
+
         if ($game.Over) {
             Write-Host "`n  GAME OVER! Score: $($game.Score)" -ForegroundColor Red
             try { Show-GameCompanionComment "game_snake_over" } catch {}

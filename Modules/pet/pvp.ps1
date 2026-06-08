@@ -19,8 +19,17 @@ function Start-PetPvP {
     if ($c -eq 'Q') { return }
     $stats = Get-EffectiveStats $p
     $p.HP = $stats.MaxHP
+
+    # ARG v3.0: Matrix unlock -> Observer_148
+    $enemyName = "SHADOW_" + (Get-Random -Maximum 9999)
+    if (Get-Command Test-ArgObserver148 -ErrorAction SilentlyContinue) {
+        if (Test-ArgObserver148) {
+            $enemyName = "Observer_148"
+        }
+    }
+
     $enemy = @{
-        Name = "SHADOW_" + (Get-Random -Maximum 9999)
+        Name = $enemyName
         HP = [math]::Round((80 + $rankIdx * 20) * (1 + ($p.Level - 1) * 0.25))
         ATK = [math]::Round((12 + $rankIdx * 4) * (1 + ($p.Level - 1) * 0.25))
         DEF = [math]::Round((7 + $rankIdx * 2) * (1 + ($p.Level - 1) * 0.25))

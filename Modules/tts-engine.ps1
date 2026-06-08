@@ -166,17 +166,6 @@ function Clip-Say {
         Write-Host "[X] Zwischenablage ist leer." -ForegroundColor Red
         return
     }
-    if ($text.Length -gt 500) {
-        Write-Host "[X] Text zu lang (max 500 Zeichen)." -ForegroundColor Red
-        return
-    }
-    $suspicious = @('password','token','key','secret','apikey','auth','credential','login','passwd')
-    foreach ($word in $suspicious) {
-        if ($text -match $word) {
-            Write-Host "[X] Zwischenablage enthaelt potenziell sensitive Daten ($word). Abgebrochen." -ForegroundColor Red
-            return
-        }
-    }
     Write-Host "[TTS] Lese $($text.Length) Zeichen aus Zwischenablage..." -ForegroundColor DarkGray
     Say $text
 }

@@ -1,5 +1,5 @@
 # BUXE_OS v24.0 -- CASINO ENGINE
-# Framework f??r alle Casino-Spiele.
+# Framework fuer alle Casino-Spiele.
 
 try {
 
@@ -51,9 +51,24 @@ function Invoke-CasinoGame {
                     }
                 }
                 Write-Host "`n  [GLITCH] Meta-Hack aktiviert! Heute noch einmal verfuegbar." -ForegroundColor Magenta
+
+                # Layer 2 ARG trigger (~30% chance when glitch fires)
+                if ((Get-Random -Maximum 100) -lt 30) {
+                    Load-State
+                    $arg = $script:BuxeState.Arg
+                    if ($arg.Layer1.Solved -eq $true -and $arg.Layer2.Solved -eq $false -and $arg.Layer2.HintSeen -eq $false) {
+                        Write-Host ""
+                        Write-Host "  [GLITCH] Anomalie detektiert..." -ForegroundColor Red
+                        Write-Host "  Die Walzen... sie bewegen sich nicht zufaellig." -ForegroundColor Red
+                        Write-Host "  [DIAMOND] [DIAMOND] [DIAMOND] - Hauptdiagonale gesperrt." -ForegroundColor Red
+                        Write-Host "  SEQ_BUFFER_OVERFLOW: 4681C3F0A2B7..." -ForegroundColor DarkGray
+                        $arg.Layer2.HintSeen = $true
+                        Save-State
+                    }
+                }
             }
         }
-        
+
         # Execute game logic
         $result = & $PlayRound $bet $stats
         
@@ -92,7 +107,7 @@ function Invoke-CasinoGame {
             $script:IddqdActive = $false
         }
         # Cap suspicious wins
-        $maxWin = $bet * 100
+        $maxWin = $bet * 200
         if ($winAmount -gt $maxWin) {
             Write-Warning "[Casino] Ungewoehnlich hoher Gewinn: $winAmount (cap: $maxWin)"
             $winAmount = $maxWin
@@ -100,7 +115,8 @@ function Invoke-CasinoGame {
         }
         
         # Skill progression: CasinoLuck increases on wins with luck bonus active
-        if ($winAmount -gt 0 -and $luckMod -gt 1.0) {
+        $cp = if ($script:BuxeState.Pet -and $script:BuxeState.Pet.Companion) { $script:BuxeState.Pet.Companion } else { $null }
+        if ($cp -and $winAmount -gt 0 -and $luckMod -gt 1.0) {
             $cp.Skills.CasinoLuckWins = if ($cp.Skills.CasinoLuckWins) { $cp.Skills.CasinoLuckWins + 1 } else { 1 }
             if ($cp.Skills.CasinoLuckWins -ge 10 -and $cp.Skills.CasinoLuck -lt 10) {
                 $cp.Skills.CasinoLuck++
@@ -129,6 +145,11 @@ function Invoke-CasinoGame {
             }
             Set-CasinoStats $StatsKey $stats
         }
+
+        # === ARG v3.0 Casino Check ===
+        if (Get-Command Invoke-ArgCasinoCheck -ErrorAction SilentlyContinue) {
+            Invoke-ArgCasinoCheck
+        }
         
         # Companion reactions (LucasArts-Style)
         Load-State
@@ -156,8 +177,7 @@ function Invoke-CasinoGame {
             Check-EasterEgg "casino"
         }
         
-        # Achievements
-        if ($result.Achievement) { Unlock-Achievement $result.Achievement }
+        # Achievements are unlocked by individual game callbacks, not the engine
         
         Wait-Enter
     }

@@ -286,12 +286,13 @@ function roulette {
         Add-SceneText $fs 26 7 "$result" $rCol
 
         if ($won) {
-            $winAmount = $bet * ($payout - 1)
+            $winAmount = $bet * $payout
             if ($winAmount -gt $stats.BiggestWin) { $stats.BiggestWin = $winAmount }
             Add-SceneText $fs 4 11 "GEWONNEN! $winAmount G (${payout}x)" 'Green'
             Show-Scene $fs -Force
             Start-Sleep -Milliseconds 600
-            return @{ Win = $winAmount; Loss = 0; Stats = $stats; Achievement = "Roulette Winner" }
+            Unlock-Achievement "Roulette Winner"
+            return @{ Win = $winAmount; Loss = 0; Stats = $stats }
         } else {
             Add-SceneText $fs 4 11 "Verloren." 'Red'
             Show-Scene $fs -Force

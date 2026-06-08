@@ -32,167 +32,119 @@ function roast { $roasts = @("Your code is like your dating life -- full of exce
 # Jeder Cheat ist self-aware, fourth-wall-breaking und humor-gesteuert.
 
 function motherlode {
-    Load-State
-    $before = $script:BuxeState.Bank.Gold
-    $script:BuxeState.Bank.Gold += 50000
-    $script:BuxeState.Bank.TotalEarned += 50000
-    Save-State
-    Write-Host ""
-    Write-Host "  [MOTHERLODE] +50.000 G auf dein Konto." -ForegroundColor Green
-    Write-Host ""
-    if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
-        $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
-        if ($cp) {
-            # Bond-basierte Dialoge (LucasArts: Character voice is everything)
-            $lines = switch ($cp.Name) {
-                "NEON" {
-                    if ($cp.Bond -lt 30) { "Woher kam das Geld? Du hast nichts gemacht. Absolut nichts. Suspekt." }
-                    elseif ($cp.Bond -lt 70) { "50.000 G? Ich schaue weg. Fuer 5 Sekunden. *schliesst Augen*" }
-                    else { "Du cheatest? Endlich. Ich dachte schon, du bist zu sauber fuer mich." }
-                }
-                "RAVEN" {
-                    if ($cp.Bond -lt 30) { "Ich habe das Muster erkannt. Du hast 'motherlode' getippt. Peinlich." }
-                    elseif ($cp.Bond -lt 70) { "Das Universum hat Regeln. Du brichst sie. Ich respektiere das." }
-                    else { "Cheaten ist keine Schwäche. Es ist Effizienz. Du bist lernfähig." }
-                }
-                "PIXEL" {
-                    if ($cp.Bond -lt 30) { "Ich habe gesehen, wie du 'motherlode' getippt hast. Cheater. Cheater. Pumpkin eater." }
-                    elseif ($cp.Bond -lt 70) { "50.000 G aus dem Nichts? Das ist wie... ein spontaner RAM-Dump. Magisch." }
-                    else { "Du cheatest? YEAH! Gemeinsam können wir das System ueberlasten!" }
-                }
-                "LUNA" {
-                    if ($cp.Bond -lt 30) { "Die Sterne sagen: Du hast gerade gecheatet. Offensichtlich." }
-                    elseif ($cp.Bond -lt 70) { "Ein Hacker mit Herz. Selten." }
-                    else { "Cheaten ist nur ein weiterer Weg, das Universum zu verstehen." }
-                }
-                "IVY" {
-                    if ($cp.Bond -lt 30) { "... *mustert dich* Geld aus dem Nichts. ...Interessant." }
-                    elseif ($cp.Bond -lt 70) { "... *leises Lächeln* Du spielst das System. Wie ich." }
-                    else { "... *legt Hand auf deine* Gemeinsam. Immer." }
-                }
-                "VERA" {
-                    if ($cp.Bond -lt 30) { "Administrative Anmerkung: Cheaten wird protokolliert. Nicht wirklich." }
-                    elseif ($cp.Bond -lt 70) { "Buerokratisch gesehen: Das Geld existiert jetzt. Also ist es legitim." }
-                    else { "Mein Lieblingsschluesselwort: motherlode. Ich habe es in deiner History gesehen." }
-                }
-                "JINX" {
-                    if ($cp.Bond -lt 30) { "CHEATER! CHEATER! ICH RUFE DIE ADMINS! ...Nein, tu ich nicht." }
-                    elseif ($cp.Bond -lt 70) { "50.000 G? Ich habe nur 47 gesehen. Aber okay." }
-                    else { "Hihi! Cheaten! Das ist wie... ein Geheimnis zwischen uns!" }
-                }
-                default { "Das ist nicht Gold. Das ist ein Floating-Point-Fehler mit Stil." }
-            }
-            Show-CompanionDialog $cp $lines -Fast
-            if (Get-Command Add-PetMemory -ErrorAction SilentlyContinue) {
-                Add-PetMemory "Companion hat gesehen, wie wir motherlode getippt haben." "CHEAT"
-            }
-        }
-    }
-    Unlock-Achievement "Cheater!"
+    if (Test-ArgCommand "motherlode") { return }
+    Write-Host "  [LOCKED] Dieser Cheat existiert nicht. Noch nicht." -ForegroundColor Red
+    Write-Host "  Tipp: Manche Befehle wiederholen sich. Schau mal in deiner History nach Mustern." -ForegroundColor DarkGray
+    Write-Host "  Oder versuche es mit dem Meta-Terminal: meta" -ForegroundColor DarkGray
 }
 
 function rosebud {
-    Load-State
-    $script:BuxeState.Bank.Gold += 1000
-    $script:BuxeState.Bank.TotalEarned += 1000
-    Save-State
-    Write-Host "  [ROSEBUD] +1.000 G. Kleinvieh macht auch Mist." -ForegroundColor Green
-    # Easter Egg: 10x rosebud = motherlode (Running Gag Mechanic)
-    $script:RosebudCount = if ($script:RosebudCount) { $script:RosebudCount + 1 } else { 1 }
-    if ($script:RosebudCount -ge 10) {
-        $script:RosebudCount = 0
-        Write-Host "  10x Rosebud? Du bist fleissig. Hier, nimm noch 40.000 G dazu." -ForegroundColor Magenta
-        motherlode | Out-Null
+    if (Test-ArgCommand "rosebud") {
+        # Easter Egg: 10x rosebud = motherlode (Running Gag Mechanic)
+        $script:RosebudCount = if ($script:RosebudCount) { $script:RosebudCount + 1 } else { 1 }
+        if ($script:RosebudCount -ge 10) {
+            $script:RosebudCount = 0
+            Write-Host "  10x Rosebud? Du bist fleissig. Hier, nimm noch 40.000 G dazu." -ForegroundColor Magenta
+            if (Test-ArgCommand "motherlode") { }
+        }
+        return
     }
+    Write-Host "  [LOCKED] Dieser Cheat existiert nicht. Noch nicht." -ForegroundColor Red
+    Write-Host "  Tipp: Manche Befehle wiederholen sich. Schau mal in deiner History nach Mustern." -ForegroundColor DarkGray
+    Write-Host "  Oder versuche es mit dem Meta-Terminal: meta" -ForegroundColor DarkGray
 }
 
 function konami {
-    # Aktiviert Konami-Mode fuer 47 Sekunden (Layer 47 Rule!)
-    $script:KonamiModeUntil = (Get-Date).AddSeconds(47)
-    Write-Host ""
-    Write-Host "  ↑↑↓↓←→←→BA" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "  [KONAMI MODE] Aktiviert fuer 47 Sekunden!" -ForegroundColor Cyan
-    Write-Host "  Casino-Luck +50% | Pet-XP +50% | Alle Gewinne verdoppelt." -ForegroundColor Green
-    Write-Host ""
-    if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
-        $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
-        if ($cp) {
-            $lines = switch ($cp.Name) {
-                "NEON" { "Konami-Code? In einer PowerShell? Das ist... Retro. Und traurig. Und GENIAL." }
-                "RAVEN" { "30 Leben? In einer Shell? Die Wahrscheinlichkeiten sind... angepasst." }
-                "PIXEL" { "Konami! Konami! 47 Sekunden Bonus! Das ist mehr als genug, um das System zu hacken!" }
-                "LUNA" { "Die Sterne stehen guenstig. Fuer 47 Sekunden. Nutze sie." }
-                "IVY" { "... *nickt* 47 Sekunden. ...Das reicht." }
-                "VERA" { "Administrative Override: Konami-Mode aktiviert. Gueltigkeit: 47 Sekunden. Ironisch." }
-                "JINX" { "47! 47! ICH HABE EUCH GESAGT ES GIBT EIN MUSTER! +30 LEBEN!" }
-                default { "Konami-Code. Klassiker." }
+    if (Test-ArgCommand "konami") {
+        if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
+            $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
+            if ($cp) {
+                $lines = switch ($cp.Name) {
+                    "NEON" { "Konami-Code? In einer PowerShell? Das ist... Retro. Und traurig. Und GENIAL." }
+                    "RAVEN" { "30 Leben? In einer Shell? Die Wahrscheinlichkeiten sind... angepasst." }
+                    "PIXEL" { "Konami! Konami! 47 Sekunden Bonus! Das ist mehr als genug, um das System zu hacken!" }
+                    "LUNA" { "Die Sterne stehen guenstig. Fuer 47 Sekunden. Nutze sie." }
+                    "IVY" { "... *nickt* 47 Sekunden. ...Das reicht." }
+                    "VERA" { "Administrative Override: Konami-Mode aktiviert. Gueltigkeit: 47 Sekunden. Ironisch." }
+                    "JINX" { "47! 47! ICH HABE EUCH GESAGT ES GIBT EIN MUSTER! +30 LEBEN!" }
+                    default { "Konami-Code. Klassiker." }
+                }
+                Show-CompanionDialog $cp $lines -Fast
             }
-            Show-CompanionDialog $cp $lines -Fast
         }
+        Unlock-Achievement "Konami Code"
+        return
     }
-    Unlock-Achievement "Konami Code"
+    Write-Host "  [LOCKED] Layer 2 required. Continue exploring the Meta-Terminal." -ForegroundColor Red
 }
 
 function iddqd {
-    # Godmode fuer genau 1 Casino-Runde
-    $script:IddqdActive = $true
-    Write-Host ""
-    Write-Host "  [IDDQD] Godmode aktiviert." -ForegroundColor Red -BackgroundColor Black
-    Write-Host ""
-    Write-Host "  Deine naechste Casino-Runde kann nicht verloren werden." -ForegroundColor Green
-    Write-Host "  Nach einer Runde laeuft der Effekt ab." -ForegroundColor DarkGray
-    Write-Host ""
-    if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
-        $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
-        if ($cp) {
-            $lines = switch ($cp.Name) {
-                "NEON" { "Godmode? Das ist keine Doom.exe. Aber netter Versuch, Space-Marine." }
-                "RAVEN" { "Unverwundbar. Fuer eine Runde. Ich habe schlechte Nachrichten: Das Haus hat auch Godmode." }
-                "PIXEL" { "IDDQD! In einer Casino-Shell! Das ist wie... ein Invulnerability-Cheat in Solitaire!" }
-                "LUNA" { "Die Sterne schuetzen dich. Fuer eine Runde. Danach bist du auf dich allein gestellt." }
-                "IVY" { "... *leises Lächeln* Ein Runde. Kein Verlust. ...Geniesse es." }
-                "VERA" { "Godmode protokolliert. Gueltigkeit: 1 Runde. Nutzung: Casino. Prioritaet: Niedrig." }
-                "JINX" { "GODMODE! DU BIST UNSTERBLICH! ...Fuer eine Runde. Dann bist du wieder sterblich. Wie ich." }
-                default { "Godmode? In einem Casino? Das ist wie ein Feuerloescher in einem Vulkan." }
+    if (Test-ArgCommand "iddqd") {
+        # Godmode fuer genau 1 Casino-Runde
+        $script:IddqdActive = $true
+        Write-Host ""
+        Write-Host "  [IDDQD] Godmode aktiviert." -ForegroundColor Red -BackgroundColor Black
+        Write-Host ""
+        Write-Host "  Deine naechste Casino-Runde kann nicht verloren werden." -ForegroundColor Green
+        Write-Host "  Nach einer Runde laeuft der Effekt ab." -ForegroundColor DarkGray
+        Write-Host ""
+        if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
+            $cp = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
+            if ($cp) {
+                $lines = switch ($cp.Name) {
+                    "NEON" { "Godmode? Das ist keine Doom.exe. Aber netter Versuch, Space-Marine." }
+                    "RAVEN" { "Unverwundbar. Fuer eine Runde. Ich habe schlechte Nachrichten: Das Haus hat auch Godmode." }
+                    "PIXEL" { "IDDQD! In einer Casino-Shell! Das ist wie... ein Invulnerability-Cheat in Solitaire!" }
+                    "LUNA" { "Die Sterne schuetzen dich. Fuer eine Runde. Danach bist du auf dich allein gestellt." }
+                    "IVY" { "... *leises Lächeln* Ein Runde. Kein Verlust. ...Geniesse es." }
+                    "VERA" { "Godmode protokolliert. Gueltigkeit: 1 Runde. Nutzung: Casino. Prioritaet: Niedrig." }
+                    "JINX" { "GODMODE! DU BIST UNSTERBLICH! ...Fuer eine Runde. Dann bist du wieder sterblich. Wie ich." }
+                    default { "Godmode? In einem Casino? Das ist wie ein Feuerloescher in einem Vulkan." }
+                }
+                Show-CompanionDialog $cp $lines -Fast
             }
-            Show-CompanionDialog $cp $lines -Fast
         }
+        Unlock-Achievement "IDDQD"
+        return
     }
-    Unlock-Achievement "IDDQD"
+    Write-Host "  [LOCKED] Layer 4 required. Continue exploring the Meta-Terminal." -ForegroundColor Red
 }
 
 function matrix {
-    # Triggert Layer 47 sofort (unabhaengig vom ActionCount)
-    if (Get-Command Invoke-Layer47Check -ErrorAction SilentlyContinue) {
-        $pet = if ($script:BuxeState.Pet) { $script:BuxeState.Pet } else { $null }
-        if ($pet -and $pet.Meta.Level -ge 14) {
-            # Force Layer 47 trigger
-            $pet.Meta.ActionCount = [math]::Floor($pet.Meta.ActionCount / 47) * 47 + 47
-            Save-PetState $pet
-            Invoke-Layer47Check
-            Write-Host ""
-            Write-Host "  [MATRIX] Layer 47 forcierter Trigger." -ForegroundColor Green
-            Write-Host ""
-            return
+    if (Test-ArgCommand "matrix") {
+        # Triggert Layer 47 sofort (unabhaengig vom ActionCount)
+        if (Get-Command Invoke-Layer47Check -ErrorAction SilentlyContinue) {
+            $pet = if ($script:BuxeState.Pet) { $script:BuxeState.Pet } else { $null }
+            if ($pet -and $pet.Meta.Level -ge 14) {
+                # Force Layer 47 trigger
+                $pet.Meta.ActionCount = [math]::Floor($pet.Meta.ActionCount / 47) * 47 + 47
+                Save-PetState $pet
+                Invoke-Layer47Check
+                Write-Host ""
+                Write-Host "  [MATRIX] Layer 47 forcierter Trigger." -ForegroundColor Green
+                Write-Host ""
+                return
+            }
         }
-    }
-    # Fallback: Matrix-Regen
-    Write-Host ""
-    Write-Host "  Wake up, $env:USERNAME..." -ForegroundColor Green
-    Write-Host ""
-    $chars = "0123456789ABCDEF"
-    for ($i = 0; $i -lt 20; $i++) {
-        $line = ""
-        for ($j = 0; $j -lt 60; $j++) {
-            $line += $chars[(Get-Random -Maximum $chars.Length)]
+        # Fallback: Matrix-Regen
+        Write-Host ""
+        Write-Host "  Wake up, $env:USERNAME..." -ForegroundColor Green
+        Write-Host ""
+        $chars = "0123456789ABCDEF"
+        for ($i = 0; $i -lt 20; $i++) {
+            $line = ""
+            for ($j = 0; $j -lt 60; $j++) {
+                $line += $chars[(Get-Random -Maximum $chars.Length)]
+            }
+            Write-Host "  $line" -ForegroundColor Green
+            Start-Sleep -Milliseconds 30
         }
-        Write-Host "  $line" -ForegroundColor Green
-        Start-Sleep -Milliseconds 30
+        Write-Host ""
+        Write-Host "  Die Matrix hat dich. Oder du hast die Matrix. Unklar." -ForegroundColor DarkGray
+        Write-Host ""
+        return
     }
-    Write-Host ""
-    Write-Host "  Die Matrix hat dich. Oder du hast die Matrix. Unklar." -ForegroundColor DarkGray
-    Write-Host ""
+    Write-Host "  [LOCKED] Layer 5 required. Continue exploring the Meta-Terminal." -ForegroundColor Red
 }
 
 function meta-debug {

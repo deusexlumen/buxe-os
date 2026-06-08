@@ -50,6 +50,12 @@ function Invoke-SoulLink {
     $p.Attacks += "SOUL BLAST"
     $cp.Sync += 20
     Save-PetState $pet
+
+    # ARG v3.0: Soul Link -> Meridian verfuegbar
+    if (Get-Command Invoke-ArgSoulLinkCheck -ErrorAction SilentlyContinue) {
+        Invoke-ArgSoulLinkCheck
+    }
+
     Write-Host "`n  *** SOUL LINK AKTIVIERT! ***" -ForegroundColor Magenta
     Write-Host "  MaxHP +50 | ATK/DEF/SPD +5 | Sync +20 | Neue Attacke: SOUL BLAST" -ForegroundColor Yellow
     Add-PetXP 500 "Soul Link"

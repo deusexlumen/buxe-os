@@ -504,7 +504,7 @@ Before writing any user-facing text, read `LUCASARTS.md`. The core rules are:
 - Temp-Dateien werden automatisch nach dem Abspielen geloescht
 
 ### Clipboard
-`clip-say` liest die Zwischenablage (`Get-Clipboard`) und gibt sie als TTS aus. Seit v24.2: Max 500 Zeichen, sensitive Keywords (password, token, key, secret, apikey, auth, credential, login, passwd) werden blockiert.
+`clip-say` liest die Zwischenablage (`Get-Clipboard`) und gibt sie als TTS aus.
 
 ### Keine Code-Signing
 Das Profil ist unsigniertes PowerShell-Skript. Es laeuft im FullLanguage-Modus des Benutzers.

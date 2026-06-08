@@ -77,7 +77,8 @@ function Save-AdventureState {
             Start-Sleep -Milliseconds 100
         }
     }
-    if (Test-Path "$script:AdvSaveFile.*.tmp") { Remove-Item "$script:AdvSaveFile.*.tmp" -Force -ErrorAction SilentlyContinue }
+    # Cleanup temp files safely (CWE-22 fix)
+    Get-ChildItem -Path $script:BuxeStateDir -Filter "buxe_adventure.*.tmp" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 }
 
 function Reset-AdventureState {
@@ -142,6 +143,7 @@ function Show-Inventory {
 # Normalisiert Eingabe zu (Verb, Noun, Target)
 
 function Parse-AdventureCommand($InputLine) {
+    if ($InputLine -eq $null) { return @{ Verb = "noop"; Noun = ""; Target = ""; Raw = "" } }
     $line = $InputLine.ToString().Trim().ToLower()
     if ($line -eq "") { return @{ Verb = "noop"; Noun = ""; Target = ""; Raw = $line } }
 
@@ -207,7 +209,7 @@ function Parse-AdventureCommand($InputLine) {
 
 function Process-AdventureCommand($Cmd) {
     $room = Get-Room $script:AdvState.CurrentRoom
-    $script:AdvState.Moves++
+    if ($Cmd.Verb -ne "noop") { $script:AdvState.Moves++ }
 
     # Running Gag + Absurd Combo check (pre-action)
     $gag = $null
@@ -232,6 +234,21 @@ function Process-AdventureCommand($Cmd) {
     $result = $null
     switch ($Cmd.Verb) {
         "go" {
+            # === ARG v3.0: Room 17 Secret Navigation ===
+            if ($Cmd.Noun -eq "north" -and $room.Id -eq "secret" -and (Get-Command Test-ArgRoom17Available -ErrorAction SilentlyContinue) -and (Test-ArgRoom17Available)) {
+                if ($script:AdvRooms.ContainsKey("hollow")) {
+                    $script:AdvState.CurrentRoom = "hollow"
+                    if ($script:AdvState.Visited -notcontains "hollow") {
+                        $script:AdvState.Visited += "hollow"
+                        $script:AdvState.Score += 5
+                    }
+                    $script:AdvStateDirty = $true
+                    $newRoom = Get-Room "hollow"
+                    $result = @{ Success = $true; Message = ""; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
+                    break
+                }
+            }
+
             if (-not $room.Exits[$Cmd.Noun]) {
                 $result = @{ Success = $false; Message = "Du kannst nicht nach $($Cmd.Noun) gehen."; CompanionContext = "adventure_blocked" }
                 break
@@ -275,6 +292,26 @@ function Process-AdventureCommand($Cmd) {
             break
         }
         "look" {
+            # Layer 4 ARG trigger: look deeper in cafeteria (Room 8)
+            if ($Cmd.Noun -eq "deeper" -and $room.Id -eq "cafeteria") {
+                Load-State
+                $arg = $script:BuxeState.Arg
+                if ($arg.Layer3.Solved -eq $true -and $arg.Layer4.Solved -eq $false) {
+                    if ($script:AdvRooms.ContainsKey("hollow")) {
+                        $script:AdvState.CurrentRoom = "hollow"
+                        if ($script:AdvState.Visited -notcontains "hollow") {
+                            $script:AdvState.Visited += "hollow"
+                            $script:AdvState.Score += 5
+                        }
+                        $script:AdvStateDirty = $true
+                        $arg.Layer4.HintSeen = $true
+                        Save-State
+                        $newRoom = Get-Room "hollow"
+                        $result = @{ Success = $true; Message = ""; RoomChanged = $true; CompanionContext = "adventure_look" }
+                        break
+                    }
+                }
+            }
             $result = @{ Success = $true; Message = $room.Description; CompanionContext = "adventure_look" }
             break
         }
@@ -375,19 +412,52 @@ function Process-AdventureCommand($Cmd) {
                 $result = @{ Success = $false; Message = "Was willst du hacken?"; CompanionContext = "adventure_confused" }
             } elseif ($room.Objects[$Cmd.Noun].Name -notmatch "Terminal|Konsole|Computer|Bildschirm") {
                 $result = @{ Success = $false; Message = "Das kannst du nicht hacken."; CompanionContext = "adventure_blocked" }
-            } elseif ($Cmd.Noun -eq "terminal" -and $Room.Id -eq "corridor" -and -not $script:AdvState.Flags["bridge_unlocked"]) {
+            } elseif ($Cmd.Noun -eq "terminal" -and $room.Id -eq "corridor" -and -not $script:AdvState.Flags["bridge_unlocked"]) {
                 $result = @{ Success = $true; Message = "Du hackst das Terminal. Die Kartenleser-Sicherheit ist laecherlich. Die Bruecke ist jetzt zugaenglich."; CompanionContext = "adventure_unlock" }
                 $script:AdvState.Flags["bridge_unlocked"] = $true
                 $script:AdvRooms["corridor"].Exits["north"] = "bridge"
                 $script:AdvState.Score += 15
                 $script:AdvStateDirty = $true
-            } elseif ($Cmd.Noun -eq "terminal" -and $Room.Id -eq "medbay" -and -not $script:AdvState.Flags["medbay_unlocked"]) {
+            } elseif ($Cmd.Noun -eq "terminal" -and $room.Id -eq "medbay" -and -not $script:AdvState.Flags["medbay_unlocked"]) {
                 $result = @{ Success = $true; Message = "Du hackst das Med-Terminal. Patientendaten entschluesselt. Jemand hat Experimente an der Crew durchgefuehrt. Und du hast den Schluessel gefunden: 7-7-7."; CompanionContext = "adventure_unlock" }
                 $script:AdvState.Flags["medbay_unlocked"] = $true
                 $script:AdvState.Score += 10
                 $script:AdvStateDirty = $true
             } else {
                 $result = @{ Success = $false; Message = "Das Terminal ist bereits entsperrt oder nicht hackbar."; CompanionContext = "adventure_blocked" }
+            }
+            break
+        }
+        "jump" {
+            if ($room.Id -eq "hollow") {
+                if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
+                    Invoke-ArgRoom17Death
+                }
+                $result = @{ Success = $false; Message = "Du springst in die Leere. Der Fall ist endlos. Aber irgendwo im Sturz... hoerst du ein Lachen.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+            } else {
+                $result = @{ Success = $false; Message = "Das bringt hier nichts."; CompanionContext = "adventure_confused" }
+            }
+            break
+        }
+        "die" {
+            if ($room.Id -eq "hollow") {
+                if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
+                    Invoke-ArgRoom17Death
+                }
+                $result = @{ Success = $false; Message = "Du gibst auf. Die Dunkelheit umarmt dich. Aber sie ist warm. Fast wie... Zuhause.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+            } else {
+                $result = @{ Success = $false; Message = "Nicht hier. Nicht jetzt."; CompanionContext = "adventure_confused" }
+            }
+            break
+        }
+        "void" {
+            if ($room.Id -eq "hollow") {
+                if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
+                    Invoke-ArgRoom17Death
+                }
+                $result = @{ Success = $false; Message = "Du wirst eins mit der Leere. Kein Schmerz. Kein Licht. Nur... Code.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+            } else {
+                $result = @{ Success = $false; Message = "Void ist kein Ort. Noch nicht."; CompanionContext = "adventure_confused" }
             }
             break
         }
@@ -456,7 +526,7 @@ KOMMANDOS:
 # === RENDERER ===
 
 function Show-AdventureRoom($Room) {
-    $w = [math]::Min(70, $Host.UI.RawUI.WindowSize.Width - 4)
+    $w = [math]::Min(70, [math]::Max(40, $Host.UI.RawUI.WindowSize.Width - 4))
     $bot = Show-Frame $Room.Name -Width $w -Double
     Write-Host ""
 

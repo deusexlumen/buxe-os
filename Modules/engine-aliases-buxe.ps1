@@ -95,6 +95,13 @@ function status {
     if ($ach -gt 0) {
         Write-Host "`n  Achievements: $ach" -ForegroundColor Yellow
     }
+
+    # ARG v3.0: Meridian Status
+    if (Get-Command Test-ArgMeridianActive -ErrorAction SilentlyContinue) {
+        if (Test-ArgMeridianActive) {
+            Write-Host "`n  Meridian Status: ACTIVE" -ForegroundColor Magenta
+        }
+    }
     # Meta 12+ Fourth Wall: System Stats
     $petMeta = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Meta } else { $null }
     if ($petMeta -and $petMeta.Level -ge 12) {
@@ -103,7 +110,7 @@ function status {
         $cmdCount = if ($script:BuxeState.Boot) { $script:BuxeState.Boot.TotalCommands } else { 0 }
         Write-Host "     Session: $sessionTime | Commands: $cmdCount | Meta: Lv.$($petMeta.Level)" -ForegroundColor DarkGray
         if ($petMeta.Level -ge 13) {
-            $glitchStatus = if ($petMeta.GlitchUsedToday -eq (Get-Date -Format "yyyy-MM-dd")) { "USED" } else { "READY" }
+            $glitchStatus = if ($petMeta.GlitchUsed -eq (Get-Date -Format "yyyy-MM-dd")) { "USED" } else { "READY" }
             Write-Host "     Glitch: $glitchStatus" -ForegroundColor $(if($glitchStatus -eq "READY"){"Green"}else{"Red"})
         }
         if ($petMeta.Level -ge 14 -and $petMeta.ContainsKey("ActionCount")) {
@@ -190,6 +197,33 @@ function reset-buxe {
     Write-Host "  [RESET COMPLETE] Alle Fortschritte zurückgesetzt." -ForegroundColor Green
     Write-Host "  Bank: 500 G | Meta-Level: 0 | Kein Companion" -ForegroundColor Yellow
     Write-Host "  Das Spiel beginnt... von vorne. Wie ein Loop." -ForegroundColor DarkGray
+    Write-Host ""
+}
+
+# === META TERMINAL ===
+function meta {
+    if (-not $script:BuxeState.Arg) {
+        Load-State
+    }
+    Show-MetaTerminal
+}
+
+# === MERIDIAN STATUS ===
+function MERIDIAN_STATUS {
+    $arg = $script:BuxeState.Arg
+    if (-not $arg -or -not $arg.Layer7.Solved) {
+        Write-Host "  [LOCKED] Meridian not yet reached." -ForegroundColor Red
+        return
+    }
+    Write-Host ""
+    Write-Host "  Meridian Status Report:" -ForegroundColor Magenta
+    Write-Host "  - Observer ID: 149" -ForegroundColor Cyan
+    Write-Host "  - Status: Active" -ForegroundColor Cyan
+    Write-Host "  - Bond: $($arg.MeridianChoice)" -ForegroundColor Cyan
+    Write-Host "  - Last Contact: $($script:BuxeState.Boot.LastBoot)" -ForegroundColor Cyan
+    Write-Host "  - Companion Echo: $($arg.MeridianCompanion)" -ForegroundColor Cyan
+    Write-Host "  - System Integrity: 100%" -ForegroundColor Cyan
+    Write-Host "  - Message: Du bist hier. Ich bin hier. Das reicht." -ForegroundColor White
     Write-Host ""
 }
 

@@ -6,7 +6,7 @@ try {
 function blackjack {
     Invoke-CasinoGame -GameName "BLACKJACK" -PlayRound {
         param($bet, $stats)
-        $suitSymbol = @{ S = "?"; H = "?"; D = "?"; C = "?" }
+        $suitSymbol = @{ S = "♠"; H = "♥"; D = "♦"; C = "♣" }
         $deck = New-CardDeck
         $deckPos = [ref]0
         $playerHand = [System.Collections.ArrayList]::new()
@@ -41,7 +41,8 @@ function blackjack {
             Add-SceneText $s 4 5 "BLACKJACK! Du gewinnst $win G!" 'Green'
             Show-Scene $s -Force
             Start-Sleep -Milliseconds 600
-            return @{ Win = $win; Loss = 0; Stats = $stats; Achievement = "Blackjack Pro" }
+            Unlock-Achievement "Blackjack Pro"
+            return @{ Win = $win; Loss = 0; Stats = $stats }
         } elseif ($dBJ) {
             $stats.HandsPlayed++
             $s = New-Scene $w $h
@@ -64,7 +65,6 @@ function blackjack {
             if ($insAct -eq 'Y') {
                 $insured = $true
                 $insBet = [math]::Floor($bet / 2)
-                Set-Bankroll (-$insBet) -TrackCasino
                 if ($dBJ) {
                     $s = New-Scene $w $h
                     Add-SceneFrame $s 0 0 $w $h "BLACKJACK" 'Cyan' -Double
@@ -72,7 +72,7 @@ function blackjack {
                     Show-Scene $s -Force
                     Start-Sleep -Milliseconds 600
                     $stats.HandsPlayed++
-                    return @{ Win = $insBet; Loss = $insBet; Stats = $stats }
+                    return @{ Win = $insBet * 2; Loss = $bet + $insBet; Stats = $stats }
                 }
             }
             if ($dBJ) {
@@ -89,10 +89,12 @@ function blackjack {
         # Player turn
         $canSplit = ($playerHand[0].Rank -eq $playerHand[1].Rank)
         $canDouble = $true; $doubled = $false; $split = $false
-        $hands = [System.Collections.ArrayList]@($playerHand)
+        $hands = [System.Collections.Generic.List[object]]::new()
+        $hands.Add($playerHand)
         $totalBet = $bet
         $totalWin = 0
         $handsWon = 0
+        $handsPlayedCount = 0
         
         while ($hands.Count -gt 0) {
             $hand = $hands[0]; $hands.RemoveAt(0)
@@ -141,7 +143,7 @@ function blackjack {
                 
                 $act = Read-GameChoice "" "^[HDPSQ]$"
                 if ($act -eq 'Q') {
-                    return @{ Win = if ($totalWin -gt 0) { $totalWin } else { 0 }; Loss = if ($totalWin -lt 0) { [math]::Abs($totalWin) } else { 0 }; Stats = $stats }
+                    return @{ Win = if ($totalWin -gt 0) { $totalWin } else { 0 }; Loss = $totalBet; Stats = $stats }
                 }
                 
                 if ($act -eq 'D' -and $canDouble) {
@@ -224,9 +226,10 @@ function blackjack {
                 Show-Scene $fs -Force
                 Start-Sleep -Milliseconds 600
             }
+            $handsPlayedCount++
         }
         
-        $stats.HandsPlayed++
+        $stats.HandsPlayed += $handsPlayedCount
         if ($handsWon -gt 0) { $stats.HandsWon++ }
         if ($totalWin -gt $stats.BiggestWin) { $stats.BiggestWin = $totalWin }
         

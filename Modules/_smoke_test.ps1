@@ -246,7 +246,7 @@ Test-Assert "Armory room exists" ((Get-Room "armory") -ne $null)
 Test-Assert "Quarters room exists" ((Get-Room "quarters") -ne $null)
 Test-Assert "Observatory room exists" ((Get-Room "observatory") -ne $null)
 Test-Assert "Core room exists" ((Get-Room "core") -ne $null)
-Test-Assert "Total rooms = 16" ($script:AdvRooms.Count -eq 16)
+Test-Assert "Total rooms = 17" ($script:AdvRooms.Count -eq 17)
 
 # Test JINX companion
 Test-Assert "JINX in CPNames" ($script:CPNames -contains "JINX")
@@ -356,7 +356,7 @@ Save-State
 
 # === MODULE LOAD TEST ===
 Write-Host "`n  Testing Module Load..." -ForegroundColor Yellow
-$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino-keno.ps1","casino-wheel.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1")
+$allMods = @("casino-engine.ps1","casino-blackjack.ps1","casino-roulette.ps1","casino-craps.ps1","casino-hilo.ps1","casino-baccarat.ps1","casino-slot.ps1","casino-keno.ps1","casino-wheel.ps1","casino.ps1","arcade.ps1","strategy-poker.ps1","strategy-td.ps1","strategy-rogue.ps1","handbook.ps1","boot.ps1","fun.ps1","adventure-engine.ps1","adventure-world.ps1","adventure-companion-ai.ps1","adventure.ps1","adventure-insult.ps1","desktop-pet.ps1","engine-arg.ps1")
 $loadOk = 0
 foreach ($m in $allMods) {
     try { . "$modDir\$m" 2>$null; $loadOk++ } catch {}
@@ -395,6 +395,58 @@ $round = Get-RandomInsultRound
 Test-Assert "Random insult round has insult" ($round.Insult -ne $null)
 Test-Assert "Random insult round has correct" ($round.Correct -ne $null)
 Test-Assert "Random insult round has 3 wrongs" ($round.Wrongs.Count -eq 3)
+
+# === ARG FRAMEWORK TESTS ===
+Write-Host "`n  Testing ARG Framework v3.0..." -ForegroundColor Yellow
+. "$modDir\engine-arg.ps1" 2>$null
+$defaults = Get-StateDefaults
+Test-Assert "ARG state defaults exist" ($defaults.Arg -ne $null)
+Test-Assert "ARG UnlockedCheats default" ($defaults.Arg.UnlockedCheats.Count -eq 0)
+Test-Assert "ARG BootHexShown default" ($defaults.Arg.BootHexShown -eq $false)
+Test-Assert "ARG MeridianChoice default empty" ($defaults.Arg.MeridianChoice -eq "")
+Test-Assert "ARG MeridianCompanion default empty" ($defaults.Arg.MeridianCompanion -eq "")
+
+# ARG v3.0 State Engine Tests
+$argState = Get-ArgState
+Test-Assert "ARG v3.0 state loads" ($argState -ne $null)
+Test-Assert "ARG v3.0 Meta exists" ($argState.Meta -ne $null)
+Test-Assert "ARG v3.0 Counters exist" ($argState.Counters -ne $null)
+Test-Assert "ARG v3.0 Triggers exist" ($argState.Triggers -ne $null)
+Test-Assert "ARG v3.0 Unlocked exist" ($argState.Unlocked -ne $null)
+Test-Assert "ARG v3.0 Hints exist" ($argState.Hints -ne $null)
+Test-Assert "ARG v3.0 Meridian exists" ($argState.Meridian -ne $null)
+Test-Assert "ARG v3.0 Rosebud not available by default" ($argState.Triggers.RosebudAvailable -eq $false)
+Test-Assert "ARG v3.0 Meridian not active by default" ($argState.Meridian.Active -eq $false)
+
+# ARG v3.0 Functions
+Test-Assert "Initialize-ArgState function exists" ((Get-Command Initialize-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Get-ArgState function exists" ((Get-Command Get-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Save-ArgState function exists" ((Get-Command Save-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgAvailable function exists" ((Get-Command Test-ArgAvailable -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgUnlocked function exists" ((Get-Command Test-ArgUnlocked -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgUnlock function exists" ((Get-Command Invoke-ArgUnlock -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgTriggerAvailable function exists" ((Get-Command Invoke-ArgTriggerAvailable -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgTriggerNext function exists" ((Get-Command Invoke-ArgTriggerNext -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgActionTick function exists" ((Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgCommand function exists" ((Get-Command Test-ArgCommand -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgBootCheck function exists" ((Get-Command Invoke-ArgBootCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgCasinoCheck function exists" ((Get-Command Invoke-ArgCasinoCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Update-ArgBondCheck function exists" ((Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgRoom17Death function exists" ((Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgRoom17Available function exists" ((Get-Command Test-ArgRoom17Available -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgObserver148 function exists" ((Get-Command Test-ArgObserver148 -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgSoulLinkCheck function exists" ((Get-Command Invoke-ArgSoulLinkCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgMeridianActive function exists" ((Get-Command Test-ArgMeridianActive -ErrorAction SilentlyContinue) -ne $null)
+
+# Backward Compatibility
+Test-Assert "Show-MetaTerminal function exists" ((Get-Command Show-MetaTerminal -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgCheatUnlocked function exists" ((Get-Command Test-ArgCheatUnlocked -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgMirrorMatch function exists" ((Get-Command Invoke-ArgMirrorMatch -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgMeridian function exists" ((Get-Command Invoke-ArgMeridian -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgLayer6CompanionDialog function exists" ((Get-Command Invoke-ArgLayer6CompanionDialog -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgLayer7CompanionDialog function exists" ((Get-Command Invoke-ArgLayer7CompanionDialog -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "MERIDIAN_STATUS function exists" ((Get-Command MERIDIAN_STATUS -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "meta command exists" ((Get-Command meta -ErrorAction SilentlyContinue) -ne $null)
 
 # === SUMMARY ===
 Write-Host "`n  ========================================" -ForegroundColor Cyan

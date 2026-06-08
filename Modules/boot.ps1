@@ -14,7 +14,7 @@ $script:BuxTips = @(
 function Invoke-BootSequence {
     try {
         try { Clear-Host } catch {}
-        Load-State
+        # Load-State wird im Profil bereits aufgerufen
         $b = $script:BuxeState.Boot
         $b.Loads++
         $b.LastBoot = Get-Date -Format "yyyy-MM-dd HH:mm"
@@ -24,7 +24,15 @@ function Invoke-BootSequence {
         $greeting = if ($hour -ge 5 -and $hour -lt 12) { "Guten Morgen" } elseif ($hour -ge 12 -and $hour -lt 18) { "Guten Tag" } elseif ($hour -ge 18 -and $hour -lt 22) { "Guten Abend" } else { "Noch wach" }
         
         Write-Host ""
-        Write-Host "   BUXE_OS v24.0" -ForegroundColor Cyan
+        $meridianActive = $false
+        if (Get-Command Test-ArgMeridianActive -ErrorAction SilentlyContinue) {
+            $meridianActive = Test-ArgMeridianActive
+        }
+        if ($meridianActive) {
+            Write-Host "   [MERIDIAN v7.4.1]" -ForegroundColor Magenta
+        } else {
+            Write-Host "   BUXE_OS v24.0" -ForegroundColor Cyan
+        }
         Write-Host "  $greeting, $env:USERNAME." -ForegroundColor White
         
         $loads = $b.Loads
@@ -34,8 +42,8 @@ function Invoke-BootSequence {
         elseif ($loads -lt 50) { Write-Host "  Session #$loads. Wir sind altbekannte." -ForegroundColor Yellow }
         else { Write-Host "  Session #$loads. Wir sind im Endgame now." -ForegroundColor Magenta }
         
-        $tip = $script:BuxTips | Get-Random
-        Write-Host "  $tip" -ForegroundColor DarkGray
+        $tip = if ($script:BuxTips.Length -gt 0) { $script:BuxTips | Get-Random } else { "" }
+        if ($tip) { Write-Host "  $tip" -ForegroundColor DarkGray }
         Write-Host "  Desktop Pet: 'dp-on' zum Aktivieren." -ForegroundColor DarkGray
         
         $petData = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Companion } else { $null }
@@ -59,21 +67,35 @@ function Invoke-BootSequence {
                 } catch {}
             }
             if ($opened -gt 0) {
-                $script:BuxeState.Capsules = @($caps | Where-Object { try { $today -lt [datetime]::Parse($_.OpenDate) } catch { $false } })
-                Save-State
+                try {
+                    Start-StateTransaction
+                    $script:BuxeState.Capsules = @($caps | Where-Object { try { $today -lt [datetime]::Parse($_.OpenDate) } catch { $false } })
+                    Complete-StateTransaction
+                } catch {
+                    Rollback-StateTransaction
+                    Write-Host "[boot] Capsule transaction failed: $_" -ForegroundColor Red
+                }
             }
         }
         
-        $m = Get-CimInstance Win32_OperatingSystem
-        $t = [math]::Round($m.TotalVisibleMemorySize / 1MB, 2)
-        $f = [math]::Round($m.FreePhysicalMemory / 1MB, 2)
-        $u = $t - $f; $pct = [math]::Round(($u / $t) * 100)
-        if ($pct -gt 75) {
-            $col = if ($pct -gt 85) { "Red" } else { "Yellow" }
-            Write-Host "  RAM: $u / $t GB ($pct%)" -ForegroundColor $col
-        }
-        $ach = ($script:BuxeState.Achievements | Get-Member -MemberType NoteProperty | Measure-Object).Count
+        try {
+            $m = Get-CimInstance Win32_OperatingSystem
+            $t = [math]::Round($m.TotalVisibleMemorySize / 1MB, 2)
+            $f = [math]::Round($m.FreePhysicalMemory / 1MB, 2)
+            $u = $t - $f; $pct = [math]::Round(($u / $t) * 100)
+            if ($pct -gt 75) {
+                $col = if ($pct -gt 85) { "Red" } else { "Yellow" }
+                Write-Host "  RAM: $u / $t GB ($pct%)" -ForegroundColor $col
+            }
+        } catch {}
+        $ach = if ($script:BuxeState.Achievements) { $script:BuxeState.Achievements.Keys.Count } else { 0 }
         if ($ach -gt 0) { Write-Host "  Achievements: $ach freigeschaltet." -ForegroundColor DarkCyan }
+
+        # === ARG v3.0 Boot Check ===
+        if (Get-Command Invoke-ArgBootCheck -ErrorAction SilentlyContinue) {
+            Invoke-ArgBootCheck
+        }
+
         Write-Host ""
     } catch { Write-Host "[boot] Fehler: $_" -ForegroundColor Red }
 }

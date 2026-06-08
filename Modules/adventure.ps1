@@ -49,7 +49,11 @@ function Invoke-Adventure {
         }
 
         if (-not $inputLine) { continue }
-        if ($inputLine -eq "Q" -or $inputLine -eq "q") { $running = $false; continue }
+        if ($inputLine -eq "Q" -or $inputLine -eq "q") {
+            Save-AdventureState
+            $running = $false
+            continue
+        }
 
         $cmd = Parse-AdventureCommand $inputLine
         $result = Process-AdventureCommand $cmd

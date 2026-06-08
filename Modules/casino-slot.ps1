@@ -4,6 +4,9 @@
 
 try {
 
+$script:SlotJackpotBase = 500
+$script:SlotSymbolPools = @{}
+
 function Get-SlotSymbolWeighted($luckLevel) {
     $symbols = @("7","BAR","CHERRY","LEMON","DIAMOND","BELL","HORSESHOE","W","S","B")
     if ($luckLevel -le 0) { return $symbols | Get-Random }
@@ -12,13 +15,29 @@ function Get-SlotSymbolWeighted($luckLevel) {
         "HORSESHOE" = 6; "CHERRY" = 8; "LEMON" = 10
         "W" = 5; "S" = 8; "B" = 6
     }
-    $pool = @()
-    foreach ($sym in $symbols) {
-        $w = $weights[$sym] - $luckLevel
-        if ($w -lt 1) { $w = 1 }
-        for ($i = 0; $i -lt $w; $i++) { $pool += $sym }
+    # Static pool cache per luck level to reduce memory pressure
+    $pool = $script:SlotSymbolPools[$luckLevel]
+    if (-not $pool) {
+        $pool = @()
+        foreach ($sym in $symbols) {
+            $w = $weights[$sym] - $luckLevel
+            if ($w -lt 1) { $w = 1 }
+            for ($i = 0; $i -lt $w; $i++) { $pool += $sym }
+        }
+        $script:SlotSymbolPools[$luckLevel] = $pool
     }
     return $pool | Get-Random
+}
+
+function Invoke-FisherYatesShuffle($Array) {
+    $rng = [System.Random]::new()
+    for ($i = $Array.Count - 1; $i -gt 0; $i--) {
+        $j = $rng.Next($i + 1)
+        $tmp = $Array[$i]
+        $Array[$i] = $Array[$j]
+        $Array[$j] = $tmp
+    }
+    return $Array
 }
 
 function Get-SlotLineWin($reels, $bet, $payouts) {
@@ -96,10 +115,10 @@ function slot {
     Invoke-CasinoGame -GameName "SLOT MACHINE" -PlayRound {
         param($bet, $stats)
         $symbols = @("7","BAR","CHERRY","LEMON","DIAMOND","BELL","HORSESHOE","W","S","B")
-        $colors = @{ "7" = "Red"; "BAR" = "White"; "CHERRY" = "DarkRed"; "LEMON" = "Yellow"; "DIAMOND" = "Cyan"; "BELL" = "DarkYellow"; "HORSESHOE" = "Green"; "W" = "Magenta"; "S" = "Yellow"; "B" = "Green" }
-        $payouts = @{ "7" = 50; "BAR" = 20; "DIAMOND" = 15; "BELL" = 10; "HORSESHOE" = 8; "CHERRY" = 5; "LEMON" = 3 }
+        $colors = @{ "7" = "Red"; "BAR" = "White"; "CHERRY" = "DarkRed"; "LEMON" = "Yellow"; "DIAMOND" = "Cyan"; "BELL" = "DarkYellow"; "HORSESHOE" = "Green"; "W" = "Magenta"; "S" = "Yellow"; "B" = "Green"; "OBSERVER" = "Magenta" }
+        $payouts = @{ "7" = 50; "BAR" = 20; "DIAMOND" = 15; "BELL" = 10; "HORSESHOE" = 8; "CHERRY" = 5; "LEMON" = 3; "W" = 50 }
 
-        if (-not $stats.ProgressiveJackpot) { $stats.ProgressiveJackpot = 500 }
+        if (-not $stats.ProgressiveJackpot) { $stats.ProgressiveJackpot = $script:SlotJackpotBase }
         if (-not $stats.JackpotWins) { $stats.JackpotWins = 0 }
         if (-not $stats.Spins) { $stats.Spins = 0 }
         if (-not $stats.TotalWon) { $stats.TotalWon = 0 }
@@ -117,6 +136,7 @@ function slot {
         $jackpotWon = $false
         $achievement = $null
         $freeSpinsRemaining = 0
+        $hadFreeSpins = $false
 
         $w = 56; $h = 16
 
@@ -158,14 +178,21 @@ function slot {
         $s3 = Get-SlotSymbolWeighted $luckLvl
         $reels = @($s1, $s2, $s3)
 
-        # Progressive jackpot check
+        # ARG v3.0: OBSERVER Symbol alle 7 Spins
+        if ($stats.Spins % 7 -eq 0) {
+            $reels[(Get-Random -Maximum 3)] = "OBSERVER"
+        }
+
+        # Progressive jackpot check (main spin only)
+        $jackpotAmount = 0
         if ((Get-Random -Maximum 10000) -eq 0) {
             $jackpotWon = $true
-            $totalWin += $stats.ProgressiveJackpot
+            $jackpotAmount = $stats.ProgressiveJackpot
+            $totalWin += $jackpotAmount
             $stats.JackpotWins++
             $achievement = "Progressive Jackpot"
-            $stats.TotalWon += $stats.ProgressiveJackpot
-            $stats.ProgressiveJackpot = 500
+            $stats.TotalWon += $jackpotAmount
+            $stats.ProgressiveJackpot = $script:SlotJackpotBase
         }
 
         $eval = Get-SlotLineWin $reels $bet $payouts
@@ -175,6 +202,7 @@ function slot {
         }
 
         if ($eval.ScatterCount -ge 3) {
+            $hadFreeSpins = $true
             if ($eval.ScatterCount -eq 3) { $freeSpinsRemaining = 5 }
             elseif ($eval.ScatterCount -eq 4) { $freeSpinsRemaining = 8 }
             else { $freeSpinsRemaining = 12 }
@@ -193,12 +221,12 @@ function slot {
             Show-Scene $bonusScene -Force
             $pick = Read-GameChoice "" "^[123]$"
 
-            $rewards = @(10, 50, $stats.ProgressiveJackpot) | Sort-Object { Get-Random }
+            $rewards = Invoke-FisherYatesShuffle -Array @(10, 50, $stats.ProgressiveJackpot)
             $bonusWin = $rewards[[int]$pick - 1]
-            if ($bonusWin -eq $stats.ProgressiveJackpot -and $stats.ProgressiveJackpot -gt 500) {
+            if ($bonusWin -eq $stats.ProgressiveJackpot -and $stats.ProgressiveJackpot -gt $script:SlotJackpotBase) {
                 $stats.JackpotWins++
                 $achievement = "Progressive Jackpot"
-                $stats.ProgressiveJackpot = 500
+                $stats.ProgressiveJackpot = $script:SlotJackpotBase
             }
 
             $bonusResult = New-Scene $w $h
@@ -226,7 +254,7 @@ function slot {
 
         $lineY = 10
         if ($jackpotWon) {
-            Add-SceneText $final 4 $lineY "PROGRESSIVE JACKPOT!!! $(if ($totalWin -gt $eval.Win + $bonusWin) { $totalWin - $eval.Win - $bonusWin } else { $totalWin }) G!" 'Magenta'
+            Add-SceneText $final 4 $lineY "PROGRESSIVE JACKPOT!!! $jackpotAmount G!" 'Magenta'
             $lineY++
         }
         if ($eval.Win -gt 0 -and $eval.MatchType) {
@@ -275,15 +303,7 @@ function slot {
             $fsReels = @($fs1, $fs2, $fs3)
             $stats.Spins++
 
-            if ((Get-Random -Maximum 10000) -eq 0) {
-                $jackpotWon = $true
-                $totalWin += $stats.ProgressiveJackpot
-                $stats.JackpotWins++
-                $achievement = "Progressive Jackpot"
-                $stats.TotalWon += $stats.ProgressiveJackpot
-                $stats.ProgressiveJackpot = 500
-            }
-
+            # No progressive jackpot check on free spins (KB-CS1 fix)
             $fsEval = Get-SlotLineWin $fsReels $fsBet $payouts
             if ($fsEval.Win -gt 0) {
                 $totalWin += $fsEval.Win
@@ -291,6 +311,7 @@ function slot {
             }
 
             if ($fsEval.ScatterCount -ge 3) {
+                $hadFreeSpins = $true
                 $newFs = if ($fsEval.ScatterCount -eq 3) { 5 } elseif ($fsEval.ScatterCount -eq 4) { 8 } else { 12 }
                 $freeSpinsRemaining += $newFs
             }
@@ -307,12 +328,12 @@ function slot {
                 Show-Scene $bonusScene -Force
                 $pick = Read-GameChoice "" "^[123]$"
 
-                $rewards = @(10, 50, $stats.ProgressiveJackpot) | Sort-Object { Get-Random }
+                $rewards = Invoke-FisherYatesShuffle -Array @(10, 50, $stats.ProgressiveJackpot)
                 $fsBonusWin = $rewards[[int]$pick - 1]
-                if ($fsBonusWin -eq $stats.ProgressiveJackpot -and $stats.ProgressiveJackpot -gt 500) {
+                if ($fsBonusWin -eq $stats.ProgressiveJackpot -and $stats.ProgressiveJackpot -gt $script:SlotJackpotBase) {
                     $stats.JackpotWins++
                     $achievement = "Progressive Jackpot"
-                    $stats.ProgressiveJackpot = 500
+                    $stats.ProgressiveJackpot = $script:SlotJackpotBase
                 }
 
                 $bonusResult = New-Scene $w $h
@@ -366,13 +387,14 @@ function slot {
         }
 
         Save-State
-        if ($jackpotWon) {
-            return @{ Win = $totalWin; Loss = 0; Stats = $stats; Achievement = $achievement }
+        if ($jackpotWon -and $achievement) {
+            Unlock-Achievement $achievement
+            return @{ Win = $totalWin; Loss = 0; Stats = $stats }
         }
-        return @{ Win = $totalWin; Loss = if ($totalWin -eq 0) { $bet } else { 0 }; Stats = $stats }
+        return @{ Win = $totalWin; Loss = if ($totalWin -eq 0 -and -not $hadFreeSpins) { $bet } else { 0 }; Stats = $stats }
     }
 }
 
 } catch {
-    Write-Host "[casino-slot] CRITICAL ERROR: $($_)" -ForegroundColor Red
+    Write-Host "[casino-slot] CRITICAL ERROR: $_" -ForegroundColor Red
 }

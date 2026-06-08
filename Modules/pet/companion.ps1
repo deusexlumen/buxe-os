@@ -88,6 +88,9 @@ function Invoke-CompanionAction($action) {
         $pet.Meta.TotalSessions++
         $bonus = Get-Random -Minimum 3 -Maximum 8
         $cp.Bond = [math]::Min(100, $cp.Bond + $bonus)
+        if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+            Update-ArgBondCheck $cp.Bond
+        }
         Save-PetState $pet
         Check-EasterEgg "login"
     }
@@ -96,6 +99,9 @@ function Invoke-CompanionAction($action) {
             $isFirstTalk = ($pet.Meta.Stats.TalkCount -eq 0)
             $pet.Meta.Stats.TalkCount++
             $gain = [math]::Min(100, $cp.Bond + 2); $cp.Bond = $gain; $cp.Talks++
+            if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+                Update-ArgBondCheck $cp.Bond
+            }
             $line = Get-CompanionLine $cp "talk"
             Show-CompanionDialog $cp $line
             Check-EasterEgg "talk"
@@ -106,6 +112,9 @@ function Invoke-CompanionAction($action) {
         "gift" {
             $pet.Meta.Stats.GiftCount++
             $cp.Gifts++; $cp.Bond = [math]::Min(100, $cp.Bond + 5)
+            if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+                Update-ArgBondCheck $cp.Bond
+            }
             $cp.Mood = if ((Get-Random -Maximum 2) -eq 0) { "Excited" } else { "Loving" }
             Show-CompanionDialog $cp (Get-CompanionLine $cp "gift")
             Add-PetXP 5 "Gift"
@@ -114,6 +123,9 @@ function Invoke-CompanionAction($action) {
         "date" {
             if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..."; Wait-Enter; return }
             $cp.Dates++; $cp.Bond = [math]::Min(100, $cp.Bond + 4); $cp.Mood = "Loving"
+            if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+                Update-ArgBondCheck $cp.Bond
+            }
             $dateText = @("Ihr schaut euch die digitale Aurora an.","Ihr teilt eine virtuelle Mahlzeit.","Ihr tanzt in Schwerelosigkeit.") | Get-Random
             Write-Host "`n  DATE: $dateText" -ForegroundColor Magenta
             Show-CompanionDialog $cp "*errötet* Das war... schön."
@@ -153,6 +165,9 @@ function Invoke-CompanionAction($action) {
         "train" {
             $pet.Meta.Stats.TrainCount++; $cp.Trains++; $cp.Mood = "Excited"
             $cp.Bond = [math]::Min(100, $cp.Bond + 3)
+            if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+                Update-ArgBondCheck $cp.Bond
+            }
             if ($pet.Pet) { $pet.Pet.ATK += 1 }
             # StrategyInsight skill progression
             if ($cp.Skills.StrategyInsight -lt 10 -and (Get-Random -Maximum 100) -lt 25) {
@@ -174,11 +189,23 @@ function Invoke-CompanionAction($action) {
         "headpat" {
             $cp.Headpats++; $cp.Mood = if ($cp.Bond -ge 50) { "Loving" } else { "Happy" }
             $cp.Bond = [math]::Min(100, $cp.Bond + 1)
+            if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+                Update-ArgBondCheck $cp.Bond
+            }
             Write-Host "`n  Du streichelst $($cp.Name)." -ForegroundColor Cyan
             Add-PetXP 1 "Headpat"
         }
     }
     Save-PetState $pet
+
+    # ARG v3.0: 15% Chance auf Meridian-Hint
+    if (Get-Command Test-ArgAvailable -ErrorAction SilentlyContinue) {
+        if ((Test-ArgAvailable "matrix") -and -not (Test-ArgAvailable "meridian") -and (Get-Random -Maximum 100) -lt 15) {
+            Write-Host ""
+            Write-Host "  [$($cp.Name)] >> Du spuerst es, oder? Etwas... jenseits der Matrix. Ein Signal." -ForegroundColor $(if ($cp.Color) { $cp.Color } else { "Cyan" })
+        }
+    }
+
     Invoke-Layer47Check
     Wait-Enter
 }
@@ -205,6 +232,9 @@ function Invoke-CompanionTalk {
         $pet.Meta.TotalSessions++
         $bonus = Get-Random -Minimum 3 -Maximum 8
         $cp.Bond = [math]::Min(100, $cp.Bond + $bonus)
+        if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+            Update-ArgBondCheck $cp.Bond
+        }
         Save-PetState $pet
     }
     $pet.Meta.Stats.TalkCount++
@@ -243,6 +273,9 @@ function Invoke-CompanionTalk {
     # Apply effect
     if ($sel.Bond -gt 0) {
         $cp.Bond = [math]::Min(100, $cp.Bond + $sel.Bond)
+        if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
+            Update-ArgBondCheck $cp.Bond
+        }
     }
     if ($sel.SetMood) { $cp.Mood = $sel.SetMood }
     if ($sel.EasterEggChance -and (Get-Random -Maximum 100) -lt $sel.EasterEggChance) {
@@ -252,7 +285,17 @@ function Invoke-CompanionTalk {
     # Reaction from character-specific pool
     $pool = $script:CPReactionPools[$sel.ReactionPool][$cp.Name]
     if ($pool) { Show-CompanionDialog $cp ($pool | Get-Random) }
+
     Add-PetXP 1 "Talk"
+
+    # ARG v3.0: 15% Chance auf Meridian-Hint
+    if (Get-Command Test-ArgAvailable -ErrorAction SilentlyContinue) {
+        if ((Test-ArgAvailable "matrix") -and -not (Test-ArgAvailable "meridian") -and (Get-Random -Maximum 100) -lt 15) {
+            Write-Host ""
+            Write-Host "  [$($cp.Name)] >> Du spuerst es, oder? Etwas... jenseits der Matrix. Ein Signal." -ForegroundColor $(if ($cp.Color) { $cp.Color } else { "Cyan" })
+        }
+    }
+
     Wait-Enter
 }
 

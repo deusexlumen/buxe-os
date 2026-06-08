@@ -5,6 +5,11 @@ $script:BuxeTryCatch = if ($env:BUXE_DEBUG) { $false } else { $true }
 
 $BuxeProfileScript = {
 
+# === PSSCRIPTROOT VALIDATION ===
+if (-not $PSScriptRoot) {
+    $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
+}
+
 # === MODULES & TOOLS ===
 Import-Module Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module PSFzf -ErrorAction SilentlyContinue
@@ -16,10 +21,21 @@ Remove-Item alias:sl -Force -ErrorAction SilentlyContinue
 
 # === LOAD v24 ENGINE ===
 $modulesDir = Join-Path $PSScriptRoot "modules"
+
+# Critical engine modules must exist
+$criticalModules = @("engine-state-core","engine-state-migration","engine-state-advanced")
+foreach ($cm in $criticalModules) {
+    $cmPath = "$modulesDir\$cm.ps1"
+    if (-not (Test-Path $cmPath)) {
+        throw "CRITICAL MODULE MISSING: $cmPath"
+    }
+}
+
 . "$modulesDir\engine-state-core.ps1"
 . "$modulesDir\engine-state-migration.ps1"
 . "$modulesDir\engine-state-advanced.ps1"
 Load-State
+. "$modulesDir\engine-arg.ps1"
 . "$modulesDir\engine-ui.ps1"
 . "$modulesDir\engine-game.ps1"
 . "$modulesDir\engine-render.ps1"
@@ -49,8 +65,13 @@ Load-State
 . "$modulesDir\adventure-insult.ps1"
 . "$modulesDir\desktop-pet.ps1"
 # === LOAD PET SYSTEM v2.0 ===
-$petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Sort-Object Name
-foreach ($pm in $petModules) { . $pm.FullName }
+# _init.ps1 must load first for deterministic order
+$petInit = "$modulesDir\pet\_init.ps1"
+if (Test-Path $petInit) { . $petInit }
+$petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Where-Object { $_.Name -ne "_init.ps1" } | Sort-Object Name
+foreach ($pm in $petModules) {
+    try { . $pm.FullName } catch { Write-Host "  [WARN] Pet module $($pm.Name) failed: $_" -ForegroundColor DarkGray }
+}
 . "$modulesDir\fun.ps1"
 . "$modulesDir\handbook.ps1"
 . "$modulesDir\tts-engine.ps1"
@@ -61,7 +82,18 @@ Invoke-BootSequence
 }
 
 if ($script:BuxeTryCatch) {
-    try { . $BuxeProfileScript } catch { Write-Host "Fehler beim Laden des Profils: $_" -ForegroundColor Red }
+    try {
+        . $BuxeProfileScript
+    } catch {
+        Write-Host "Fehler beim Laden des Profils: $_" -ForegroundColor Red
+        # Fallback mode: minimal state so basic commands still work
+        $script:BuxeState = @{
+            Bank = @{ Gold = 500; CasinoWinnings = 0; CasinoLosses = 0; TotalEarned = 0; TotalSpent = 0; PokerIncome = 0; DailyStreak = 0; LastDaily = "" }
+            Achievements = @{}
+            Boot = @{ Loads = 0; TotalCommands = 0; FavoriteCommand = ""; LastBoot = "" }
+            Version = 24
+        }
+    }
 } else {
     . $BuxeProfileScript
 }

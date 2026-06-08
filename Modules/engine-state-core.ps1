@@ -63,6 +63,12 @@ function Get-StateDefaults {
             FavoriteGame = ""
         }
         Capsules = @()
+        Arg = @{
+            UnlockedCheats = @()
+            BootHexShown = $false
+            MeridianChoice = ""
+            MeridianCompanion = ""
+        }
     }
 }
 
@@ -86,16 +92,26 @@ function Save-State {
     $bak5 = "$script:BuxeStateFile.bak5"
     try {
         if (Test-Path $bak4) { Move-Item $bak4 $bak5 -Force -ErrorAction SilentlyContinue }
-        if (Test-Path $bak3) { Move-Item $bak3 $bak4 -Force -ErrorAction SilentlyContinue }
-        if (Test-Path $bak2) { Move-Item $bak2 $bak3 -Force -ErrorAction SilentlyContinue }
-        if (Test-Path $bak1) { Move-Item $bak1 $bak2 -Force -ErrorAction SilentlyContinue }
-        if (Test-Path $script:BuxeStateFile) { Copy-Item $script:BuxeStateFile $bak1 -Force -ErrorAction SilentlyContinue }
-    } catch {
-        Write-Warning "[StateManager] Backup rotation warning: $_"
-    }
-    
-    $tempFile = "$script:BuxeStateFile.tmp"
+    } catch { Write-Warning "[StateManager] Backup rotation warning (bak4->bak5): $_" }
     try {
+        if (Test-Path $bak3) { Move-Item $bak3 $bak4 -Force -ErrorAction SilentlyContinue }
+    } catch { Write-Warning "[StateManager] Backup rotation warning (bak3->bak4): $_" }
+    try {
+        if (Test-Path $bak2) { Move-Item $bak2 $bak3 -Force -ErrorAction SilentlyContinue }
+    } catch { Write-Warning "[StateManager] Backup rotation warning (bak2->bak3): $_" }
+    try {
+        if (Test-Path $bak1) { Move-Item $bak1 $bak2 -Force -ErrorAction SilentlyContinue }
+    } catch { Write-Warning "[StateManager] Backup rotation warning (bak1->bak2): $_" }
+    try {
+        if (Test-Path $script:BuxeStateFile) { Copy-Item $script:BuxeStateFile $bak1 -Force -ErrorAction SilentlyContinue }
+    } catch { Write-Warning "[StateManager] Backup rotation warning (current->bak1): $_" }
+    
+    $tempFile = "$script:BuxeStateFile.$([Guid]::NewGuid()).tmp"
+    $lockFile = $null
+    try {
+        # Exclusive file lock to prevent race conditions
+        $lockPath = "$script:BuxeStateFile.lock"
+        $lockFile = [System.IO.File]::Open($lockPath, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
         $script:BuxeState | ConvertTo-Json -Depth 20 | Out-File $tempFile -Encoding utf8 -ErrorAction Stop
         Move-Item -Path $tempFile -Destination $script:BuxeStateFile -Force -ErrorAction Stop
         $script:BuxeStateLastSave = Get-Date
@@ -103,7 +119,10 @@ function Save-State {
         try { $script:BuxeStateLoadedAt = (Get-Item $script:BuxeStateFile).LastWriteTime } catch {}
     } catch {
         Write-Warning "[StateManager] Failed to save state: $_"
+    } finally {
         if (Test-Path $tempFile) { Remove-Item $tempFile -Force -ErrorAction SilentlyContinue }
+        if ($lockFile) { $lockFile.Close(); $lockFile.Dispose() }
+        try { if (Test-Path "$script:BuxeStateFile.lock") { Remove-Item "$script:BuxeStateFile.lock" -Force -ErrorAction SilentlyContinue } } catch {}
     }
 }
 
@@ -221,6 +240,16 @@ function Write-AuditLog($Action, $Amount, $BalanceBefore, $BalanceAfter, $Reason
         after = $BalanceAfter
         reason = $Reason
     } | ConvertTo-Json -Compress
+    # Log rotation if > 10MB
+    try {
+        if (Test-Path $script:BuxeAuditFile) {
+            $logSize = (Get-Item $script:BuxeAuditFile).Length
+            if ($logSize -gt 10MB) {
+                $rotated = "$script:BuxeAuditFile.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+                Move-Item $script:BuxeAuditFile $rotated -Force -ErrorAction SilentlyContinue
+            }
+        }
+    } catch {}
     Add-Content -Path $script:BuxeAuditFile -Value $entry -Encoding utf8 -ErrorAction SilentlyContinue
 }
 
@@ -234,6 +263,7 @@ function Set-Bankroll($delta, [switch]$TrackCasino, $Reason = "Bankroll") {
     Load-State
     $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold += $delta
+    if ($script:BuxeState.Bank.Gold -lt 0) { $script:BuxeState.Bank.Gold = 0 }
     $after = $script:BuxeState.Bank.Gold
     if ($TrackCasino) {
         if ($delta -gt 0) { $script:BuxeState.Bank.CasinoWinnings += $delta }

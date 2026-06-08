@@ -1,5 +1,5 @@
-﻿# BUXE_OS v24.7 -- ADVENTURE WORLD
-# Die verlorene Station Polaris. 8 Räume, Objekte, NPCs, Rätsel.
+# BUXE_OS v24.7 -- ADVENTURE WORLD
+# Die verlorene Station Polaris. 16 Räume, Objekte, NPCs, Rätsel.
 
 try {
 
@@ -98,7 +98,7 @@ Register-Room "secret" "GEHEIMER RAUM" `
 "Ein kleiner, versteckter Raum hinter einem lockereren Gitter. Hier hat jemand gelebt. Eine Schlafmatte, leere Dosen, und an der Wand... Hunderte von Notizen. Alle sagen dasselbe: 'SIE SIEHT UNS.' Im Westen geht es zurück in den Schacht." `
 @{ west = "vent" } `
 (@{
-    notes = @{ Name = "Notizen"; Description = "Jede Notize sagt 'SIE SIEHT UNS.' Die Handschrift wird immer wilder. Die letzte ist in... Blut?"; Takeable = $false; UseWith = $null }
+    notes = @{ Name = "Notizen"; Description = "Jede Notiz sagt 'SIE SIEHT UNS.' Die Handschrift wird immer wilder. Die letzte ist in... Blut?"; Takeable = $false; UseWith = $null }
     key = @{ Name = "Goldener Schlüssel"; Description = "Ein schwerer goldener Schlüssel mit seltsamen Symbolen. Er fühlt sich warm an."; Takeable = $true; UseWith = "chest" }
     tree = @{ Name = "Kleiner Baum"; Description = "Ein kleiner Plastikbaum. Jemand hat ihn hier versteckt. Darauf steht: 'Ich bin ein Pirat, ich mag Baumkaetzchen.'"; Takeable = $true; UseWith = $null }
 }) `
@@ -152,13 +152,12 @@ Register-Room "cafeteria" "KANTINE" `
 
 # Add cafeteria to hangar exits
 $script:AdvRooms["hangar"].Exits["west"] = "cafeteria"
-$script:AdvRooms["cafeteria"].Exits["north"] = "hangar"
 
 # === NEW ROOMS v25.0 ===
 
 # === ROOM 9: AIRLOCK ===
 Register-Room "airlock" "LUFTSCHLEUSE" `
-"Eine massive Luftschleuse mit dicken Stahltueren. Durch das Sichtfenster siehst du den schwarzen Weltraum und die verbeulte Aussenhuelle der Station. Ein Warnschild leuchtet rot: 'EVA ERfordert RAUMANZUG.' Eine Tuer fuehrt nach draussen." `
+"Eine massive Luftschleuse mit dicken Stahltueren. Durch das Sichtfenster siehst du den schwarzen Weltraum und die verbeulte Aussenhuelle der Station. Ein Warnschild leuchtet rot: 'EVA erfordert RAUMANZUG.' Eine Tuer fuehrt nach draussen." `
 @{ up = "hangar"; west = "eva" } `
 (@{
     suit = @{ Name = "Raumanzug"; Description = "Ein schwerer EVA-Raumanzug mit Sauerstofftank. Er riecht nach Schweiß und Weltraum."; Takeable = $true; UseWith = $null }
@@ -235,8 +234,7 @@ Register-Room "medbay" "KRANKENSTATION" `
     "   MEDBAY"
 ) "adventure_medbay"
 
-# Connect medbay to corridor (locked by default, unlock via hacking or key)
-$script:AdvRooms["corridor"].Exits["north"] = "medbay"
+# Medbay is reached via hacking the terminal or using a key; north exit is managed by unlock logic
 
 # === ROOM 13: ARMORY ===
 Register-Room "armory" "WAFFENKAMMER" `
@@ -259,7 +257,7 @@ Register-Room "armory" "WAFFENKAMMER" `
 $script:AdvRooms["corridor"].Exits["east"] = "armory"
 
 # === ROOM 14: QUARTERS ===
-Register-Room "quarters" "CREW-UNTERKUNFTE" `
+Register-Room "quarters" "CREW-UNTERKÜNFTE" `
 "Kleine Kabinen, eine neben der anderen. Jede hat ein Bett, einen Schreibtisch und ein Foto an der Wand. Jemand hat hier gelebt. Geliebt. Gefuerchtet. Ein Tagebuch liegt auf einem der Betten. Im Westen geht es zurueck in die Waffenkammer." `
 @{ west = "armory"; down = "corridor" } `
 (@{
@@ -456,6 +454,30 @@ Register-UseHandler {
 
     return $null
 }
+
+# === ROOM 17: THE HOLLOW (ARG Layer 4) ===
+Register-Room "hollow" "THE HOLLOW" `
+"Du stehst in einem Raum, der aus Licht und Code besteht.
+Die Waende sind aus Text. Du erkennst Fragmente -
+Casino-Regeln, Kampf-Logs, Companion-Konfigurationen.
+Alles, was du getan hast, ist hier.
+
+In der Mitte steht ein Tisch. Auf dem Tisch liegt ein Buch.
+Das Buch ist offen. Die Seiten sind leer - aber waehrend
+du hinschaust, fuellen sie sich. Mit deinen Worten.
+Deinen Befehlen. Deinen Fehlern." `
+@{ south = "cafeteria" } `
+(@{
+    book = @{ Name = "Leeres Buch"; Description = "Die Seiten fuellen sich, waehrend du hinschaust. Mit deinen Worten. Deinen Befehlen. Deinen Fehlern."; Takeable = $false; UseWith = $null }
+}) `
+(@{}) `
+@(
+    "  [LIGHT]",
+    "  [CODE ]",
+    "  [BOOK ]",
+    "  [TABLE]",
+    "  ...YOU..."
+) "adventure_hollow"
 
 # === COMPANION LINES FOR ADVENTURE ===
 # Extended in pet/_ui.ps1 if desired; fallback handled by Show-GameCompanionComment

@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load all modules
-$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","adventure-insult","desktop-pet","handbook","boot","fun","tts-engine")
+$modules = @("engine-state-core","engine-state-migration","engine-state-advanced","engine-ui","engine-game","engine-aliases","casino-engine","casino-blackjack","casino-roulette","casino-craps","casino-hilo","casino-baccarat","casino-slot","casino","arcade","strategy-poker","strategy-td","strategy-rogue","adventure-engine","adventure-world","adventure-companion-ai","adventure","adventure-insult","desktop-pet","handbook","boot","fun","tts-engine","engine-arg")
 foreach ($m in $modules) { . "$modDir\$m.ps1" }
 
 # Load Pet System v2.0
@@ -21,6 +21,41 @@ Write-Host "`n  BUXE_OS v24.0 INTEGRATION TEST`n" -ForegroundColor Cyan
 
 # Test 1: State
 Test-Assert "State defaults v24" ((Get-StateDefaults).Version -eq 24)
+
+# Test 1b: ARG v3.0 State Structure
+$argDefaults = (Get-StateDefaults).Arg
+Test-Assert "ARG state exists" ($argDefaults -ne $null)
+Test-Assert "ARG UnlockedCheats array" ($argDefaults.UnlockedCheats -is [array])
+Test-Assert "ARG BootHexShown default" ($argDefaults.BootHexShown -eq $false)
+Test-Assert "ARG MeridianChoice default" ($argDefaults.MeridianChoice -eq "")
+Test-Assert "ARG MeridianCompanion default" ($argDefaults.MeridianCompanion -eq "")
+
+# ARG v3.0 Engine Tests
+$argState = Get-ArgState
+Test-Assert "ARG v3.0 state loads" ($argState -ne $null)
+Test-Assert "ARG v3.0 Meta Version" ($argState.Meta.Version -eq 1)
+Test-Assert "ARG v3.0 Counters exist" ($argState.Counters -ne $null)
+Test-Assert "ARG v3.0 Triggers exist" ($argState.Triggers -ne $null)
+Test-Assert "ARG v3.0 Unlocked exist" ($argState.Unlocked -ne $null)
+Test-Assert "ARG v3.0 Hints exist" ($argState.Hints -ne $null)
+Test-Assert "ARG v3.0 Meridian exists" ($argState.Meridian -ne $null)
+Test-Assert "ARG v3.0 Rosebud not available by default" ($argState.Triggers.RosebudAvailable -eq $false)
+Test-Assert "ARG v3.0 Meridian not active by default" ($argState.Meridian.Active -eq $false)
+
+# ARG v3.0 Core Functions
+Test-Assert "Initialize-ArgState exists" ((Get-Command Initialize-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Get-ArgState exists" ((Get-Command Get-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Save-ArgState exists" ((Get-Command Save-ArgState -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgAvailable exists" ((Get-Command Test-ArgAvailable -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgUnlocked exists" ((Get-Command Test-ArgUnlocked -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgCommand exists" ((Get-Command Test-ArgCommand -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgBootCheck exists" ((Get-Command Invoke-ArgBootCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgCasinoCheck exists" ((Get-Command Invoke-ArgCasinoCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Update-ArgBondCheck exists" ((Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgRoom17Available exists" ((Get-Command Test-ArgRoom17Available -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgObserver148 exists" ((Get-Command Test-ArgObserver148 -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-ArgSoulLinkCheck exists" ((Get-Command Invoke-ArgSoulLinkCheck -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Test-ArgMeridianActive exists" ((Get-Command Test-ArgMeridianActive -ErrorAction SilentlyContinue) -ne $null)
 
 # Test 2: Bank
 $initial = Get-Bankroll
@@ -80,6 +115,18 @@ foreach ($f in $prodFiles) {
 }
 $dupCount = ($allDefs.GetEnumerator() | Where-Object { $_.Value.Count -gt 1 } | Measure-Object).Count
 Test-Assert "No duplicate functions" ($dupCount -eq 0)
+
+# Test 10b: No duplicate functions in engine-arg.ps1 specifically
+$argFile = Join-Path $modDir "engine-arg.ps1"
+if (Test-Path $argFile) {
+    $argAst = [System.Management.Automation.Language.Parser]::ParseFile($argFile, [ref]$null, [ref]$null)
+    $argFuncs = $argAst.FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
+    $argFuncNames = $argFuncs | ForEach-Object { $_.Name }
+    $argDups = $argFuncNames | Group-Object | Where-Object { $_.Count -gt 1 }
+    Test-Assert "No duplicates in engine-arg.ps1" ($argDups.Count -eq 0)
+} else {
+    Test-Assert "engine-arg.ps1 exists for dup check" ($false)
+}
 
 # Test 11: No conflicting script variables in production modules
 $allVars = @{}
@@ -143,7 +190,7 @@ Test-Assert "Adventure state save/load" ($script:AdvState.CurrentRoom -eq "lab" 
 # Test 17: Adventure room connectivity
 $hangar = Get-Room "hangar"
 Test-Assert "Hangar connects to corridor" ($hangar.Exits["north"] -eq "corridor")
-Test-Assert "Corridor north exit is medbay" ((Get-Room "corridor").Exits["north"] -eq "medbay")
+Test-Assert "Corridor north exit initially unset" ((Get-Room "corridor").Exits["north"] -eq $null)
 Test-Assert "Bridge is not directly accessible from corridor" ((Get-Room "corridor").Exits["bridge"] -eq $null)
 
 # Test 18: Adventure parser coverage
@@ -203,7 +250,7 @@ Test-Assert "Airlock connects to EVA" ((Get-Room "airlock").Exits["west"] -eq "e
 Test-Assert "Corridor connects to engine" ((Get-Room "corridor").Exits["down"] -eq "engine")
 Test-Assert "Engine connects to core" ((Get-Room "engine").Exits["north"] -eq "core")
 Test-Assert "Bridge connects to observatory" ((Get-Room "bridge").Exits["up"] -eq "observatory")
-Test-Assert "Total rooms = 16" ($script:AdvRooms.Count -eq 16)
+Test-Assert "Total rooms = 17" ($script:AdvRooms.Count -eq 17)
 
 # Test 25: Sauerstoff-System
 $script:AdvState.Oxygen = 10
