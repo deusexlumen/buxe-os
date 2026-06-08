@@ -39,7 +39,7 @@ Test-Assert "ARG v3.0 Triggers exist" ($argState.Triggers -ne $null)
 Test-Assert "ARG v3.0 Unlocked exist" ($argState.Unlocked -ne $null)
 Test-Assert "ARG v3.0 Hints exist" ($argState.Hints -ne $null)
 Test-Assert "ARG v3.0 Meridian exists" ($argState.Meridian -ne $null)
-Test-Assert "ARG v3.0 Rosebud not available by default" ($argState.Triggers.RosebudAvailable -eq $false)
+Test-Assert "ARG v3.0 Rosebud not available by default" ((Get-ArgStateDefaults).Triggers.RosebudAvailable -eq $false)
 Test-Assert "ARG v3.0 Meridian not active by default" ($argState.Meridian.Active -eq $false)
 
 # ARG v3.0 Core Functions

@@ -300,6 +300,28 @@ function Invoke-ArgBootCheck {
         Write-Host ""
     }
 
+    # Residual Echo: Nach Boot 8, sporadisch, solange Rosebud nicht unlocked.
+    # Nicht der volle Dump -- nur ein flackerndes Fragment, wie ein Traum,
+    # den man kaum erwischt. Authentisch, weil es unregelmaessig ist.
+    if ($state.Counters.BootCount -gt 8 -and -not $state.Unlocked.Rosebud) {
+        if (-not $state.Triggers.RosebudAvailable) {
+            $state.Triggers.RosebudAvailable = $true
+        }
+        if ((Get-Random -Maximum 100) -lt 10) {
+            $echoes = @(
+                "  [buxed] ...trace incomplete..."
+                "  [BOOT] 0x7F3C... checksum mismatch"
+                "  [HEX] 4B 55 ...fragment corrupted"
+                "  [WARN] Legacy daemon unresolved"
+            )
+            $echo = $echoes | Get-Random
+            Write-Host ""
+            Write-Host $echo -ForegroundColor DarkGray
+            Write-Host ""
+        }
+        Save-ArgState $state
+    }
+
     # Meridian override
     if ($state.Meridian.Active) {
         Write-Host "  [MERIDIAN v7.4.1] Signal stable. Observer active." -ForegroundColor Magenta
@@ -1145,6 +1167,63 @@ function Invoke-ArgMirrorMatch {
     Write-Host "  [HINT] Tippe 'pet pvp' wenn Matrix freigeschaltet ist." -ForegroundColor DarkGray
     Write-Host ""
     Wait-Enter
+}
+
+# === STATUS LEAK ===
+# Subtile, sporadische Fehlermeldungen in status/bank -- wie ein
+# schlecht geschirmtes Kabel, das manchmal Rauschen abgibt.
+# Nicht bei jedem Aufruf. Nicht aufdringlich. Aber wenn der Nutzer
+# oft genug schaut, sieht er irgendwann das Muster.
+function Invoke-ArgStatusLeak {
+    $state = Get-ArgState
+    if ($state.Counters.BootCount -lt 7) { return }
+
+    $leak = $null
+
+    if (-not $state.Unlocked.Rosebud -and (Get-Random -Maximum 100) -lt 12) {
+        $leaks = @(
+            "[SYS] 0x7F3C2A18: unhandled exception in legacy thread"
+            "[KERNEL] buxed[PID]: signal 11 (SIGSEGV)"
+            "[TRACE] Dump incomplete -- 4B 55 52 ..."
+        )
+        $leak = $leaks | Get-Random
+    }
+    elseif ($state.Unlocked.Rosebud -and -not $state.Unlocked.Konami -and $state.Hints.KonamiHintShown -and (Get-Random -Maximum 100) -lt 12) {
+        $leaks = @(
+            "[RNG] Seed anomaly: 4681C3F0A2B7"
+            "[CASINO] Buffer overflow in symbol matrix"
+            "[SYS] Pattern detected where none should exist"
+        )
+        $leak = $leaks | Get-Random
+    }
+    elseif ($state.Unlocked.Konami -and -not $state.Unlocked.Motherlode -and $state.Hints.MotherlodeHintShown -and (Get-Random -Maximum 100) -lt 12) {
+        $leaks = @(
+            "[PET] Deep-storage sectors unreadable"
+            "[MEM] Companion backup contains foreign roots"
+            "[SYS] Previous iteration suspected"
+        )
+        $leak = $leaks | Get-Random
+    }
+    elseif ($state.Unlocked.Motherlode -and -not $state.Unlocked.Iddqd -and $state.Hints.IddqdHintShown -and (Get-Random -Maximum 100) -lt 12) {
+        $leaks = @(
+            "[ADV] Room index 16 exceeded. 17 found."
+            "[MAP] Depth scan echo in sector cafeteria"
+            "[SYS] Recursive structure: depth undefined"
+        )
+        $leak = $leaks | Get-Random
+    }
+    elseif ($state.Unlocked.Iddqd -and -not $state.Unlocked.Matrix -and $state.Hints.MatrixHintShown -and (Get-Random -Maximum 100) -lt 12) {
+        $leaks = @(
+            "[ARCADE] Symbol 'L' consumed by snake process"
+            "[GFX] Dead pixel at address 2147483647"
+            "[SYS] LOOK_CLOSER flag persistent"
+        )
+        $leak = $leaks | Get-Random
+    }
+
+    if ($leak) {
+        Write-Host "  $leak" -ForegroundColor DarkGray
+    }
 }
 
 } catch {

@@ -292,23 +292,23 @@ function Process-AdventureCommand($Cmd) {
             break
         }
         "look" {
-            # Layer 4 ARG trigger: look deeper in cafeteria (Room 8)
+            # ARG v3.0: Raum 17 (Hollow) wird frei, wenn Motherlode unlocked
+            # und IDDQD noch nicht -- der Spiegel zeigt sich nur, wenn man
+            # schon tief genug gegraben hat, aber noch nicht tief genug gefallen.
             if ($Cmd.Noun -eq "deeper" -and $room.Id -eq "cafeteria") {
-                Load-State
-                $arg = $script:BuxeState.Arg
-                if ($arg.Layer3.Solved -eq $true -and $arg.Layer4.Solved -eq $false) {
-                    if ($script:AdvRooms.ContainsKey("hollow")) {
-                        $script:AdvState.CurrentRoom = "hollow"
-                        if ($script:AdvState.Visited -notcontains "hollow") {
-                            $script:AdvState.Visited += "hollow"
-                            $script:AdvState.Score += 5
+                if (Get-Command Test-ArgUnlocked -ErrorAction SilentlyContinue) {
+                    if ((Test-ArgUnlocked "motherlode") -and -not (Test-ArgUnlocked "iddqd")) {
+                        if ($script:AdvRooms.ContainsKey("hollow")) {
+                            $script:AdvState.CurrentRoom = "hollow"
+                            if ($script:AdvState.Visited -notcontains "hollow") {
+                                $script:AdvState.Visited += "hollow"
+                                $script:AdvState.Score += 5
+                            }
+                            $script:AdvStateDirty = $true
+                            $newRoom = Get-Room "hollow"
+                            $result = @{ Success = $true; Message = ""; RoomChanged = $true; CompanionContext = "adventure_look" }
+                            break
                         }
-                        $script:AdvStateDirty = $true
-                        $arg.Layer4.HintSeen = $true
-                        Save-State
-                        $newRoom = Get-Room "hollow"
-                        $result = @{ Success = $true; Message = ""; RoomChanged = $true; CompanionContext = "adventure_look" }
-                        break
                     }
                 }
             }

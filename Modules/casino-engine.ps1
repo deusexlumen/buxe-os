@@ -51,21 +51,6 @@ function Invoke-CasinoGame {
                     }
                 }
                 Write-Host "`n  [GLITCH] Meta-Hack aktiviert! Heute noch einmal verfuegbar." -ForegroundColor Magenta
-
-                # Layer 2 ARG trigger (~30% chance when glitch fires)
-                if ((Get-Random -Maximum 100) -lt 30) {
-                    Load-State
-                    $arg = $script:BuxeState.Arg
-                    if ($arg.Layer1.Solved -eq $true -and $arg.Layer2.Solved -eq $false -and $arg.Layer2.HintSeen -eq $false) {
-                        Write-Host ""
-                        Write-Host "  [GLITCH] Anomalie detektiert..." -ForegroundColor Red
-                        Write-Host "  Die Walzen... sie bewegen sich nicht zufaellig." -ForegroundColor Red
-                        Write-Host "  [DIAMOND] [DIAMOND] [DIAMOND] - Hauptdiagonale gesperrt." -ForegroundColor Red
-                        Write-Host "  SEQ_BUFFER_OVERFLOW: 4681C3F0A2B7..." -ForegroundColor DarkGray
-                        $arg.Layer2.HintSeen = $true
-                        Save-State
-                    }
-                }
             }
         }
 

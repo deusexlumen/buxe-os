@@ -12,6 +12,11 @@ function bank {
     Write-Host "  Casino Gewinn: $($b.CasinoWinnings) G | Verlust: $($b.CasinoLosses) G" -ForegroundColor DarkGray
     Write-Host "  Poker Einkommen: $($b.PokerIncome) G" -ForegroundColor DarkGray
     if ($b.DailyStreak -gt 0) { Write-Host "  Daily Streak: $($b.DailyStreak) Tage" -ForegroundColor Green }
+
+    # ARG v3.0: sporadische Leaks im Bank-Interface
+    if (Get-Command Invoke-ArgStatusLeak -ErrorAction SilentlyContinue) {
+        Invoke-ArgStatusLeak
+    }
 }
 
 function daily {
@@ -120,6 +125,12 @@ function status {
             Write-Host "     Layer 47: Zyklus #$layer | [$progressBar] $nextLayer Aktionen" -ForegroundColor DarkGray
         }
     }
+
+    # ARG v3.0: sporadische System-Leaks -- wie Rauschen auf einer schlechten Leitung
+    if (Get-Command Invoke-ArgStatusLeak -ErrorAction SilentlyContinue) {
+        Invoke-ArgStatusLeak
+    }
+
     Write-Host $bot -ForegroundColor Cyan
     Write-Host ""
 }
@@ -210,11 +221,16 @@ function meta {
 
 # === MERIDIAN STATUS ===
 function MERIDIAN_STATUS {
-    $arg = $script:BuxeState.Arg
-    if (-not $arg -or -not $arg.Layer7.Solved) {
+    if (-not (Get-Command Test-ArgUnlocked -ErrorAction SilentlyContinue)) {
         Write-Host "  [LOCKED] Meridian not yet reached." -ForegroundColor Red
         return
     }
+    if (-not (Test-ArgUnlocked "meridian")) {
+        Write-Host "  [LOCKED] Meridian not yet reached." -ForegroundColor Red
+        return
+    }
+    Load-State
+    $arg = $script:BuxeState.Arg
     Write-Host ""
     Write-Host "  Meridian Status Report:" -ForegroundColor Magenta
     Write-Host "  - Observer ID: 149" -ForegroundColor Cyan

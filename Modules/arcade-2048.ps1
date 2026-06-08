@@ -158,15 +158,11 @@ function Start-Game2048 {
             Invoke-GameSound 'Win'
         }
 
-        # Layer 5 ARG alternative trigger
-        $bestTile = Get-2048BestTile $grid
-        if ($bestTile -ge 65536) {
-            Load-State
-            $arg = $script:BuxeState.Arg
-            if ($arg.Layer4.Solved -eq $true -and $arg.Layer5.Solved -eq $false -and $arg.Layer5.HintSeen -eq $false) {
-                $msg = "65536! KOORDINATEN: 47.42N 8.32E"
-                $arg.Layer5.HintSeen = $true
-                Save-State
+        # ARG v3.0: Matrix-Hinweis bei 65536 -- nur wenn IDDQD unlocked, Matrix noch nicht
+        if (Get-Command Test-ArgUnlocked -ErrorAction SilentlyContinue) {
+            $bestTile = Get-2048BestTile $grid
+            if ($bestTile -ge 65536 -and (Test-ArgUnlocked "iddqd") -and -not (Test-ArgUnlocked "matrix")) {
+                Write-Host "  65536! KOORDINATEN: 47.42N 8.32E" -ForegroundColor DarkGray
             }
         }
 
