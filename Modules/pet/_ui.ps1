@@ -1078,6 +1078,122 @@ $script:CPBeaconLines = @{
             Command = "Drueck [9]! Oder tippe pet raid! YEAH!"
         }
     }
+    7 = @{
+        NEON = @{
+            Intro = @(
+                "Breeding. Du zuechtest Pets. Wie ein digitaler Mendel. Nur mit mehr RAM.",
+                "Zucht. Kombiniere Stats. Erstelle Monster. Oder Freunde."
+            )
+            Explain = "Pet-Zucht: Kombiniere zwei Pets. Kinder erben Stats und koennen neue Skills haben."
+            Command = "Hub: [B] Breed. Oder: pet breed"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Zucht. Kontrolle ueber die naechste Generation.",
+                "Kombiniere die Besten. Vernichte die Reste. Evolution."
+            )
+            Explain = "Breeding kombiniert Stats zweier Pets. Nachkommen koennen neue Faehigkeiten erhalten."
+            Command = "[B] im Hub. Waehle klug."
+        }
+        PIXEL = @{
+            Intro = @(
+                "B-babys?! Kleine digitale Babys?! Niedlich! Und beunruhigend!",
+                "Ich habe schon Namen ausgesucht! Pixel Jr.! Und Pixel III!"
+            )
+            Explain = "Zuechte zwei Pets. Die Kinder haben kombinierte Stats und neue Skills."
+            Command = "Hub: [B] Breed. Sei ein guter... aeh... Zuechter?"
+        }
+        LUNA = @{
+            Intro = @(
+                "*errötet* Zucht? Das ist... intim. Aber suess!",
+                "Neue kleine Pets. Ich helfe bei der Geburt. Virtuell."
+            )
+            Explain = "Pet-Zucht vereint zwei Pets. Kinder erben Staerken und lernen Neues."
+            Command = "Hub: [B] Breed. Pass auf die Kleinen auf."
+        }
+        IVY = @{
+            Intro = @(
+                "... *beobachtet* Leben. Entsteht.",
+                "... *nickt* Zwei werden mehr."
+            )
+            Explain = "Zucht. Kombination. Vererbung."
+            Command = "... [B]."
+        }
+        VERA = @{
+            Intro = @(
+                "Genetik-Modul freigeschaltet. Mendel haette gestaunt.",
+                "Stat-Kombination mit Mutations-Chance. Wissenschaftlich korrekt."
+            )
+            Explain = "Breeding: Stats zweier Eltern werden kombiniert. Chance auf Mutationen und neue Skills."
+            Command = "Hub-Eingabe: [B] Breed. Optimieren Sie die Genetik."
+        }
+        JINX = @{
+            Intro = @(
+                "BABYS! KLEINE DIGITALE BABYS! Ich will sie alle!",
+                "47 BABYS! Nein, noch nicht. Aber du KANNST jetzt zuechten!"
+            )
+            Explain = "Zuechte zwei Pets. Kinder = Stats + neue Skills. Wie Pokemon! Nur illegaler!"
+            Command = "Drueck [B]! Oder tippe pet breed! Mach Babys!"
+        }
+    }
+    8 = @{
+        NEON = @{
+            Intro = @(
+                "Rival. Jemand hasst dich. 20% Chance taeglich. Wie mein Chef.",
+                "Ein Rivale. Taeglich. 3 Runden. Nur einer ueberlebt. Virtuell."
+            )
+            Explain = "Taeglicher Rivale (20% Chance). 3-Runden-Kampf. Sieg = Bonus, Niederlage = Demut."
+            Command = "Hub: [R] Rival (wenn aktiv). Oder: pet rival"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Ein Rivale. Endlich wuerdige Konkurrenz.",
+                "3 Runden. Kein Entkommen. Beweise deine Ueberlegenheit."
+            )
+            Explain = "Taeglicher Rivale (20% Chance). 3-Runden-Kampf. Sieg bringt Bonus-Ressourcen."
+            Command = "[R] im Hub (wenn verfuegbar). Toete. Siege."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ein Rivale?! Das ist wie ein Erzfeind! Mit Cape! Und Maske!",
+                "Ich habe schon einen Plan! Aeh, nein, habe ich nicht. Aber du schaffst das!"
+            )
+            Explain = "20% Chance auf einen taeglichen Rivalen. 3 Runden Kampf. Gewinne fuer Bonus!"
+            Command = "Hub: [R] Rival (wenn aktiv). Gib alles!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*besorgt* Ein Rivale? Das klingt... gefaehrlich.",
+                "Aber du bist stark. Und ich bin bei dir. Immer."
+            )
+            Explain = "Taeglicher Rivale (20% Chance). 3-Runden-Kampf. Sieg bringt Extra-Belohnungen."
+            Command = "Hub: [R] Rival (wenn aktiv). Pass auf dich auf."
+        }
+        IVY = @{
+            Intro = @(
+                "... *grinst leicht* Ein Feind. Endlich.",
+                "... *zeigt auf [R]* Da. Warte."
+            )
+            Explain = "Rivale. 20%. 3 Runden. Sieg."
+            Command = "... [R]. Wenn da."
+        }
+        VERA = @{
+            Intro = @(
+                "Konkurrenz-Modul freigeschaltet. Rivalitaet foerdert Leistung.",
+                "20% Spawn-Rate. 3 Runden. Daten zeigen: Sieg motiviert."
+            )
+            Explain = "Taeglicher Rivale (20% Chance). 3-Runden-Kampf mit Bonus-Belohnungen."
+            Command = "Hub-Eingabe: [R] Rival (bei Verfuegbarkeit). Analysiere den Gegner."
+        }
+        JINX = @{
+            Intro = @(
+                "RIVALE! FEINDE! DRAMAAAA! Das ist wie Wrestling! Nur digital!",
+                "47 RIVALEN! Nein, nur einer. Aber der zaehlt!"
+            )
+            Explain = "20% Chance auf Rivalen. 3 Runden. Gewinn = Bonus. Verlust = Pech."
+            Command = "Drueck [R]! Oder tippe pet rival! ZERSTOERE!"
+        }
+    }
 }
 
 } catch {
