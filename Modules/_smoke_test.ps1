@@ -15,6 +15,9 @@ $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $petModules = Get-ChildItem "$modDir\pet\*.ps1" | Sort-Object Name
 foreach ($pm in $petModules) { . $pm.FullName }
 
+# Save original pet state before any mutation tests
+$originalPetState = Get-PetState | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+
 try {
 
 $errors = 0; $tests = 0
@@ -79,13 +82,19 @@ Test-Assert "Show-PetFrame runs without error" ($? -eq $true)
 Test-Assert "Pet hub function exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
 
 # Pet Beacon System v24.11
-$petState = Get-PetState
-Test-Assert "Pet Tutorial PendingBeacons default array" ($petState.Tutorial.PendingBeacons -is [array])
-Test-Assert "Pet Tutorial PendingBeacons default empty" ($petState.Tutorial.PendingBeacons.Count -eq 0)
-Test-Assert "Pet Tutorial BeaconsShown default array" ($petState.Tutorial.BeaconsShown -is [array])
-Test-Assert "Pet Tutorial BeaconsShown default empty" ($petState.Tutorial.BeaconsShown.Count -eq 0)
+$petDefaults = Get-PetDefaults
+Test-Assert "Pet Tutorial PendingBeacons default array" ($petDefaults.Tutorial.PendingBeacons -is [array])
+Test-Assert "Pet Tutorial PendingBeacons default empty" ($petDefaults.Tutorial.PendingBeacons.Count -eq 0)
+Test-Assert "Pet Tutorial BeaconsShown default array" ($petDefaults.Tutorial.BeaconsShown -is [array])
+Test-Assert "Pet Tutorial BeaconsShown default empty" ($petDefaults.Tutorial.BeaconsShown.Count -eq 0)
 
 # Queue-LevelUpBeacon
+# Clear any prior test pollution before testing queue behavior
+$cleanState = Get-PetState
+$cleanState.Tutorial.PendingBeacons = @()
+$cleanState.Tutorial.BeaconsShown = @()
+Save-PetState $cleanState
+
 Queue-LevelUpBeacon 5
 $petState2 = Get-PetState
 Test-Assert "Queue-LevelUpBeacon adds to PendingBeacons" ($petState2.Tutorial.PendingBeacons -contains 5)
@@ -517,6 +526,10 @@ Test-Assert "Invoke-ArgLayer6CompanionDialog function exists" ((Get-Command Invo
 Test-Assert "Invoke-ArgLayer7CompanionDialog function exists" ((Get-Command Invoke-ArgLayer7CompanionDialog -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "MERIDIAN_STATUS function exists" ((Get-Command MERIDIAN_STATUS -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "meta command exists" ((Get-Command meta -ErrorAction SilentlyContinue) -ne $null)
+
+# Restore original pet state to prevent test pollution
+$originalPetState.Tutorial.BeaconsShown = @($originalPetState.Tutorial.BeaconsShown | Select-Object -Unique)
+Save-PetState $originalPetState
 
 # === SUMMARY ===
 Write-Host "`n  ========================================" -ForegroundColor Cyan
