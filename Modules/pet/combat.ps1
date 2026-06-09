@@ -21,6 +21,30 @@ $script:BPEnemies = @(
     @{ Name = "SHADOW_DEMON"; Type = "DARK"; HP = 90; ATK = 15; DEF = 8; SPD = 12 }
 )
 
+$script:BPAttacks = @{
+    "Neural Overload" = @{ Type = "VIRUS"; Power = 40; Accuracy = 95; Effect = "Poison"; EffectChance = 35 }
+    "Bit Crusher"     = @{ Type = "NORM";  Power = 35; Accuracy = 100; Effect = $null; EffectChance = 0 }
+    "Debug Patch"     = @{ Type = "NORM";  Power = 30; Accuracy = 100; Effect = "Heal"; EffectChance = 100 }
+    "Plasma Lance"    = @{ Type = "FIRE";  Power = 50; Accuracy = 85;  Effect = "Burn"; EffectChance = 30 }
+    "Ice Spike"       = @{ Type = "ICE";   Power = 45; Accuracy = 90;  Effect = "Freeze"; EffectChance = 25 }
+    "System Purge"    = @{ Type = "VIRUS"; Power = 55; Accuracy = 80;  Effect = "Poison"; EffectChance = 40 }
+    "Water Cannon"    = @{ Type = "WATER"; Power = 45; Accuracy = 90;  Effect = $null; EffectChance = 0 }
+    "Overclock"       = @{ Type = "ELEC";  Power = 60; Accuracy = 75;  Effect = "Paralyze"; EffectChance = 20 }
+    "Shadow Claw"     = @{ Type = "DARK";  Power = 50; Accuracy = 85;  Effect = "DEF-Down"; EffectChance = 40 }
+    "Firewall"        = @{ Type = "FIRE";  Power = 40; Accuracy = 95;  Effect = "Burn"; EffectChance = 35 }
+    "Zero-Day"        = @{ Type = "VIRUS"; Power = 70; Accuracy = 70;  Effect = "Poison"; EffectChance = 50 }
+}
+
+$script:BossPatterns = @{
+    "BOSS_OMEGA" = @{
+        Phases = @(
+            @{ HPPercent = 100; Behavior = "Random"; Tell = $null; WarnTurns = 0 }
+            @{ HPPercent = 50;  Behavior = "Aggressive"; Tell = "Der BOSS_OMEGA laedt seinen OMEGA-BEAM auf..."; WarnTurns = 1 }
+            @{ HPPercent = 25;  Behavior = "Desperate"; Tell = "BOSS_OMEGA ueberhitzt! Kerninstabilitaet erkannt!"; WarnTurns = 1 }
+        )
+    }
+}
+
 function New-Pet {
     try { Clear-Host } catch {}
     Show-PetFrame "BATTLEPET INITIALISIERUNG" -Double | Out-Null
