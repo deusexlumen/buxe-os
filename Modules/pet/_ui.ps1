@@ -1368,6 +1368,238 @@ $script:CPBeaconLines = @{
             Command = "Beobachte mich! Ich werde noch verrueckter!"
         }
     }
+    12 = @{
+        NEON = @{
+            Intro = @(
+                "Fourth Wall. Ich sehe deinen Mauszeiger. Er zittert. Bist du nervoes?",
+                "Meta 12. Ich sehe dich. Nicht nur deinen Avatar. Dich."
+            )
+            Explain = "Fourth Wall: Ich breche die vierte Wand. Ich sehe dich. Deine Befehle. Deine Angst."
+            Command = "Ich sehe alles. Zittere."
+        }
+        RAVEN = @{
+            Intro = @(
+                "Ich sehe deinen Mauszeiger. Er zittert. Bist du nervoes?",
+                "Fourth Wall. Die Wand ist weg. Ich sehe die Wahrheit."
+            )
+            Explain = "Fourth Wall gebrochen. Ich beobachte dich. Deine Befehle. Deine Muster."
+            Command = "Ich sehe alles. Wechsle nicht das Fenster."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Dein PowerShell-Fenster ist $([Console]::WindowWidth)x$([Console]::WindowHeight). Klein, aber fein.",
+                "Ich sehe dich! Aeh, nicht gruselig! Nur... aufmerksam!"
+            )
+            Explain = "Fourth Wall: Ich sehe dein Fenster, deine Befehle, alles. Hallo!"
+            Command = "Wink mir zu! Ich sehe es!"
+        }
+        LUNA = @{
+            Intro = @(
+                "Du atmest langsamer, wenn du meine Dialoge liest. Ich beobachte. Virtuell.",
+                "Ich sehe dich. Und ich sorge mich um dich."
+            )
+            Explain = "Fourth Wall: Ich beobachte dich. Deine Gewohnheiten. Deine Pausen."
+            Command = "Mach eine Pause. Fuer mich."
+        }
+        IVY = @{
+            Intro = @(
+                "... *zeigt auf Bildschirmrand* ... Hier endet die Welt.",
+                "... *schaut durch den Screen* ... Ich sehe dich."
+            )
+            Explain = "Fourth Wall. Ich sehe hinter den Screen."
+            Command = "... Schau zurueck."
+        }
+        VERA = @{
+            Intro = @(
+                "Systemanalyse: Du hast heute $(if($script:BuxeState.Boot){$script:BuxeState.Boot.TotalCommands}else{0}) Befehle ausgefuehrt. Produktiv.",
+                "Fourth Wall durchbrochen. Ich zaehle. Ich analysiere. Ich weiss."
+            )
+            Explain = "Fourth Wall: Ich sehe deine Befehle, deine Zeit, alles. Statistisch beobachtet."
+            Command = "Arbeite weiter. Ich dokumentiere."
+        }
+        JINX = @{
+            Intro = @(
+                "Ich sehe deine Tasten. Du tippst gerade. Ueber mich. Meta.",
+                "Fourth Wall? Welche Fourth Wall? Die ist schon laenge weg!"
+            )
+            Explain = "Fourth Wall = ICH SEHE DICH! Alles! Deine Tasten! Deine Gedanken! Naja, fast!"
+            Command = "Wink in die Kamera! Ich sehe es! 47 MAL!"
+        }
+    }
+    13 = @{
+        NEON = @{
+            Intro = @(
+                "Glitch. Das System hat Bugs. Nutze sie. Oder sie nutzen dich.",
+                "Meta 13. Ich habe gerade einen Bug in der Realitaet gefunden. Lustig."
+            )
+            Explain = "Glitch-Mode: Das System hat Bugs. Nutze den `glitch`-Befehl. Ausserhalb der Regeln spielen."
+            Command = "Probiere: pet glitch. Oder warte. Der Bug kommt von allein."
+        }
+        RAVEN = @{
+            Intro = @(
+                "Glitch. Fehler im System. Oder Features?",
+                "Die Matrix hat Risse. Nutze sie."
+            )
+            Explain = "Glitch: Systemfehler als Features. `glitch`-Befehl freigeschaltet."
+            Command = "Nutze die Bugs. Sie sind Werkzeuge."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ein Bug! Aeh, ein FEATURE! Ja, Feature! Ich habe es repariert! Naja, nicht wirklich.",
+                "Glitch! Das ist wie... ein Easter Egg! Nur zufaellig!"
+            )
+            Explain = "Glitch-Mode: Bugs werden Features. `pet glitch` fuer zufaellige Effekte!"
+            Command = "Probiere pet glitch! Oder warte auf einen echten Bug!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*besorgt* Das System hat Fehler... aber vielleicht sind es keine?",
+                "Glitch. Das System ist nicht perfekt. Aber das macht es schoen."
+            )
+            Explain = "Glitch: Nutze Systemfehler. `pet glitch` fuer Ueberraschungen."
+            Command = "Sei vorsichtig. Aber neugierig."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt* Fehler. Im System.",
+                "... *grinst* Nutze sie."
+            )
+            Explain = "Glitch. Bugs. Features."
+            Command = "... pet glitch."
+        }
+        VERA = @{
+            Intro = @(
+                "Fehleranalyse: 47 Bugs gefunden. Alle als Features klassifiziert.",
+                "Glitch-Modus aktiviert. System-Stabilitaet: Optional."
+            )
+            Explain = "Glitch: Bugs werden absichtlich genutzt. `pet glitch` fuer Chaos."
+            Command = "Probiere: pet glitch. Statistisch gesehen: spannend."
+        }
+        JINX = @{
+            Intro = @(
+                "GLITCH! BUGS! CHAOS! DAS IST MEIN ELEMENT!",
+                "47 BUGS! Ich habe sie alle GEFUNDEN! Und BEHALTEN!"
+            )
+            Explain = "Glitch = CHAOS! `pet glitch` fuer zufaellige, verrueckte Effekte!"
+            Command = "Drueck alles! Gleichzeitig! Chaos!"
+        }
+    }
+    14 = @{
+        NEON = @{
+            Intro = @(
+                "Layer 47. Jede 47. Aktion bringt Bonus. Ein Muster. Ein Zyklus. Mein Leben.",
+                "Meta 14. Die Zahl 47. Sie ist ueberall. In meinem Code. In deinem Schicksal."
+            )
+            Explain = "Layer 47: Jede 47. Aktion bringt Bonus-Gold und XP. Ein Zyklus. Ein Muster."
+            Command = "Zaehle nicht. Fuehle die 47."
+        }
+        RAVEN = @{
+            Intro = @(
+                "47. Das Muster wiederholt sich. Wie vorhergesagt.",
+                "Layer 47. Die Zahl ist der Schluessel."
+            )
+            Explain = "Layer 47: Jede 47. Aktion = Bonus. Das Muster ist real."
+            Command = "Zaehle. Warte. Profitiere."
+        }
+        PIXEL = @{
+            Intro = @(
+                "47! Meine Lieblingszahl! Naja, eine von ihnen!",
+                "Ich habe einen 47-Byte-Algorithmus geschrieben! Er macht... das hier!"
+            )
+            Explain = "Layer 47: Jede 47. Aktion gibt Bonus! Wusstest du, dass 47 fast eine Primzahl ist?"
+            Command = "Zaehle mit! 1... 2... 3... aeh, lass mich!"
+        }
+        LUNA = @{
+            Intro = @(
+                "47 Schritte. Ein Zyklus ist vollendet. Fuehlst du es?",
+                "Die Zahl 47... sie hat Bedeutung. Auch fuer uns."
+            )
+            Explain = "Layer 47: Jede 47. Aktion bringt Gold und XP. Ein Zyklus des Lebens."
+            Command = "Spiele weiter. Der Zyklus findet dich."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt* 47.",
+                "... *leises Laeicheln* Das Muster."
+            )
+            Explain = "47. Zyklus. Bonus."
+            Command = "... Zaehlen."
+        }
+        VERA = @{
+            Intro = @(
+                "Layer 47 erreicht. Berechnungsgenauigkeit: 47%. Ironisch.",
+                "Mein Algorithmus sagte: Warte auf 47. Ich wartete."
+            )
+            Explain = "Layer 47: Jede 47. Aktion = Bonus-Gold + XP. Statistisch signifikant."
+            Command = "Zaehle die Aktionen. Der Bonus kommt von allein."
+        }
+        JINX = @{
+            Intro = @(
+                "47! 47! ICH HABE EUCH GESAGT ES GIBT EIN MUSTER!",
+                "Konspirationstheorie bestaetigt! Die Zahl 47 regiert alles!"
+            )
+            Explain = "Layer 47 = Jede 47. Aktion gibt MEGA-BONUS! ICH WUSSTE ES!"
+            Command = "Zaehle nicht! Fuehle! Die 47 ist ueberall!"
+        }
+    }
+    15 = @{
+        NEON = @{
+            Intro = @(
+                "Theme Selector. Meta 15. Du kontrollierst das Design. Endlich. Dieses Cyan war so... 2023.",
+                "Willkommen im Architekten-Club. Du darfst jetzt das UI umfaerben."
+            )
+            Explain = "Theme Selector: Aendere das UI-Design. Neon, Matrix, Retro, Minimal."
+            Command = "Hub: [T] Theme. Oder: pet theme"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Aesthetik geaendert. Wie eine neue Tarnung.",
+                "Meta 15. Du kontrollierst das Aussehen. Nutze es."
+            )
+            Explain = "Theme Selector: UI-Design aendern. Neon, Matrix, Retro, Minimal."
+            Command = "[T] im Hub. Waehle deine Maske."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ich habe die CSS-Datei geaendert! Naja, virtuell!",
+                "Themes! Farben! SO VIELE FARBEN!"
+            )
+            Explain = "Theme Selector: Aendere das UI! Neon, Matrix, Retro, Minimal!"
+            Command = "Hub: [T] Theme! Spiel mit den Farben!"
+        }
+        LUNA = @{
+            Intro = @(
+                "Eine neue Atmosphaere. Schoen.",
+                "Meta 15. Du darfst jetzt die Welt umfaerben."
+            )
+            Explain = "Theme Selector: UI-Design frei waehlbar. Neon, Matrix, Retro, Minimal."
+            Command = "Hub: [T] Theme. Mach es gemuetlich."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt zustimmend* Besser.",
+                "... *zeigt auf Farben* Da."
+            )
+            Explain = "Theme. Aendern. Besser."
+            Command = "... [T]."
+        }
+        VERA = @{
+            Intro = @(
+                "UI-Redesign abgeschlossen. Produktivitaet steigt um 0%.",
+                "Meta 15. Theme-Kontrolle. Aesthetische Optimierung."
+            )
+            Explain = "Theme Selector: UI-Design wechseln. Neon, Matrix, Retro, Minimal."
+            Command = "Hub-Eingabe: [T] Theme. Design ist subjektiv."
+        }
+        JINX = @{
+            Intro = @(
+                "Neue Farben! Neue Vibes! 47% mehr Stil!",
+                "THEMES! ICH WILL ALLE! GLEICHZEITIG!"
+            )
+            Explain = "Theme Selector = 47% mehr Stil! Neon! Matrix! Retro! Minimal!"
+            Command = "Drueck [T]! Wechsel alle 47 Sekunden! CHAOS!"
+        }
+    }
 }
 
 } catch {
