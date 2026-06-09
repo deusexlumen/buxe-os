@@ -482,6 +482,131 @@ function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $player
     Write-Host ""
 }
 
+function Select-PlayerAttack($playerPet) {
+    Write-Host "`n  Verfuegbare Attacken:" -ForegroundColor Cyan
+    for ($i = 0; $i -lt $playerPet.Attacks.Count; $i++) {
+        $atkName = $playerPet.Attacks[$i]
+        $atk = $script:BPAttacks[$atkName]
+        if ($atk) {
+            Write-Host "    [$($i+1)] $atkName [$($atk.Type)] Pwr:$($atk.Power) Acc:$($atk.Accuracy)%" -ForegroundColor White
+        } else {
+            Write-Host "    [$($i+1)] $atkName [?]" -ForegroundColor White
+        }
+    }
+    Write-Host "    [Q] Zurueck" -ForegroundColor DarkGray
+    $choice = Read-Choice "Attacke" "^([1-$($playerPet.Attacks.Count)]|Q)$"
+    if ($choice -eq 'Q') { return $null }
+    return $playerPet.Attacks[[int]$choice - 1]
+}
+
+function Get-CompanionCooldown($cpName) {
+    switch ($cpName) {
+        "NEON"  { 3 }
+        "RAVEN" { 2 }
+        "PIXEL" { 3 }
+        "LUNA"  { 3 }
+        "IVY"   { 4 }
+        "VERA"  { 2 }
+        "JINX"  { 1 }
+        default { 3 }
+    }
+}
+
+function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats) {
+    $stanceMod = switch ($combatState.PlayerStance) {
+        "Aggressiv" { @{ ATK = 1.5; DEF = 0.5 } }
+        "Defensiv"  { @{ ATK = 0.5; DEF = 1.5 } }
+        "Speed"     { @{ ATK = 1.0; DEF = 1.0; SPD = 1.5 } }
+        default     { @{ ATK = 1.0; DEF = 1.0 } }
+    }
+    
+    $narrative = ""
+    $damageDealt = 0
+    $damageTaken = 0
+    $effectApplied = $null
+    
+    switch ($action) {
+        "1" { # Attack
+            $attackName = Select-PlayerAttack $playerPet
+            if (-not $attackName) { return $null }
+            $attack = $script:BPAttacks[$attackName]
+            $narrative = "Dein $($playerPet.Name) setzt $attackName ein!"
+            
+            $accRoll = Get-Random -Minimum 1 -Maximum 101
+            if ($accRoll -le $attack.Accuracy) {
+                $playerMod = Get-ElementModifier $attack.Type $enemy.Type
+                $baseDmg = $attack.Power + $playerStats.ATK
+                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod * 2) * (100 / (100 + $enemy.DEF))))
+                $damageDealt = $dmg
+                $enemy.HP -= $dmg
+                
+                if ($playerMod -gt 1.0) { $narrative += " Typ-Vorteil!" }
+                if ($playerMod -lt 1.0) { $narrative += " Typ-Nachteil..." }
+                $narrative += " Treffer! -$dmg HP!"
+                
+                if ($attack.Effect -and (Get-Random -Minimum 1 -Maximum 101) -le $attack.EffectChance) {
+                    $effectApplied = $attack.Effect
+                    $turns = if ($attack.Effect -eq "Freeze") { 1 } elseif ($attack.Effect -eq "Paralyze") { 2 } else { 3 }
+                    $val = if ($attack.Effect -eq "Poison") { 0.03 } elseif ($attack.Effect -eq "Burn") { 0.05 } else { 0 }
+                    $combatState.StatusEffects += @{
+                        Target = "enemy"; Type = $attack.Effect; Turns = $turns; Value = $val
+                    }
+                    $narrative += " [$($attack.Effect)!]"
+                }
+            } else {
+                $narrative += " Verfehlt!"
+            }
+        }
+        "2" { # Defend
+            $narrative = "$($playerPet.Name) nimmt Defensiv-Stance ein! Einkommender Schaden halbiert!"
+        }
+        "3" { # Switch
+            $narrative = "Du wechselst das Pet! (Diese Runde greift der Gegner frei an.)"
+        }
+        "4" { # Companion
+            if ($companion) {
+                $cd = if ($combatState.CompanionCooldowns.ContainsKey($companion.Name)) { $combatState.CompanionCooldowns[$companion.Name] } else { 0 }
+                if ($cd -gt 0) {
+                    $narrative = "$($companion.Name) ist noch auf Cooldown ($cd Runden)!"
+                } else {
+                    $narrative = Use-CompanionCommand $companion $playerPet $enemy $combatState $playerStats
+                    $combatState.CompanionCooldowns[$companion.Name] = Get-CompanionCooldown $companion.Name
+                }
+            } else {
+                $narrative = "Kein Companion verfuegbar!"
+            }
+        }
+        "5" { # Item
+            $narrative = Use-CombatItem $playerPet $combatState
+        }
+        "6" { # Flee
+            $fleeChance = [math]::Min(95, [math]::Round(($playerStats.SPD / ($playerStats.SPD + $enemyStats.SPD)) * 100))
+            $fleeRoll = Get-Random -Minimum 1 -Maximum 101
+            if ($fleeRoll -le $fleeChance) {
+                $narrative = "Flucht erfolgreich! Du bist entkommen!"
+                $combatState.FleeAttempted = $true
+            } else {
+                $narrative = "Flucht fehlgeschlagen! Der Gegner blockiert den Weg!"
+            }
+        }
+        "F1" { $combatState.PlayerStance = "Aggressiv"; $narrative = "Stance gewechselt: Aggressiv! ATK x1.5, DEF x0.5" }
+        "F2" { $combatState.PlayerStance = "Defensiv";  $narrative = "Stance gewechselt: Defensiv! DEF x1.5, ATK x0.5" }
+        "F3" { $combatState.PlayerStance = "Speed";     $narrative = "Stance gewechselt: Speed! SPD x1.5" }
+        "F4" { $combatState.PlayerStance = "Balanced"; $narrative = "Stance gewechselt: Balanced! Keine Modifikation." }
+    }
+    
+    if ($narrative) {
+        Write-Host "`n  $narrative" -ForegroundColor White
+    }
+    
+    return @{
+        DamageDealt = $damageDealt
+        DamageTaken = $damageTaken
+        EffectApplied = $effectApplied
+        ActionType = $action
+    }
+}
+
 } catch {
     Write-Host "[pet/combat] CRITICAL ERROR: $_" -ForegroundColor Red
 }
