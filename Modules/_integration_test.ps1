@@ -175,6 +175,32 @@ Save-State
 $pet = Get-PetState
 Test-Assert "Pet state migration sets Tutorial.Completed=true" ($pet.Tutorial.Completed -eq $true)
 
+# Beacon System Integration
+$pet = Get-PetState
+$originalPending = $pet.Tutorial.PendingBeacons.Clone()
+$originalShown = $pet.Tutorial.BeaconsShown.Clone()
+
+# Test Queue
+Queue-LevelUpBeacon 8
+$pet = Get-PetState
+Test-Assert "Integration: Beacon queued" ($pet.Tutorial.PendingBeacons -contains 8)
+
+# Test State Roundtrip
+Save-PetState $pet
+Load-State
+$pet = Get-PetState
+Test-Assert "Integration: Beacon survives save/load" ($pet.Tutorial.PendingBeacons -contains 8)
+
+# Test duplicate prevention
+Queue-LevelUpBeacon 8
+$pet = Get-PetState
+Test-Assert "Integration: Duplicate queue ignored" ($pet.Tutorial.PendingBeacons.Count -eq 1)
+
+# Cleanup
+$pet.Tutorial.PendingBeacons = $originalPending
+$pet.Tutorial.BeaconsShown = $originalShown
+Save-PetState $pet
+
 # Test 15: Adventure engine loads
 Test-Assert "Adventure engine loaded" ((Get-Command Invoke-Adventure -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Adventure alias 'adv' exists" ((Get-Command adv -ErrorAction SilentlyContinue) -ne $null)
