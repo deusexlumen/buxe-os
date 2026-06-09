@@ -758,6 +758,95 @@ function Use-CombatItem($playerPet, $combatState) {
     return $narrative
 }
 
+function Apply-StatusEffects($combatState, $playerPet, $enemy, $playerStats, $enemyStats) {
+    $messages = @()
+    $effectsToRemove = @()
+    
+    for ($i = 0; $i -lt $combatState.StatusEffects.Count; $i++) {
+        $se = $combatState.StatusEffects[$i]
+        $se.Turns--
+        
+        if ($se.Turns -lt 0) {
+            $effectsToRemove += $i
+            continue
+        }
+        
+        switch ($se.Type) {
+            "Burn" {
+                if ($se.Target -eq "enemy") {
+                    $dmg = [math]::Max(1, [math]::Round($enemy.MaxHP * $se.Value))
+                    $enemy.HP -= $dmg
+                    $messages += "$($enemy.Name) erleidet BURN! -$dmg HP!"
+                } else {
+                    $dmg = [math]::Max(1, [math]::Round($playerPet.MaxHP * $se.Value))
+                    $playerPet.HP -= $dmg
+                    $messages += "$($playerPet.Name) erleidet BURN! -$dmg HP!"
+                }
+            }
+            "Poison" {
+                if ($se.Target -eq "enemy") {
+                    $dmg = [math]::Max(1, [math]::Round($enemy.MaxHP * $se.Value))
+                    $enemy.HP -= $dmg
+                    $messages += "$($enemy.Name) erleidet POISON! -$dmg HP!"
+                } else {
+                    $dmg = [math]::Max(1, [math]::Round($playerPet.MaxHP * $se.Value))
+                    $playerPet.HP -= $dmg
+                    $messages += "$($playerPet.Name) erleidet POISON! -$dmg HP!"
+                }
+            }
+            "DEF-Down" { }
+            "DEF-Up"   { }
+            "ATK-Up"   { }
+            "Silence"  { }
+        }
+    }
+    
+    for ($i = $effectsToRemove.Count - 1; $i -ge 0; $i--) {
+        $idx = $effectsToRemove[$i]
+        $combatState.StatusEffects = $combatState.StatusEffects | Where-Object { $_ -ne $combatState.StatusEffects[$idx] }
+    }
+    
+    return $messages
+}
+
+function Invoke-LimitBreak($playerPet, $enemy, $combatState, $playerStats, $companion) {
+    if ($combatState.LimitBreakUsed) { return $null }
+    if (-not $playerPet.LimitBreakUnlocked) { return $null }
+    $hpRatio = $playerPet.HP / $playerStats.MaxHP
+    if ($hpRatio -gt 0.25) { return $null }
+    
+    Write-Host "`n  LIMIT BREAK VERFUEGBAR!" -ForegroundColor Magenta
+    Write-Host "  [L] Aktivieren  |  [Enter] Ignorieren" -ForegroundColor DarkGray
+    $choice = Read-Host
+    if ($choice -ne 'L' -and $choice -ne 'l') { return $null }
+    
+    $combatState.LimitBreakUsed = $true
+    $attackName = $playerPet.Attacks | Get-Random
+    $narrative = "LIMIT BREAK: $($playerPet.Name) entfesselt OMEGA-$attackName!"
+    
+    $baseDmg = ($script:BPAttacks[$attackName].Power + $playerStats.ATK) * 2.5
+    $playerMod = Get-ElementModifier $playerPet.Type $enemy.Type
+    $dmg = [math]::Max(1, [math]::Round(($baseDmg * $playerMod * 2) * (100 / (100 + $enemy.DEF))))
+    $enemy.HP -= $dmg
+    
+    $narrative += " MEGA-Treffer! -$dmg HP! [Garantierter Status Effect!]"
+    
+    $effects = @("Burn","Poison","Paralyze","DEF-Down")
+    $guaranteedEffect = $effects | Get-Random
+    $combatState.StatusEffects += @{
+        Target = "enemy"; Type = $guaranteedEffect; Turns = 3
+        Value = if ($guaranteedEffect -eq "Poison") { 0.05 } elseif ($guaranteedEffect -eq "Burn") { 0.08 } else { 0 }
+    }
+    
+    if ($companion) {
+        Show-CompanionDialog $companion "Das ist es! Unser finales Argument! NICHTS kann uns jetzt noch stoppen!" -NoWait
+    }
+    
+    Write-Host "`n  $narrative" -ForegroundColor Magenta
+    Wait-Enter
+    return $narrative
+}
+
 } catch {
     Write-Host "[pet/combat] CRITICAL ERROR: $_" -ForegroundColor Red
 }
