@@ -103,6 +103,51 @@ Queue-LevelUpBeacon 5
 $petState4 = Get-PetState
 Test-Assert "Duplicate beacon rejected (already in BeaconsShown)" ($petState4.Tutorial.PendingBeacons.Count -eq 0)
 
+# === TACTICAL COMBAT SYSTEM TESTS ===
+Write-Host "`n  Testing Tactical Combat System..." -ForegroundColor Yellow
+$pet = Get-PetState
+$pet.Pet = @{
+    Name = "GLITCH_WOLF"; Type = "VIRUS"; Level = 3; XP = 0; NextXP = 50
+    HP = 100; MaxHP = 100; ATK = 16; DEF = 7; SPD = 12
+    Color = "Magenta"; Attacks = @("Neural Overload","Bit Crusher","Plasma Lance")
+    Wins = 0; Losses = 0; Evolved = $false; Personality = "Balanced"
+    Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }
+    FoodBuffs = @(); LimitBreakUnlocked = $true
+}
+Save-PetState $pet
+
+# Test Show-HPBar
+$bar = Show-HPBar 50 100
+Test-Assert "Show-HPBar renders bar" ($bar.Bar.Contains("█") -and $bar.Bar.Contains("░"))
+Test-Assert "Show-HPBar color at 50%" ($bar.Color -eq "Yellow")
+Test-Assert "Show-HPBar percent correct" ($bar.Percent -eq 50)
+
+$bar2 = Show-HPBar 80 100
+Test-Assert "Show-HPBar green above 50%" ($bar2.Color -eq "Green")
+
+$bar3 = Show-HPBar 20 100
+Test-Assert "Show-HPBar red below 25%" ($bar3.Color -eq "Red")
+
+# Test BPAttacks
+Test-Assert "BPAttacks has Neural Overload" ($script:BPAttacks.ContainsKey("Neural Overload"))
+Test-Assert "BPAttacks Plasma Lance is FIRE" ($script:BPAttacks["Plasma Lance"].Type -eq "FIRE")
+Test-Assert "BPAttacks Neural Overload has Poison effect" ($script:BPAttacks["Neural Overload"].Effect -eq "Poison")
+
+# Test BossPatterns
+Test-Assert "BossPatterns has BOSS_OMEGA" ($script:BossPatterns.ContainsKey("BOSS_OMEGA"))
+Test-Assert "BOSS_OMEGA has 3 phases" ($script:BossPatterns["BOSS_OMEGA"].Phases.Count -eq 3)
+
+# Test Get-CombatInitiative
+$init = Get-CombatInitiative @{ SPD = 10 } @{ SPD = 5 }
+Test-Assert "Get-CombatInitiative returns boolean" ($init -is [bool])
+
+# Test New-CombatState
+$cs = New-CombatState $pet.Pet $pet.Companion
+Test-Assert "CombatState Round starts at 1" ($cs.Round -eq 1)
+Test-Assert "CombatState Stance starts Balanced" ($cs.PlayerStance -eq "Balanced")
+Test-Assert "CombatState StatusEffects empty" ($cs.StatusEffects.Count -eq 0)
+Test-Assert "CombatState LimitBreak not used" ($cs.LimitBreakUsed -eq $false)
+
 # === STORY ENGINE TESTS ===
 Write-Host "`n  Testing Story Engine..." -ForegroundColor Yellow
 # Story Engine Smoke Tests

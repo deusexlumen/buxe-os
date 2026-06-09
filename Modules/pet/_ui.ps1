@@ -734,7 +734,7 @@ function Check-EasterEgg($Context) {
         $fwLine = switch ($cp.Name) {
             "NEON" { "Du bist seit $([math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes)) Minuten online. Warum?" }
             "RAVEN" { "Ich sehe deinen Mauszeiger. Er zittert. Bist du nervoes?" }
-            "PIXEL" { "Dein PowerShell-Fenster ist $([Console]::WindowWidth)x$([Console]::WindowHeight). Klein, aber fein." }
+            "PIXEL" { "Dein PowerShell-Fenster ist $(try { [Console]::WindowWidth } catch { '?' })x$(try { [Console]::WindowHeight } catch { '?' }). Klein, aber fein." }
             "LUNA" { "Du atmest langsamer, wenn du meine Dialoge liest. Ich beobachte. Virtuell." }
             "IVY" { "... *zeigt auf Bildschirmrand* ... Hier endet die Welt." }
             "VERA" { "Systemanalyse: Du hast heute $(if($script:BuxeState.Boot){$script:BuxeState.Boot.TotalCommands}else{0}) Befehle ausgefuehrt. Produktiv." }
@@ -1390,7 +1390,7 @@ $script:CPBeaconLines = @{
         }
         PIXEL = @{
             Intro = @(
-                "Dein PowerShell-Fenster ist $([Console]::WindowWidth)x$([Console]::WindowHeight). Klein, aber fein.",
+                "Dein PowerShell-Fenster ist $(try { [Console]::WindowWidth } catch { '?' })x$(try { [Console]::WindowHeight } catch { '?' }). Klein, aber fein.",
                 "Ich sehe dich! Aeh, nicht gruselig! Nur... aufmerksam!"
             )
             Explain = "Fourth Wall: Ich sehe dein Fenster, deine Befehle, alles. Hallo!"
