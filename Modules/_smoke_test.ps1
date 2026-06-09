@@ -78,6 +78,31 @@ Test-Assert "Show-PetFrame runs without error" ($? -eq $true)
 
 Test-Assert "Pet hub function exists" ((Get-Command pet -ErrorAction SilentlyContinue) -ne $null)
 
+# Pet Beacon System v24.11
+$petState = Get-PetState
+Test-Assert "Pet Tutorial PendingBeacons default array" ($petState.Tutorial.PendingBeacons -is [array])
+Test-Assert "Pet Tutorial PendingBeacons default empty" ($petState.Tutorial.PendingBeacons.Count -eq 0)
+Test-Assert "Pet Tutorial BeaconsShown default array" ($petState.Tutorial.BeaconsShown -is [array])
+Test-Assert "Pet Tutorial BeaconsShown default empty" ($petState.Tutorial.BeaconsShown.Count -eq 0)
+
+# Queue-LevelUpBeacon
+Queue-LevelUpBeacon 5
+$petState2 = Get-PetState
+Test-Assert "Queue-LevelUpBeacon adds to PendingBeacons" ($petState2.Tutorial.PendingBeacons -contains 5)
+
+# Invoke-LevelUpBeacon simulation (clear manually)
+$petState2.Tutorial.PendingBeacons = @()
+$petState2.Tutorial.BeaconsShown += 5
+Save-PetState $petState2
+$petState3 = Get-PetState
+Test-Assert "Beacon clear works" ($petState3.Tutorial.PendingBeacons.Count -eq 0)
+Test-Assert "Beacon tracked in BeaconsShown" ($petState3.Tutorial.BeaconsShown -contains 5)
+
+# Duplicate beacon prevention
+Queue-LevelUpBeacon 5
+$petState4 = Get-PetState
+Test-Assert "Duplicate beacon rejected (already in BeaconsShown)" ($petState4.Tutorial.PendingBeacons.Count -eq 0)
+
 # === STORY ENGINE TESTS ===
 Write-Host "`n  Testing Story Engine..." -ForegroundColor Yellow
 # Story Engine Smoke Tests
