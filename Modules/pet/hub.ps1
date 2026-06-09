@@ -24,7 +24,7 @@ function Invoke-PetTutorial {
         Show-PetFrame "TUTORIAL — KOMMUNIKATION" -Double | Out-Null
         Write-Host ""
         $line = Get-TutorialLines $cp.Name 2
-        Show-CompanionDialog $cp $line
+        Show-CompanionDialog $cp $line -NoWait
         Write-Host ""
         Write-Host "  [Enter] Weiter  |  [S] Skip" -ForegroundColor DarkGray
         $raw = Read-Host
@@ -46,7 +46,7 @@ function Invoke-PetTutorial {
         Show-PetFrame "TUTORIAL — BESCHERUNG" -Double | Out-Null
         Write-Host ""
         $line = Get-TutorialLines $cp.Name 3
-        Show-CompanionDialog $cp $line
+        Show-CompanionDialog $cp $line -NoWait
         Write-Host ""
         Write-Host "  (Du gibst $($cp.Name) ein virtuelles Geschenk.)" -ForegroundColor Cyan
         Write-Host ""
@@ -78,7 +78,7 @@ function Invoke-PetTutorial {
         Show-PetFrame "TUTORIAL — ERSTER KAMPF" -Double | Out-Null
         Write-Host ""
         $line = Get-TutorialLines $cp.Name 4
-        Show-CompanionDialog $cp $line
+        Show-CompanionDialog $cp $line -NoWait
         Write-Host ""
         Write-Host "  [Enter] Kampf starten  |  [S] Skip" -ForegroundColor DarkGray
         $raw = Read-Host

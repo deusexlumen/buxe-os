@@ -121,7 +121,7 @@ function Invoke-CompanionAction($action) {
             Check-QuestProgress "gift"
         }
         "date" {
-            if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..."; Wait-Enter; return }
+            if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..." -NoWait; Wait-Enter; return }
             $cp.Dates++; $cp.Bond = [math]::Min(100, $cp.Bond + 4); $cp.Mood = "Loving"
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
@@ -133,7 +133,7 @@ function Invoke-CompanionAction($action) {
             Add-PetXP 8 "Date"
         }
         "work" {
-            if ($cp.LastWork -eq $today) { Show-CompanionDialog $cp "Ich habe heute schon gearbeitet."; Wait-Enter; return }
+            if ($cp.LastWork -eq $today) { Show-CompanionDialog $cp "Ich habe heute schon gearbeitet." -NoWait; Wait-Enter; return }
             Show-PetFrame "JOB MARKET" -Double | Out-Null
             Write-Host "`n  [1] Data Mining    (sicher, 20-40G)" -ForegroundColor White
             Write-Host "  [2] Security Patrol (mittel, 40-70G)" -ForegroundColor White

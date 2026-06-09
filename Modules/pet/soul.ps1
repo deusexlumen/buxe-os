@@ -7,9 +7,9 @@ function Invoke-SoulLink {
     $cp = $pet.Companion
     $p = $pet.Pet
     if (-not $cp -or -not $p) { Write-Host "Companion und Pet noetig!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
-    if ($cp.Bond -lt 100) { Show-CompanionDialog $cp "Wir sind noch nicht... komplett. Naeher. Bitte."; Wait-Enter; return }
+    if ($cp.Bond -lt 100) { Show-CompanionDialog $cp "Wir sind noch nicht... komplett. Naeher. Bitte." -NoWait; Wait-Enter; return }
     if ($pet.Meta.SoulLinked) {
-        Show-CompanionDialog $cp "Wir sind bereits verbunden. Fuehlst du es nicht?"
+        Show-CompanionDialog $cp "Wir sind bereits verbunden. Fuehlst du es nicht?" -NoWait
         Wait-Enter; return
     }
     # Phase 1: Synchronization
