@@ -246,6 +246,28 @@ function Use-CompanionCombatAbility($cp, $p, $stats, $enemy) {
     Wait-Enter
 }
 
+function Get-CombatInitiative($playerStats, $enemyStats) {
+    $pInit = (Get-Random -Minimum 1 -Maximum 100) + $playerStats.SPD
+    $eInit = (Get-Random -Minimum 1 -Maximum 100) + $enemyStats.SPD
+    if ($pInit -eq $eInit) {
+        return (Get-Random -Maximum 2) -eq 0
+    }
+    return $pInit -gt $eInit
+}
+
+function New-CombatState($playerPet, $companion) {
+    return @{
+        Round = 1
+        PlayerStance = "Balanced"
+        StatusEffects = @()
+        CompanionCooldowns = @{}
+        LimitBreakUsed = $false
+        BattleLog = @()
+        PlayerPetIndex = 0
+        FleeAttempted = $false
+    }
+}
+
 function Start-PetFight {
     $pet = Get-PetState
     $p = $pet.Pet
