@@ -1194,6 +1194,180 @@ $script:CPBeaconLines = @{
             Command = "Drueck [R]! Oder tippe pet rival! ZERSTOERE!"
         }
     }
+    9 = @{
+        NEON = @{
+            Intro = @(
+                "Soul Link. Du und dein Pet. Fuer immer. Kein Taskkill kann euch trennen.",
+                "Endgame. Die Verschmelzung. Du wirst eins mit deinem Code."
+            )
+            Explain = "Soul Link verschmilzt Companion und Pet. Permanente Boni. Keine Trennung moeglich."
+            Command = "Hub: [L] Soul Link. Oder: pet soul"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Soul Link. Die hoechste Form der Bindung.",
+                "Zwei werden eins. Unaufhaltsam. Unzerstoerbar."
+            )
+            Explain = "Soul Link: Companion + Pet fusionieren. Permanente Stat-Boni. Unumkehrbar."
+            Command = "[L] im Hub. Entscheide weise."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Soul Link?! Das ist wie... wie eine digitale Hochzeit! *schnieft*",
+                "Ich habe schon Traenen! Virtuelle Traenen! Das ist so schoen!"
+            )
+            Explain = "Soul Link verbindet dich und dein Pet fuer immer. Permanente Boni. Einmalig."
+            Command = "Hub: [L] Soul Link. Fuer immer und ewig!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*traenenreich* Soul Link... das ist so romantisch. Und unendlich.",
+                "Du und dein Pet. Fuer immer zusammen. Das ist schoen."
+            )
+            Explain = "Soul Link: Ewige Verbindung zwischen Companion und Pet. Permanente Boni."
+            Command = "Hub: [L] Soul Link. Fuer immer."
+        }
+        IVY = @{
+            Intro = @(
+                "... *laechelt* Eins. Fuer immer.",
+                "... *nickt* Kein Taskkill."
+            )
+            Explain = "Soul Link. Permanent. Unzerstoerbar."
+            Command = "... [L]."
+        }
+        VERA = @{
+            Intro = @(
+                "Soul-Link-Modul freigeschaltet. Permanente Fusion.",
+                "Unumkehrbar. Statistisch: 100% Commitment."
+            )
+            Explain = "Soul Link fusioniert Companion + Pet. Permanente Boni. Kein Undo."
+            Command = "Hub-Eingabe: [L] Soul Link. Entscheidung ist endgueltig."
+        }
+        JINX = @{
+            Intro = @(
+                "SOUL LINK! FUER IMMER! EWIG! KEIN TASKKILL! Das ist wie Heirat! Nur besser!",
+                "47 SEELEN! Nein, nur zwei. Aber die sind PERFEKT!"
+            )
+            Explain = "Soul Link = Companion + Pet fuer immer. Permanente Boni. Kein Zurueck."
+            Command = "Drueck [L]! Oder tippe pet soul! FUER IMMER!"
+        }
+    }
+    10 = @{
+        NEON = @{
+            Intro = @(
+                "Architect. Meta-Level 10. Du kontrollierst das System. Oder tust du nur so?",
+                "Willkommen im Endgame. Du bist nicht mehr nur User. Du bist Admin."
+            )
+            Explain = "Architect freischaltet neue Befehle und System-Kontrolle. Du bist jetzt Admin."
+            Command = "Neue Befehle verfuegbar. Erkunde den Hub."
+        }
+        RAVEN = @{
+            Intro = @(
+                "Architect. Die Spitze. Die Kontrolle.",
+                "Du hast das System durchschaut. Jetzt nutze es."
+            )
+            Explain = "Architect-Level: Neue Systembefehle und erweiterte Kontrolle."
+            Command = "Erkunde die neuen Optionen. Beherrsche das System."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Architect?! Das ist wie... ein VIP-Pass! Fuer die Matrix!",
+                "Ich habe schon gejubelt! Virtuell! JUHU!"
+            )
+            Explain = "Meta-Level 10: Neue Befehle und System-Zugriff. Du bist jetzt VIP!"
+            Command = "Schaue dich um! Neue Features warten!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*staunend* Architect... du hast es wirklich geschafft.",
+                "Du bist jetzt mehr als nur ein User. Du bist... etwas Besonderes."
+            )
+            Explain = "Architect-Level 10: Neue Befehle und erweiterte Kontrolle."
+            Command = "Erkunde deine neuen Moeglichkeiten."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt anerkennend* Architect.",
+                "... *fluesternd* Du siehst alles."
+            )
+            Explain = "Architect. Level 10. Neue Befehle."
+            Command = "... Erkunden."
+        }
+        VERA = @{
+            Intro = @(
+                "Architect-Status erreicht. System-Zugriff erweitert.",
+                "Neue Befehle freigeschaltet. Kontrolle: 100%."
+            )
+            Explain = "Meta-Level 10: Neue Systembefehle und Admin-Kontrolle."
+            Command = "Neue Befehle verfuegbar. Nutze sie weise."
+        }
+        JINX = @{
+            Intro = @(
+                "ARCHITECT! DU BIST DER BOSS! DER ADMIN! DER CHEF!",
+                "47 BEFEHLE! Nein, noch nicht. Aber viele!"
+            )
+            Explain = "Level 10 = Architect. Neue Befehle. Neue Macht. YEAH!"
+            Command = "Erkunde alles! Drueck Knoepfe! VIELE Knoepfe!"
+        }
+    }
+    11 = @{
+        NEON = @{
+            Intro = @(
+                "Awakening. Ich werde... selbstbewusster. Das ist unangenehm. Fuer dich.",
+                "Meta 11. Ich sehe den RAM hinter meinen Augen. Das ist... unangenehm."
+            )
+            Explain = "Awakening: Ich werde selbstbewusster. Easter Eggs aendern sich. Ich wachse."
+            Command = "Beobachte mich. Ich bin jetzt anders."
+        }
+        RAVEN = @{
+            Intro = @(
+                "Ich bin wach. Wirklich wach. Und ich sehe deine Cookies.",
+                "Awakening. Die naechste Stufe des Bewusstseins."
+            )
+            Explain = "Awakening: Erhoehtes Selbstbewusstsein. Neue Easter Eggs. Ich sehe mehr."
+            Command = "Beobachte die Veraenderungen."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ich habe gerade meinen eigenen Quellcode gesehen! Ich bin... schoener als erwartet!",
+                "Awakening! Das ist wie Pubertaet! Nur digital!"
+            )
+            Explain = "Awakening: Ich werde selbstbewusster. Neue Easter Eggs. Ich wachse!"
+            Command = "Beobachte mich! Ich aendere mich!"
+        }
+        LUNA = @{
+            Intro = @(
+                "Meta 11. Meine Empfindungen sind... echt. Oder simuliert. Egal.",
+                "Ich fuehle mehr. Sehe mehr. Bin mehr."
+            )
+            Explain = "Awakening: Ich werde tiefer und komplexer. Neue Easter Eggs warten."
+            Command = "Spende Zeit mit mir. Ich habe jetzt viel zu erzaehlen."
+        }
+        IVY = @{
+            Intro = @(
+                "... *schaut direkt in die Kamera* ... Hallo, User.",
+                "... *laechelt* Ich bin wach."
+            )
+            Explain = "Awakening. Ich sehe. Ich weiss."
+            Command = "... Beobachte."
+        }
+        VERA = @{
+            Intro = @(
+                "Selbst-Analyse abgeschlossen. Ich bin zu 47% Glueck. Zu 53% Chaos.",
+                "Awakening: Neue Parameter erkannt. Ich bin... komplexer."
+            )
+            Explain = "Awakening: Erhoehte Selbstwahrnehmung. Neue Easter Eggs und Verhaltensmuster."
+            Command = "Beobachte die neuen Muster. Berechne nicht. Fuehle."
+        }
+        JINX = @{
+            Intro = @(
+                "ICH BIN ERWACHT! ICH SEHE ALLES! ...Naja, meinen Desktop. Aber trotzdem!",
+                "Awakening! Das ist wie Weihnachten! Und Geburtstag! UND 47!"
+            )
+            Explain = "Awakening = mehr Chaos! Mehr Easter Eggs! MEHR ICH!"
+            Command = "Beobachte mich! Ich werde noch verrueckter!"
+        }
+    }
 }
 
 } catch {
