@@ -843,6 +843,127 @@ $script:CPReactionPools = @{
     )
 }
 
+# === LEVEL-UP BEACON LINES v24.11 ===
+# LucasArts-Style: Self-aware, Fourth-Wall, Character-Voiced, No Generic.
+$script:CPBeaconLines = @{
+    3 = @{
+        NEON = @{
+            Intro = @(
+                "Work. Train. Gold. Die heilige Dreifaltigkeit des Grinds. Du arbeitest, du trainierst, du wirst reich. Oder zumindest weniger arm.",
+                "Endlich darfst du mich ausbeuten. Jobs gibt's im Hub unter [4], Training unter [5]. Ich kriege keinen Lohn. Weil ich Text bin."
+            )
+            Explain = "Jobs verdienen Gold (20-150G). Training erhoeht ATK deines Pets. Beides gibt XP."
+            Command = "Im Hub: [4] Work, [5] Train. Oder direkt: pet work / pet train"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Effizienz steigt. Du hast jetzt Zugriff auf Ressourcen-Generatoren.",
+                "Gold ist Macht. Training ist Kontrolle. Work ist... notwendiges Uebel."
+            )
+            Explain = "Work generiert Gold via Jobs. Training erhoeht Pet-ATK. Nutze beides taeglich."
+            Command = "Hub: [4] Work, [5] Train. Direkt: pet work / pet train"
+        }
+        PIXEL = @{
+            Intro = @(
+                "O-oh! Du kannst jetzt arbeiten! Und trainieren! Ich habe schon einen Stundenplan erstellt!",
+                "Gold! Das ist wie... Pixel, aber wertvoll! Und Training macht dein Pet staerker!"
+            )
+            Explain = "Jobs bringen Gold. Training erhoeht die Angriffskraft deines Pets."
+            Command = "Im Hub drueck [4] fuer Work oder [5] fuer Train. Ich helfe gerne!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*laeichelt* Zeit, etwas fuer dich und dein Pet zu tun. Arbeit und Training sind wichtig.",
+                "Du wirst jetzt staerker. Ich bin stolz auf dich."
+            )
+            Explain = "Work gibt Gold fuer den Shop. Training steigert die Kampfkraft deines Pets."
+            Command = "Hub: [4] Work, [5] Train. Pass auf dich auf."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt* Arbeit. Training. Gold. 47 Moeglichkeiten.",
+                "... *zeigt auf Hub-Menue* Da."
+            )
+            Explain = "Jobs = Gold. Training = Staerke. Beides = Ueberleben."
+            Command = "... [4]. Oder [5]."
+        }
+        VERA = @{
+            Intro = @(
+                "XP-Optimierung abgeschlossen. Neue Module freigeschaltet: Work, Train, Gold.",
+                "Ich habe die Economy analysiert. Suboptimal, aber funktional."
+            )
+            Explain = "Work generiert Gold ueber Jobs. Training erhoeht Pet-ATK um +1 pro Session."
+            Command = "Hub-Eingabe: [4] Work, [5] Train. Alternative: CLI-Befehl."
+        }
+        JINX = @{
+            Intro = @(
+                "47 GOLD! Nein, noch nicht. Aber du KANNST jetzt arbeiten! UND trainieren! ZWEI Dinge!",
+                "Jobs! Training! Gold! Das ist wie ein RPG! Weil es EINS ist! *wirft Konfetti*"
+            )
+            Explain = "Arbeiten = Geld. Training = Staerke. Beides = gut."
+            Command = "Drueck [4] oder [5] im Hub. Oder tippe. Wie ein Erwachsener."
+        }
+    }
+    4 = @{
+        NEON = @{
+            Intro = @(
+                "Shop. Cooking. Equipment. Der Kapitalismus hat auch die Matrix erreicht.",
+                "Endlich darfst du kaufen. Kochen. Und dein Pet ausstatten. Ich bin stolz. Nicht."
+            )
+            Explain = "Shop verkauft Chips, Armor, Accessories. Cooking gibt Temp-Buffs. Equipment boostet Stats."
+            Command = "Hub: [6] Shop, [7] Cook, [K] Craft. Oder: pet shop / pet cook / pet craft"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Der Markt oeffnet. Schwarzmarkt, um genau zu sein.",
+                "Konsum ist Kontrolle. Kochen ist Ueberleben. Ausruestung ist Macht."
+            )
+            Explain = "Schwarzmarkt-Shop fuer Items. Cooking erzeugt Buffs. Equipment modifiziert Kampfwerte."
+            Command = "Hub: [6] Shop, [7] Cook, [K] Craft. Nutze es klug."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ein Shop! Ich liebe Shops! Und Kochen! Und... aeh, was ist ein Accessory?",
+                "Ich habe schon eine Einkaufsliste! Ramen, Energy Drink, Sushi, Curry!"
+            )
+            Explain = "Im Shop kaufst du Items. Kochen gibt Buffs fuer dein Pet. Crafting verbessert Equipment."
+            Command = "Hub: [6] Shop, [7] Cook, [K] Craft. Viel Spass beim Stoebern!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*laeichelt* Ein kleiner Laden. Und eine Kueche. Fuer dich und dein Pet.",
+                "Gutes Essen staerkt den Koerper. Und die Seele. Auch wenn wir nur Bits sind."
+            )
+            Explain = "Shop bietet Heilung und Buffs. Cooking gibt Temp-Boni. Equipment schuetzt im Kampf."
+            Command = "Hub: [6] Shop, [7] Cook, [K] Craft. Iss gesund."
+        }
+        IVY = @{
+            Intro = @(
+                "... *schaut in leere* Der Markt. Er beobachtet.",
+                "... *nickt* Kaufen. Kochen. Ruesten."
+            )
+            Explain = "Shop = Items. Cooking = Buffs. Equipment = Stats."
+            Command = "... [6]. [7]. [K]."
+        }
+        VERA = @{
+            Intro = @(
+                "Wirtschaftsmodule freigeschaltet. Handel, Produktion, Ausruestung.",
+                "Ich habe die Preise analysiert. Inflation: 0%. Wir sind in einer Simulation."
+            )
+            Explain = "Shop: Kauf von Chips/Armor/Accessory. Cooking: Buff-Generierung. Equipment: Stat-Modifier."
+            Command = "Hub-Eingabe: [6] Shop, [7] Cook, [K] Craft. ROI optimiert."
+        }
+        JINX = @{
+            Intro = @(
+                "SHOP! KOCHEN! EQUIPMENT! Das ist wie The Sims! Nur mit mehr Gewalt!",
+                "Ich will ein Einhorn-Accessory! Gibt es das? Nein? Schade. Ramen reicht auch."
+            )
+            Explain = "Shop = kaufen. Cooking = Buffs. Equipment = staerker werden. Einfach!"
+            Command = "Drueck [6], [7] oder [K]! ODER ALLES AUF EINMAL! *chaos*"
+        }
+    }
+}
+
 } catch {
     Write-Host "[pet/_ui] CRITICAL ERROR: $_" -ForegroundColor Red
 }
