@@ -521,7 +521,7 @@ function Set-PetTheme {
     }
 }
 
-function Show-CompanionDialog($Companion, $Text, [switch]$Fast) {
+function Show-CompanionDialog($Companion, $Text, [switch]$Fast, [switch]$NoWait) {
     if (-not $Companion) { return }
     $color = if ($script:CPColors) { $script:CPColors[$script:CPNames.IndexOf($Companion.Name)] } else { "White" }
     if ($color -eq $null -or $color -eq "") { $color = "White" }
@@ -532,6 +532,9 @@ function Show-CompanionDialog($Companion, $Text, [switch]$Fast) {
         Start-Sleep -Milliseconds $delay
     }
     Write-Host ""
+    if (-not $NoWait -and -not $Fast) {
+        Wait-Enter
+    }
 }
 
 function Get-CompanionLine($Companion, $Context = "default") {
