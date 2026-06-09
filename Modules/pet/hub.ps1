@@ -90,12 +90,7 @@ function Invoke-PetTutorial {
         Add-PetXP 15 "Tutorial: First Fight"
         Unlock-PetFeature "pet_create"
         Unlock-PetFeature "combat"
-        Unlock-PetFeature "train"
-        Unlock-PetFeature "work"
-        Unlock-PetFeature "gold"
-        Unlock-PetFeature "shop"
-        Unlock-PetFeature "cooking"
-        Unlock-PetFeature "equipment"
+        Unlock-PetFeature "companion_games"
         $pet.Tutorial.Step = 4
         $pet.Tutorial.Completed = $true
         Save-PetState $pet
@@ -111,12 +106,7 @@ function Invoke-TutorialSkip($cp) {
     Unlock-PetFeature "mood"
     Unlock-PetFeature "pet_create"
     Unlock-PetFeature "combat"
-    Unlock-PetFeature "train"
-    Unlock-PetFeature "work"
-    Unlock-PetFeature "gold"
-    Unlock-PetFeature "shop"
-    Unlock-PetFeature "cooking"
-    Unlock-PetFeature "equipment"
+    Unlock-PetFeature "companion_games"
     $pet.Tutorial.Skipped = $true
     $pet.Tutorial.Completed = $true
     $pet.Tutorial.Step = 4
@@ -132,6 +122,10 @@ function pet {
     # Run tutorial for first-time users
     if (-not $pet.Tutorial.Completed) {
         Invoke-PetTutorial
+        $pet = $script:BuxeState.Pet
+    }
+    while ($pet.Tutorial.PendingBeacons.Count -gt 0) {
+        Invoke-LevelUpBeacon
         $pet = $script:BuxeState.Pet
     }
     if (-not $pet.Companion -and -not ($Action -eq "create" -or $Action -eq "")) {
@@ -344,6 +338,74 @@ function Show-PetHubStatus {
     Write-Host "  Unlocked: $($pet.Meta.Unlocked -join ', ')" -ForegroundColor DarkGray
     Write-Host ""
     Wait-Enter
+}
+
+function Get-BeaconFeatureInfo($level) {
+    switch ($level) {
+        3  { @{ Frame = "LEVEL 3 — WORK & TRAIN";      Features = @("train","work","gold","companion_story") } }
+        4  { @{ Frame = "LEVEL 4 — SHOP & COOKING";    Features = @("shop","cooking","equipment") } }
+        5  { @{ Frame = "LEVEL 5 — PVP ARENA";         Features = @("pvp") } }
+        6  { @{ Frame = "LEVEL 6 — RAID";              Features = @("raid") } }
+        7  { @{ Frame = "LEVEL 7 — BREEDING";          Features = @("breed") } }
+        8  { @{ Frame = "LEVEL 8 — RIVAL";             Features = @("rival") } }
+        9  { @{ Frame = "LEVEL 9 — SOUL LINK";         Features = @("soul_link") } }
+        10 { @{ Frame = "LEVEL 10 — ARCHITECT";        Features = @("architect") } }
+        11 { @{ Frame = "LEVEL 11 — AWAKENING";        Features = @("awakening") } }
+        12 { @{ Frame = "LEVEL 12 — FOURTH WALL";      Features = @("fourth_wall") } }
+        13 { @{ Frame = "LEVEL 13 — GLITCH";           Features = @("glitch") } }
+        14 { @{ Frame = "LEVEL 14 — LAYER 47";         Features = @("layer_47") } }
+        15 { @{ Frame = "LEVEL 15 — THEME SELECTOR";   Features = @("architect_theme") } }
+        default { @{ Frame = "LEVEL UP"; Features = @() } }
+    }
+}
+
+function Invoke-LevelUpBeacon {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if ($pet.Tutorial.PendingBeacons.Count -eq 0) { return }
+    
+    $level = $pet.Tutorial.PendingBeacons[0]
+    $featureInfo = Get-BeaconFeatureInfo $level
+    
+    try { Clear-Host } catch {}
+    Show-PetFrame $featureInfo.Frame -Double | Out-Null
+    Write-Host ""
+    
+    # Unlock features for this level
+    foreach ($feat in $featureInfo.Features) {
+        Unlock-PetFeature $feat
+    }
+    
+    # Show companion dialog
+    if ($script:CPBeaconLines -and $script:CPBeaconLines.ContainsKey($level)) {
+        $beacon = $script:CPBeaconLines[$level][$cp.Name]
+        if ($beacon -and $beacon.Intro) {
+            $intro = $beacon.Intro | Get-Random
+            Show-CompanionDialog $cp $intro -Fast
+        }
+        if ($beacon -and $beacon.Explain) {
+            Show-CompanionDialog $cp $beacon.Explain -Fast
+        }
+        if ($beacon -and $beacon.Command) {
+            Write-Host ""
+            Write-Host "  $($beacon.Command)" -ForegroundColor Cyan
+        }
+    }
+    
+    Write-Host ""
+    Write-Host "  [Enter] Weiter  |  [S] Ueberspringen" -ForegroundColor DarkGray
+    $raw = Read-Host
+    if ($raw -eq 'S' -or $raw -eq 's') {
+        $skipLine = Get-TutorialLines $cp.Name "skip"
+        Show-CompanionDialog $cp $skipLine -Fast
+    }
+    
+    # Remove shown beacon from queue and mark as shown
+    $pet.Tutorial.BeaconsShown += $level
+    $pet.Tutorial.PendingBeacons = $pet.Tutorial.PendingBeacons | Where-Object { $_ -ne $level }
+    Save-PetState $pet
+    
+    if ($raw -ne 'S' -and $raw -ne 's') { Start-Sleep -Milliseconds 500 }
 }
 
 } catch {
