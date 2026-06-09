@@ -51,6 +51,13 @@ Write-Output ""
 Write-Output "=== GAME FLOW TESTS ==="
 $e2eErrors = @()
 
+function Assert($condition, $message) {
+    if (-not $condition) {
+        Write-Host "  [FAIL] $message" -ForegroundColor Red
+        $script:e2eErrors += $message
+    }
+}
+
 # Test Zork (quit immediately)
 Enable-MockInput
 Queue-MockInput "Q"
@@ -432,6 +439,45 @@ try {
     if ($null -ne $stateBackup) { $stateBackup | Set-Content $stateFile -NoNewline }
     elseif (Test-Path $stateFile) { Remove-Item $stateFile }
 }
+
+# E2E: Level-Up Beacon Flow
+Write-Host "Testing Level-Up Beacon..." -NoNewline
+$pet = Get-PetState
+$originalLevel = $pet.Meta.Level
+$originalXP = $pet.Meta.XP
+$originalPending = $pet.Tutorial.PendingBeacons.Clone()
+$originalShown = $pet.Tutorial.BeaconsShown.Clone()
+
+$pet.Meta.Level = 2
+$pet.Meta.XP = 15
+$pet.Tutorial.Completed = $true
+$pet.Tutorial.PendingBeacons = @()
+$pet.Tutorial.BeaconsShown = @()
+Save-PetState $pet
+
+# Mock Invoke-PetLevelUp to avoid interactive dialog in E2E
+$originalInvokePetLevelUp = Get-Command Invoke-PetLevelUp -CommandType Function -ErrorAction SilentlyContinue
+Set-Item function:Invoke-PetLevelUp { }
+
+# Simulate XP gain to level 3
+Add-PetXP 30 "E2E Test"
+$pet = Get-PetState
+Assert ($pet.Tutorial.PendingBeacons -contains 3) "E2E: Lv 3 beacon queued via Add-PetXP"
+
+# Restore Invoke-PetLevelUp
+if ($originalInvokePetLevelUp) {
+    Set-Item function:Invoke-PetLevelUp $originalInvokePetLevelUp.ScriptBlock
+} else {
+    Remove-Item function:Invoke-PetLevelUp -ErrorAction SilentlyContinue
+}
+
+# Cleanup
+$pet.Meta.Level = $originalLevel
+$pet.Meta.XP = $originalXP
+$pet.Tutorial.PendingBeacons = $originalPending
+$pet.Tutorial.BeaconsShown = $originalShown
+Save-PetState $pet
+Write-Host " OK" -ForegroundColor Green
 
 Write-Output ""
 if ($e2eErrors.Count -gt 0) {
