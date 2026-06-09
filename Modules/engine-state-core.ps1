@@ -201,7 +201,7 @@ function Convert-PSObjectToHashtable {
     if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
         $collection = @()
         foreach ($item in $InputObject) { $collection += (Convert-PSObjectToHashtable $item) }
-        return $collection
+        return ,$collection
     }
     if ($InputObject -is [System.Management.Automation.PSCustomObject]) {
         $hash = @{}

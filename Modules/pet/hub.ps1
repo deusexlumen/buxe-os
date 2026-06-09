@@ -402,6 +402,8 @@ function Invoke-LevelUpBeacon {
     }
     
     # Remove shown beacon from queue and mark as shown
+    if ($pet.Tutorial.BeaconsShown -isnot [array]) { $pet.Tutorial.BeaconsShown = @() }
+    if ($pet.Tutorial.PendingBeacons -isnot [array]) { $pet.Tutorial.PendingBeacons = @() }
     $pet.Tutorial.BeaconsShown += $level
     $pet.Tutorial.PendingBeacons = $pet.Tutorial.PendingBeacons | Where-Object { $_ -ne $level }
     Save-PetState $pet

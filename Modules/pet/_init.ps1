@@ -66,7 +66,7 @@ function Get-PetDefaults {
             Completed     = $false
             Step          = 0
             Skipped       = $false
-            PendingBeacon = $null
+            PendingBeacons = @()
             BeaconsShown  = @()
         }
     }
@@ -103,12 +103,22 @@ function Get-PetState {
             Save-State
         }
         # Lazy migration: Beacon System (v24.11)
-        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("PendingBeacon")) {
-            $script:BuxeState.Pet.Tutorial.PendingBeacon = $null
+        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("PendingBeacons") -or
+            $script:BuxeState.Pet.Tutorial.PendingBeacons -isnot [array]) {
+            $oldPending = @()
+            if ($script:BuxeState.Pet.Tutorial.PendingBeacons) {
+                $oldPending = @($script:BuxeState.Pet.Tutorial.PendingBeacons)
+            }
+            $script:BuxeState.Pet.Tutorial.PendingBeacons = $oldPending
             Save-State
         }
-        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("BeaconsShown")) {
-            $script:BuxeState.Pet.Tutorial.BeaconsShown = @()
+        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("BeaconsShown") -or
+            $script:BuxeState.Pet.Tutorial.BeaconsShown -isnot [array]) {
+            $oldShown = @()
+            if ($script:BuxeState.Pet.Tutorial.BeaconsShown) {
+                $oldShown = @($script:BuxeState.Pet.Tutorial.BeaconsShown)
+            }
+            $script:BuxeState.Pet.Tutorial.BeaconsShown = $oldShown
             Save-State
         }
     }
@@ -138,8 +148,10 @@ function Add-PetXP($amount, $reason = "") {
     }
     if ($newLevel -gt $oldLevel) {
         $pet.Meta.Level = $newLevel
-        if ($newLevel -ge 3 -and (Get-Command Queue-LevelUpBeacon -ErrorAction SilentlyContinue)) {
-            Queue-LevelUpBeacon $newLevel
+        for ($lvl = $oldLevel + 1; $lvl -le $newLevel; $lvl++) {
+            if ($lvl -ge 3 -and (Get-Command Queue-LevelUpBeacon -ErrorAction SilentlyContinue)) {
+                Queue-LevelUpBeacon $lvl
+            }
         }
         Save-PetState $pet
         Invoke-PetLevelUp $oldLevel $newLevel
@@ -228,9 +240,13 @@ function Unlock-PetFeature($feature) {
 
 function Queue-LevelUpBeacon($level) {
     $pet = Get-PetState
+    if ($pet.Tutorial.BeaconsShown -isnot [array]) { $pet.Tutorial.BeaconsShown = @() }
+    if ($pet.Tutorial.PendingBeacons -isnot [array]) { $pet.Tutorial.PendingBeacons = @() }
     if ($pet.Tutorial.BeaconsShown -contains $level) { return }
-    $pet.Tutorial.PendingBeacon = $level
-    Save-PetState $pet
+    if ($pet.Tutorial.PendingBeacons -notcontains $level) {
+        $pet.Tutorial.PendingBeacons += $level
+        Save-PetState $pet
+    }
 }
 
 } catch {
