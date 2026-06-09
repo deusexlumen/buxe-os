@@ -163,7 +163,7 @@ function pet {
     while ($true) {
         $pet = $script:BuxeState.Pet
         $cp = $pet.Companion
-    try { Clear-Host } catch {}
+        try { Clear-Host } catch {}
         Show-PetFrame "BUXE_PET OS v2.0 — HUB" -Double | Out-Null
         Write-Host ""
         if ($cp) {
@@ -342,19 +342,19 @@ function Show-PetHubStatus {
 
 function Get-BeaconFeatureInfo($level) {
     switch ($level) {
-        3  { @{ Frame = "LEVEL 3 — WORK & TRAIN";      Features = @("train","work","gold","companion_story") } }
-        4  { @{ Frame = "LEVEL 4 — SHOP & COOKING";    Features = @("shop","cooking","equipment") } }
-        5  { @{ Frame = "LEVEL 5 — PVP ARENA";         Features = @("pvp") } }
-        6  { @{ Frame = "LEVEL 6 — RAID";              Features = @("raid") } }
-        7  { @{ Frame = "LEVEL 7 — BREEDING";          Features = @("breed") } }
-        8  { @{ Frame = "LEVEL 8 — RIVAL";             Features = @("rival") } }
-        9  { @{ Frame = "LEVEL 9 — SOUL LINK";         Features = @("soul_link") } }
-        10 { @{ Frame = "LEVEL 10 — ARCHITECT";        Features = @("architect") } }
-        11 { @{ Frame = "LEVEL 11 — AWAKENING";        Features = @("awakening") } }
-        12 { @{ Frame = "LEVEL 12 — FOURTH WALL";      Features = @("fourth_wall") } }
-        13 { @{ Frame = "LEVEL 13 — GLITCH";           Features = @("glitch") } }
-        14 { @{ Frame = "LEVEL 14 — LAYER 47";         Features = @("layer_47") } }
-        15 { @{ Frame = "LEVEL 15 — THEME SELECTOR";   Features = @("architect_theme") } }
+        3  { @{ Frame = "LEVEL 3 — ARBEIT & TRAINING";      Features = @("train","work","gold","companion_story") } }
+        4  { @{ Frame = "LEVEL 4 — SHOP & KOCHEN";          Features = @("shop","cooking","equipment") } }
+        5  { @{ Frame = "LEVEL 5 — PVP ARENA";              Features = @("pvp") } }
+        6  { @{ Frame = "LEVEL 6 — RAID";                   Features = @("raid") } }
+        7  { @{ Frame = "LEVEL 7 — ZUCHT";                  Features = @("breed") } }
+        8  { @{ Frame = "LEVEL 8 — RIVALE";                 Features = @("rival") } }
+        9  { @{ Frame = "LEVEL 9 — SEELENBUND";             Features = @("soul_link") } }
+        10 { @{ Frame = "LEVEL 10 — ARCHITEKT";             Features = @("architect") } }
+        11 { @{ Frame = "LEVEL 11 — ERWACHEN";              Features = @("awakening") } }
+        12 { @{ Frame = "LEVEL 12 — VIERTE WAND";           Features = @("fourth_wall") } }
+        13 { @{ Frame = "LEVEL 13 — GLITCH";                Features = @("glitch") } }
+        14 { @{ Frame = "LEVEL 14 — LAYER 47";              Features = @("layer_47") } }
+        15 { @{ Frame = "LEVEL 15 — THEMA-AUSWAHL";         Features = @("architect_theme") } }
         default { @{ Frame = "LEVEL UP"; Features = @() } }
     }
 }
@@ -362,6 +362,7 @@ function Get-BeaconFeatureInfo($level) {
 function Invoke-LevelUpBeacon {
     $pet = Get-PetState
     $cp = $pet.Companion
+    if (-not $cp) { return }
     if ($pet.Tutorial.PendingBeacons.Count -eq 0) { return }
     
     $level = $pet.Tutorial.PendingBeacons[0]
@@ -393,7 +394,7 @@ function Invoke-LevelUpBeacon {
     }
     
     Write-Host ""
-    Write-Host "  [Enter] Weiter  |  [S] Ueberspringen" -ForegroundColor DarkGray
+    Write-Host "  [Enter] Weiter  |  [S] Überspringen" -ForegroundColor DarkGray
     $raw = Read-Host
     if ($raw -eq 'S' -or $raw -eq 's') {
         $skipLine = Get-TutorialLines $cp.Name "skip"
