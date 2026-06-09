@@ -396,6 +396,92 @@ function Invoke-PetLevelUpCheck($p) {
     }
 }
 
+function Get-CompanionCommandName($cpName) {
+    switch ($cpName) {
+        "NEON"  { "Hack" }
+        "RAVEN" { "Predator Eye" }
+        "PIXEL" { "Shield Deploy" }
+        "LUNA"  { "Heal" }
+        "IVY"   { "Silence" }
+        "VERA"  { "Predict" }
+        "JINX"  { "Chaos Roll" }
+        default { "Support" }
+    }
+}
+
+function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats, $isBoss) {
+    try { Clear-Host } catch {}
+    $title = if ($isBoss) { "BOSS-KAMPF — Runde $($combatState.Round)" } else { "KAMPF — Runde $($combatState.Round)" }
+    Show-PetFrame $title -Double | Out-Null
+    Write-Host ""
+    
+    $pBar = Show-HPBar $playerPet.HP $playerStats.MaxHP
+    $eBar = Show-HPBar $enemy.HP $enemy.MaxHP
+    Write-Host "  [$($playerPet.Name)] $($pBar.Bar) $($playerPet.HP)/$($playerStats.MaxHP) HP ($($pBar.Percent)%)" -ForegroundColor $pBar.Color
+    Write-Host "  [$($enemy.Name)]     $($eBar.Bar) $($enemy.HP)/$($enemy.MaxHP) HP ($($eBar.Percent)%)" -ForegroundColor $eBar.Color
+    Write-Host ""
+    
+    $stanceEmoji = switch ($combatState.PlayerStance) {
+        "Aggressiv" { "[AGGR]" }
+        "Defensiv"  { "[DEF]" }
+        "Speed"     { "[SPD]" }
+        default     { "[BAL]" }
+    }
+    Write-Host "  Stance: $stanceEmoji $($combatState.PlayerStance)" -ForegroundColor Cyan
+    Write-Host ""
+    
+    if ($isBoss -and $enemy.BossPattern) {
+        $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
+        if ($currentPhase -and $currentPhase.Tell -and $currentPhase.WarnTurns -gt 0) {
+            Write-Host "  ⚠️  $($currentPhase.Tell)" -ForegroundColor Magenta
+            Write-Host "  [Naechste Runde: Stark-Attacke! Defend oder Switch empfohlen!]" -ForegroundColor DarkMagenta
+            Write-Host ""
+        }
+    }
+    
+    if ($combatState.StatusEffects.Count -gt 0) {
+        Write-Host "  Status Effects:" -ForegroundColor Yellow
+        foreach ($se in $combatState.StatusEffects) {
+            $seText = switch ($se.Type) {
+                "Burn"     { "[BURN] ($($se.Turns) Runden)" }
+                "Freeze"   { "[FREEZE] ($($se.Turns) Runden)" }
+                "Poison"   { "[POISON] ($($se.Turns) Runden)" }
+                "Paralyze" { "[PARALYZE] ($($se.Turns) Runden)" }
+                "DEF-Down" { "[DEF-DOWN] ($($se.Turns) Runden)" }
+                "DEF-Up"   { "[DEF-UP] ($($se.Turns) Runden)" }
+                "ATK-Up"   { "[ATK-UP] ($($se.Turns) Runden)" }
+                "Silence"  { "[SILENCE] ($($se.Turns) Runden)" }
+                default    { "[$($se.Type)] ($($se.Turns) Runden)" }
+            }
+            $targetText = if ($se.Target -eq "player") { "[$($playerPet.Name)]" } else { "[$($enemy.Name)]" }
+            Write-Host "    $targetText $seText" -ForegroundColor DarkYellow
+        }
+        Write-Host ""
+    }
+    
+    if ($combatState.BattleLog.Count -gt 0) {
+        Show-CombatLog $combatState.BattleLog
+        Write-Host ""
+    }
+    
+    Write-Host "  [1] Attack — Waehle Attacke" -ForegroundColor White
+    Write-Host "  [2] Defend — Schaden -50% diese Runde" -ForegroundColor White
+    Write-Host "  [3] Switch — Wechsle Pet" -ForegroundColor White
+    if ($companion) {
+        $cd = if ($combatState.CompanionCooldowns.ContainsKey($companion.Name)) { $combatState.CompanionCooldowns[$companion.Name] } else { 0 }
+        $cdText = if ($cd -gt 0) { " [CD: $cd]" } else { "" }
+        Write-Host "  [4] Companion — $($companion.Name): $(Get-CompanionCommandName $companion.Name)$cdText" -ForegroundColor White
+    } else {
+        Write-Host "  [4] Companion — Kein Companion" -ForegroundColor DarkGray
+    }
+    Write-Host "  [5] Item — Nutze Item" -ForegroundColor White
+    $fleeChance = [math]::Min(95, [math]::Round(($playerStats.SPD / ($playerStats.SPD + $enemyStats.SPD)) * 100))
+    Write-Host "  [6] Flee — Chance: $fleeChance%" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  [F1] Aggressiv  [F2] Defensiv  [F3] Speed  [F4] Balanced" -ForegroundColor DarkGray
+    Write-Host ""
+}
+
 } catch {
     Write-Host "[pet/combat] CRITICAL ERROR: $_" -ForegroundColor Red
 }
