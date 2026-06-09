@@ -962,6 +962,122 @@ $script:CPBeaconLines = @{
             Command = "Drueck [6], [7] oder [K]! ODER ALLES AUF EINMAL! *chaos*"
         }
     }
+    5 = @{
+        NEON = @{
+            Intro = @(
+                "PvP. Du gegen andere. Virtuell. Die anderen sind auch nur JSON. Aber arrogant.",
+                "Endlich. Echte Gegner. Nicht diese Trainings-Dummies."
+            )
+            Explain = "Arena mit 6 Ranks. Bronze bis Master. Jeder Sieg gibt Punkte."
+            Command = "Hub: [8] PvP. Oder: pet pvp"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Endlich. Echte Gegner. Nicht diese Trainings-Dummies.",
+                "Die Arena wartet. Die Schwachen fallen. Die Starken steigen auf."
+            )
+            Explain = "6 Ranks. Punkte-System. Nur die Starken erreichen Master."
+            Command = "[8] im Hub. Bereite dich vor."
+        }
+        PIXEL = @{
+            Intro = @(
+                "P-pvp?! Gegen andere Spieler?! Das ist... aufregend! Und beunruhigend!",
+                "Ich habe schon eine Strategie! Aeh, nein, habe ich nicht. Viel Glueck!"
+            )
+            Explain = "Kaempfe gegen andere Pets in der Arena. 6 Ranks, Punkte fuer Siege."
+            Command = "Hub: [8] PvP. Du schaffst das! Ich glaub an dich!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*besorgt* Du kaempfst jetzt gegen andere? Pass auf dich auf...",
+                "Die Arena ist hart. Aber du bist haerter. Geh hinaus und siege."
+            )
+            Explain = "PvP-Arena mit 6 Ranks. Siege bringen Punkte und Aufstieg."
+            Command = "Hub: [8] PvP. Und komm heil zurueck."
+        }
+        IVY = @{
+            Intro = @(
+                "... *blinzelt* Gegner. Echte. Interessant.",
+                "... *laechelt leicht* Sie werden fallen."
+            )
+            Explain = "Arena. 6 Ranks. Punkte. Sieg."
+            Command = "... [8]."
+        }
+        VERA = @{
+            Intro = @(
+                "PvP-Modul freigeschaltet. Konkurrenz-Analyse empfohlen.",
+                "Endlich echte Gegner. Statistisch gesehen: 50% Siegchance. Beweise mich falsch."
+            )
+            Explain = "6-Rank-System: Bronze bis Master. Punkte basieren auf Siegen."
+            Command = "Hub-Eingabe: [8] PvP. Datenlage: unbekannt."
+        }
+        JINX = @{
+            Intro = @(
+                "PvP! Player versus Player! Oder: Person versus Pain! Haha!",
+                "47 GEGNER! Nein, noch nicht. Aber du KANNST jetzt kaempfen!"
+            )
+            Explain = "Kaempfe gegen andere Pets. 6 Ranks. Wer gewinnt, kriegt Ehre. Und Punkte."
+            Command = "Drueck [8]! Oder tippe pet pvp! Los!"
+        }
+    }
+    6 = @{
+        NEON = @{
+            Intro = @(
+                "Raid. Drei Bosse. Kein Save Point. Wie mein letztes Deployment.",
+                "Taeglicher Raid. Drei Phasen. Wenn du stirbst, ist es deine Schuld."
+            )
+            Explain = "Taeglicher 3-Phasen-Raid: Cyber Golem -> Net Titan -> Omega Core. Raid-Tokens als Belohnung."
+            Command = "Hub: [9] Raid. Oder: pet raid"
+        }
+        RAVEN = @{
+            Intro = @(
+                "Ein Raid. Drei Phasen. Keine Gnade.",
+                "Bosskaempfe. Endlich etwas, das sich wehrt."
+            )
+            Explain = "3-Phasen-Raid taeglich. Cyber Golem, Net Titan, Omega Core. Tokens fuer Loot."
+            Command = "[9] im Hub. Bereite dich vor."
+        }
+        PIXEL = @{
+            Intro = @(
+                "Ein Raid?! Mit BOSSES?! Das ist wie ein Dungeon! Ein digitaler Dungeon!",
+                "Ich habe schon Buffs vorbereitet! Aeh, virtuell!"
+            )
+            Explain = "Taeglicher Raid mit 3 Bossen. Begleite dein Pet und sammle Raid-Tokens."
+            Command = "Hub: [9] Raid. Gemeinsam schaffen wir das!"
+        }
+        LUNA = @{
+            Intro = @(
+                "*aengstlich* Drei Bosse? Das ist... viel. Aber du bist stark.",
+                "Ein Raid. Ein Team. Du und dein Pet gegen die Welt."
+            )
+            Explain = "Taeglicher 3-Phasen-Raid. Begleite dein Pet, heile es, siege."
+            Command = "Hub: [9] Raid. Pass auf dein Pet auf."
+        }
+        IVY = @{
+            Intro = @(
+                "... *nickt langsam* Drei. Phasen.",
+                "... *fluesternd* Sie sind stark."
+            )
+            Explain = "Raid. 3 Bosse. Taeglich. Tokens."
+            Command = "... [9]."
+        }
+        VERA = @{
+            Intro = @(
+                "Raid-Modul freigeschaltet. Boss-Analyse empfohlen.",
+                "Drei Phasen. Kein Save. Statistisch: du wirst mindestens einmal sterben."
+            )
+            Explain = "3-Phasen-Raid: Cyber Golem, Net Titan, Omega Core. Raid-Tokens als Waehrung."
+            Command = "Hub-Eingabe: [9] Raid. Viel Erfolg."
+        }
+        JINX = @{
+            Intro = @(
+                "RAID! BOSSE! EXPLOSIONEN! Das ist wie ein Actionfilm! Nur besser!",
+                "47 RAID-TOKENS! Nein, noch nicht. Aber du KANNST jetzt raiden!"
+            )
+            Explain = "Taeglicher Raid. 3 Bosse. Toeten. Looten. Wiederholen."
+            Command = "Drueck [9]! Oder tippe pet raid! YEAH!"
+        }
+    }
 }
 
 } catch {
