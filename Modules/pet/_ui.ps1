@@ -1605,6 +1605,24 @@ $script:CPBeaconLines = @{
     }
 }
 
+function Show-HPBar($Current, $Max, $Width = 20) {
+    if ($Max -le 0) { $Max = 1 }
+    $ratio = $Current / $Max
+    $filled = [math]::Round($ratio * $Width)
+    $filled = [math]::Max(0, [math]::Min($Width, $filled))
+    $bar = ("█" * $filled) + ("░" * ($Width - $filled))
+    $color = if ($ratio -gt 0.5) { "Green" } elseif ($ratio -gt 0.25) { "Yellow" } else { "Red" }
+    return @{ Bar = $bar; Color = $color; Percent = [math]::Round($ratio * 100) }
+}
+
+function Show-CombatLog($LogEntries, $MaxEntries = 3) {
+    if (-not $LogEntries -or $LogEntries.Count -eq 0) { return }
+    $start = [math]::Max(0, $LogEntries.Count - $MaxEntries)
+    for ($i = $start; $i -lt $LogEntries.Count; $i++) {
+        Write-Host "  $($LogEntries[$i])" -ForegroundColor DarkGray
+    }
+}
+
 } catch {
     Write-Host "[pet/_ui] CRITICAL ERROR: $_" -ForegroundColor Red
 }
