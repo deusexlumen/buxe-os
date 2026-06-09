@@ -479,6 +479,28 @@ $pet.Tutorial.BeaconsShown = $originalShown
 Save-PetState $pet
 Write-Host " OK" -ForegroundColor Green
 
+# E2E: Tactical Combat Flow
+Write-Host "Testing Tactical Combat..." -NoNewline
+$pet = Get-PetState
+$pet.Pet = @{
+    Name = "GLITCH_WOLF"; Type = "VIRUS"; Level = 3; XP = 0; NextXP = 50
+    HP = 100; MaxHP = 100; ATK = 16; DEF = 7; SPD = 12
+    Color = "Magenta"; Attacks = @("Neural Overload","Bit Crusher")
+    Wins = 0; Losses = 0; Evolved = $false; Personality = "Balanced"
+    Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }
+    FoodBuffs = @(); LimitBreakUnlocked = $true; LastFightTime = $null
+}
+Save-PetState $pet
+
+Assert (Get-Command Invoke-TacticalCombat -ErrorAction SilentlyContinue) "E2E: Invoke-TacticalCombat exists"
+Assert (Get-Command Show-CombatScreen -ErrorAction SilentlyContinue) "E2E: Show-CombatScreen exists"
+Assert (Get-Command Get-CombatInitiative -ErrorAction SilentlyContinue) "E2E: Get-CombatInitiative exists"
+Assert (Get-Command Resolve-PlayerAction -ErrorAction SilentlyContinue) "E2E: Resolve-PlayerAction exists"
+Assert (Get-Command Resolve-EnemyAction -ErrorAction SilentlyContinue) "E2E: Resolve-EnemyAction exists"
+Assert (Get-Command Apply-StatusEffects -ErrorAction SilentlyContinue) "E2E: Apply-StatusEffects exists"
+
+Write-Host " OK" -ForegroundColor Green
+
 Write-Output ""
 if ($e2eErrors.Count -gt 0) {
     Write-Output "=== E2E FAILURES: $($e2eErrors -join ', ') ==="
