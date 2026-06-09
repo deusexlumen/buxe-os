@@ -607,6 +607,157 @@ function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatSt
     }
 }
 
+function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $enemyStats, $isBoss) {
+    $narrative = ""
+    $damageDealt = 0
+    
+    $behavior = "Random"
+    if ($isBoss -and $enemy.BossPattern) {
+        $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
+        if ($currentPhase) { $behavior = $currentPhase.Behavior }
+    }
+    
+    $paraEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Paralyze" } | Select-Object -First 1
+    if ($paraEffect -and (Get-Random -Maximum 2) -eq 0) {
+        $narrative = "$($enemy.Name) ist paralysiert und kann nicht angreifen!"
+        return @{ DamageDealt = 0; Narrative = $narrative }
+    }
+    
+    $freezeEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Freeze" } | Select-Object -First 1
+    if ($freezeEffect) {
+        $narrative = "$($enemy.Name) ist eingefroren und ueberspringt die Runde!"
+        return @{ DamageDealt = 0; Narrative = $narrative }
+    }
+    
+    $actions = @("A","V","S")
+    $weights = switch ($behavior) {
+        "Aggressive"   { @(60, 20, 20) }
+        "Defensive"    { @(20, 60, 20) }
+        "Desperate"    { @(30, 10, 60) }
+        default        { @(33, 33, 34) }
+    }
+    $rand = Get-Random -Minimum 1 -Maximum 101
+    $cum = 0
+    $chosenAction = "A"
+    for ($i = 0; $i -lt $actions.Count; $i++) {
+        $cum += $weights[$i]
+        if ($rand -le $cum) { $chosenAction = $actions[$i]; break }
+    }
+    
+    $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
+    $narrative = "$($enemy.Name) setzt $($moves[$chosenAction]) ein!"
+    
+    if ($chosenAction -eq "A" -or $chosenAction -eq "S") {
+        $enemyMod = Get-ElementModifier $enemy.Type $playerPet.Type
+        $multiplier = if ($chosenAction -eq "S") { 1.5 } else { 1.0 }
+        $baseDmg = $enemyStats.ATK * $multiplier
+        
+        $defendMod = 1.0
+        if ($combatState.PlayerStance -eq "Defensiv") { $defendMod = 0.5 }
+        
+        $dmg = [math]::Max(1, [math]::Round(($baseDmg * $enemyMod * $defendMod) * (100 / (100 + $playerStats.DEF))))
+        $damageDealt = $dmg
+        $playerPet.HP -= $dmg
+        $narrative += " Treffer! -$dmg HP!"
+    } else {
+        $narrative += " Der Gegner nimmt Defensive-Stance ein!"
+    }
+    
+    return @{ DamageDealt = $damageDealt; Narrative = $narrative }
+}
+
+function Use-CompanionCommand($companion, $playerPet, $enemy, $combatState, $playerStats) {
+    $narrative = ""
+    switch ($companion.Name) {
+        "NEON" {
+            $enemy.DEF = [math]::Max(1, [math]::Round($enemy.DEF * 0.7))
+            $narrative = "NEON hackt die Firewall-Routinen des Gegners! Gegner-DEF -30% fuer 2 Runden!"
+            $combatState.StatusEffects += @{ Target = "enemy"; Type = "DEF-Down"; Turns = 2; Value = 0.3 }
+        }
+        "RAVEN" {
+            $narrative = "RAVEN analysiert den Gegner! Naechster Zug: Angriff (voraussichtlich)"
+        }
+        "PIXEL" {
+            $combatState.StatusEffects += @{ Target = "player"; Type = "DEF-Up"; Turns = 2; Value = 0.4 }
+            $narrative = "PIXEL deployt eine Schutzschicht! Pet-DEF +40% fuer 2 Runden!"
+        }
+        "LUNA" {
+            $heal = [math]::Round($playerStats.MaxHP * 0.25)
+            $playerPet.HP = [math]::Min($playerStats.MaxHP, $playerPet.HP + $heal)
+            $narrative = "LUNA heilt dein Pet! +$heal HP!"
+        }
+        "IVY" {
+            $combatState.StatusEffects += @{ Target = "enemy"; Type = "Silence"; Turns = 2; Value = 0 }
+            $narrative = "IVY unterbricht die Gegner-Kommunikation! Special-Attacken blockiert fuer 2 Runden!"
+        }
+        "VERA" {
+            $weakness = Get-ElementModifier $playerPet.Type $enemy.Type
+            $weakText = if ($weakness -gt 1.0) { "Dein $($playerPet.Type) ist SEHR EFFEKTIV!" } elseif ($weakness -lt 1.0) { "Dein $($playerPet.Type) ist nicht effektiv..." } else { "Neutraler Typ-Matchup." }
+            $narrative = "VERA scannt den Gegner! $weakText | Gegner HP: $($enemy.HP)/$($enemy.MaxHP) | ATK: $($enemyStats.ATK)"
+        }
+        "JINX" {
+            $roll = Get-Random -Maximum 3
+            switch ($roll) {
+                0 { $playerStats.ATK = [math]::Round($playerStats.ATK * 1.3); $narrative = "JINX wirft den Glueckswuerfel! ATK +30%! Heute ist mein Tag!" }
+                1 { $playerStats.SPD = [math]::Max(1, [math]::Round($playerStats.SPD * 0.8)); $narrative = "JINX wirft den Glueckswuerfel! SPD -20%! Chaos ist auch eine Strategie." }
+                2 { $playerStats.ATK = [math]::Round($playerStats.ATK * 1.3); $playerStats.SPD = [math]::Max(1, [math]::Round($playerStats.SPD * 0.8)); $narrative = "JINX wirft den Glueckswuerfel! ATK +30% UND SPD -20%! 47% mehr Chaos!" }
+            }
+        }
+        default { $narrative = "$($companion.Name) unterstuetzt das Team!" }
+    }
+    
+    Show-CompanionDialog $companion $narrative -NoWait
+    return $narrative
+}
+
+function Use-CombatItem($playerPet, $combatState) {
+    $pet = Get-PetState
+    $inventory = $pet.Economy.Inventory
+    if (-not $inventory -or $inventory.Count -eq 0) {
+        return "Keine Items im Inventar!"
+    }
+    Write-Host "`n  Verfuegbare Items:" -ForegroundColor Cyan
+    for ($i = 0; $i -lt $inventory.Count; $i++) {
+        Write-Host "    [$($i+1)] $($inventory[$i])" -ForegroundColor White
+    }
+    Write-Host "    [Q] Zurueck" -ForegroundColor DarkGray
+    $choice = Read-Choice "Item" "^([1-$($inventory.Count)]|Q)$"
+    if ($choice -eq 'Q') { return "Item-Nutzung abgebrochen." }
+    
+    $item = $inventory[[int]$choice - 1]
+    $narrative = ""
+    
+    switch -Regex ($item) {
+        "Heiltrank" {
+            $heal = [math]::Round($playerPet.MaxHP * 0.3)
+            $playerPet.HP = [math]::Min($playerPet.MaxHP, $playerPet.HP + $heal)
+            $narrative = "Heiltrank genutzt! +$heal HP!"
+        }
+        "Overclock" {
+            $combatState.StatusEffects += @{ Target = "player"; Type = "ATK-Up"; Turns = 1; Value = 0.5 }
+            $narrative = "Overclock aktiviert! ATK +50% diese Runde! Aber -20% MaxHP nach Kampf..."
+        }
+        "EMP" {
+            $combatState.StatusEffects += @{ Target = "enemy"; Type = "Silence"; Turns = 2; Value = 0 }
+            $narrative = "EMP detoniert! Gegner-Special-Attacken blockiert fuer 2 Runden!"
+        }
+        "Smoke Bomb" {
+            $combatState.FleeAttempted = $true
+            $narrative = "Smoke Bomb geworfen! Fluchtchance +40%!"
+        }
+        "Data Shard" {
+            $weak = Get-ElementModifier $playerPet.Type $enemy.Type
+            $weakStr = if ($weak -gt 1.0) { "SEHR EFFEKTIV (+$([math]::Round(($weak-1)*100))%)" } elseif ($weak -lt 1.0) { "nicht effektiv (-$([math]::Round((1-$weak)*100))%)" } else { "neutral" }
+            $narrative = "Data Shard analysiert den Gegner... Typ-Matchup: $weakStr | HP: $($enemy.HP)/$($enemy.MaxHP)"
+        }
+        default { $narrative = "$item genutzt! Effekt unklar..." }
+    }
+    
+    $inventory.RemoveAt([int]$choice - 1)
+    Save-PetState $pet
+    return $narrative
+}
+
 } catch {
     Write-Host "[pet/combat] CRITICAL ERROR: $_" -ForegroundColor Red
 }
