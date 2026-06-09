@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUXE_OS — A Shell That Dreams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0f0c;
+  --moss:#1a2e24;
+  --fern:#2d5a3f;
+  --gold:#c9a84c;
+  --gold-dim:#8a7340;
+  --cream:#e8e2d4;
+  --rose:#8b4a5a;
+  --cyan:#4a8b8b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:'Cormorant Garamond',Georgia,serif;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* === ANIMATED MESH GRADIENT BACKGROUND === */
+.bg-mesh{
+  position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%,rgba(201,168,76,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 60%,rgba(45,90,63,0.12) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 20%,rgba(139,74,90,0.06) 0%,transparent 50%),
+    var(--ink);
+  animation:meshBreathe 12s ease-in-out infinite alternate;
+}
+@keyframes meshBreathe{
+  0%{filter:hue-rotate(-5deg) brightness(0.95)}
+  100%{filter:hue-rotate(5deg) brightness(1.05)}
+}
+
+/* === NOISE OVERLAY === */
+.noise{
+  position:fixed;inset:0;z-index:-1;
+  opacity:0.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+  pointer-events:none;
+}
+
+/* === ART NOUVEAU SVG DIVIDERS === */
+.nouveau-divider{
+  width:100%;height:80px;margin:4rem 0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath d='M0 40 Q150 0 300 40 T600 40 T900 40 T1200 40' fill='none' stroke='%23c9a84c' stroke-width='0.8' opacity='0.4'/%3E%3Cpath d='M0 42 Q150 80 300 42 T600 42 T900 42 T1200 42' fill='none' stroke='%23c9a84c' stroke-width='0.5' opacity='0.25'/%3E%3Ccircle cx='300' cy='40' r='3' fill='%23c9a84c' opacity='0.3'/%3E%3Ccircle cx='600' cy='40' r='3' fill='%23c9a84c' opacity='0.3'/%3E%3Ccircle cx='900' cy='40' r='3' fill='%23c9a84c' opacity='0.3'/%3E%3C/svg%3E") no-repeat center;
+  background-size:100% 100%;
+}
+
+/* === HERO === */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:2rem;
+  position:relative;
+}
+.hero::before,.hero::after{
+  content:'';position:absolute;
+  width:200px;height:200px;
+  border:1px solid var(--gold-dim);
+  border-radius:50%;
+  opacity:0.15;
+  animation:orbit 20s linear infinite;
+}
+.hero::before{top:10%;left:10%}
+.hero::after{bottom:10%;right:10%;animation-direction:reverse;animation-duration:25s}
+@keyframes orbit{0%{transform:rotate(0deg) translateX(20px) rotate(0deg)}100%{transform:rotate(360deg) translateX(20px) rotate(-360deg)}}
+
+.hero-kicker{
+  font-family:'Space Mono',monospace;
+  font-size:0.7rem;letter-spacing:0.3em;
+  text-transform:uppercase;color:var(--gold-dim);
+  margin-bottom:1.5rem;opacity:0;
+  animation:fadeUp 1s ease 0.2s forwards;
+}
+.hero h1{
+  font-size:clamp(3rem,10vw,7rem);
+  font-weight:300;line-height:0.95;
+  letter-spacing:-0.02em;
+  background:linear-gradient(135deg,var(--cream) 0%,var(--gold) 50%,var(--cream) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;opacity:0;
+  animation:fadeUp 1.2s ease 0.4s forwards;
+}
+.hero h1 em{
+  font-style:italic;font-weight:400;
+  -webkit-text-fill-color:var(--rose);
+  background:none;
+}
+.hero-sub{
+  font-size:clamp(1.1rem,2.5vw,1.5rem);
+  font-weight:300;font-style:italic;
+  color:var(--gold-dim);margin-top:1.5rem;
+  max-width:500px;opacity:0;
+  animation:fadeUp 1s ease 0.8s forwards;
+}
+.hero-cta{
+  margin-top:3rem;display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;
+  opacity:0;animation:fadeUp 1s ease 1.2s forwards;
+}
+.hero-cta a{
+  font-family:'Space Mono',monospace;
+  font-size:0.75rem;letter-spacing:0.15em;
+  text-transform:uppercase;text-decoration:none;
+  padding:1rem 2.5rem;border:1px solid var(--gold-dim);
+  color:var(--gold);transition:all 0.4s ease;
+  position:relative;overflow:hidden;
+}
+.hero-cta a::before{
+  content:'';position:absolute;inset:0;
+  background:var(--gold);transform:translateY(100%);
+  transition:transform 0.4s ease;z-index:-1;
+}
+.hero-cta a:hover{color:var(--ink)}
+.hero-cta a:hover::before{transform:translateY(0)}
+.hero-cta a.primary{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}from{opacity:0;transform:translateY(20px)}}
+
+/* === SCROLL INDICATOR === */
+.scroll-hint{
+  position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+  opacity:0.4;animation:fadeUp 1s ease 1.6s forwards,bob 3s ease-in-out infinite 2s;
+}
+.scroll-hint span{font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.2em}
+.scroll-hint svg{width:24px;height:24px;stroke:var(--gold-dim);fill:none;stroke-width:1.5}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* === SECTIONS === */
+section{padding:6rem 2rem;max-width:900px;margin:0 auto;position:relative}
+.section-label{
+  font-family:'Space Mono',monospace;font-size:0.65rem;
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--gold-dim);margin-bottom:1.5rem;
+}
+section h2{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:300;
+  margin-bottom:2rem;line-height:1.1;
+}
+section h2 em{font-style:italic;color:var(--gold)}
+section p{
+  font-size:1.15rem;line-height:1.7;
+  color:rgba(232,226,212,0.75);margin-bottom:1.5rem;
+}
+
+/* === FEATURE CARDS === */
+.features{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:1.5rem;margin-top:3rem;
+}
+.feature-card{
+  border:1px solid rgba(201,168,76,0.15);
+  padding:2rem;position:relative;
+  background:linear-gradient(135deg,rgba(26,46,36,0.4) 0%,transparent 100%);
+  transition:all 0.5s ease;overflow:hidden;
+}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0;transition:opacity 0.5s ease;
+}
+.feature-card:hover::before{opacity:0.5}
+.feature-card:hover{
+  border-color:rgba(201,168,76,0.3);
+  transform:translateY(-4px);
+}
+.feature-card h3{
+  font-family:'Space Mono',monospace;
+  font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem;
+}
+.feature-card p{
+  font-size:1rem;line-height:1.6;margin:0;
+}
+
+/* === TERMINAL BLOCK === */
+.terminal-block{
+  background:rgba(10,15,12,0.8);
+  border:1px solid rgba(201,168,76,0.2);
+  padding:2rem;margin:3rem 0;
+  font-family:'Space Mono',monospace;
+  font-size:0.85rem;line-height:1.8;
+  position:relative;overflow:hidden;
+}
+.terminal-block::before{
+  content:'>_';position:absolute;top:1rem;right:1.5rem;
+  color:var(--gold-dim);font-size:0.7rem;opacity:0.5;
+}
+.terminal-block .cmd{color:var(--gold)}
+.terminal-block .out{color:rgba(232,226,212,0.6)}
+.terminal-block .comment{color:var(--gold-dim);font-style:italic}
+
+/* === GLITCH TEXT === */
+.glitch{
+  position:relative;display:inline-block;
+}
+.glitch::before,.glitch::after{
+  content:attr(data-text);position:absolute;left:0;top:0;
+  width:100%;height:100%;opacity:0;
+}
+.glitch:hover::before{
+  animation:glitch1 0.3s linear infinite;
+  color:var(--rose);opacity:0.7;clip-path:polygon(0 0,100% 0,100% 45%,0 45%);
+}
+.glitch:hover::after{
+  animation:glitch2 0.3s linear infinite;
+  color:var(--cyan);opacity:0.7;clip-path:polygon(0 55%,100% 55%,100% 100%,0 100%);
+}
+@keyframes glitch1{0%{transform:translate(0)}20%{transform:translate(-2px,2px)}40%{transform:translate(-2px,-2px)}60%{transform:translate(2px,2px)}80%{transform:translate(2px,-2px)}100%{transform:translate(0)}}
+@keyframes glitch2{0%{transform:translate(0)}20%{transform:translate(2px,-2px)}40%{transform:translate(2px,2px)}60%{transform:translate(-2px,-2px)}80%{transform:translate(-2px,2px)}100%{transform:translate(0)}}
+
+/* === FOOTER === */
+footer{
+  text-align:center;padding:4rem 2rem;
+  border-top:1px solid rgba(201,168,76,0.1);
+}
+footer p{
+  font-family:'Space Mono',monospace;
+  font-size:0.65rem;letter-spacing:0.2em;
+  color:var(--gold-dim);opacity:0.6;
+}
+
+/* === MOBILE === */
+@media(max-width:600px){
+  .hero-cta{flex-direction:column;align-items:center}
+  .hero-cta a{width:100%;max-width:280px;text-align:center}
+  section{padding:4rem 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="noise"></div>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-kicker">PowerShell v7+ / Windows</div>
+  <h1>BUXE_<em>OS</em></h1>
+  <p class="hero-sub">„Ein Profil, das so tief geht, dass es dich irgendwann fragt, wer hier eigentlich wen bootet.“</p>
+  <div class="hero-cta">
+    <a href="#install" class="primary">Installieren</a>
+    <a href="https://github.com/deusexlumen/buxe-os" target="_blank">GitHub →</a>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</header>
+
+<div class="nouveau-divider"></div>
+
+<!-- ===== ABOUT ===== -->
+<section id="about">
+  <div class="section-label">001 — Manifest</div>
+  <h2>Ein <em>Betriebssystem</em> für deine Shell.</h2>
+  <p>BUXE_OS ist kein Tool. Es ist keine App. Es ist ein <span class="glitch" data-text="PowerShell-Profil">PowerShell-Profil</span>, das sich wie ein Spiel fühlt, wie ein Betriebssystem aussieht und wie ein lebendiger Code-Organismus handelt.</p>
+  <p>65+ Module. Casino. Arcade. Tower Defense. Text-Adventure. Desktop Pet. RPG-System mit 7 Companions. Ein verstecktes ARG. TTS-Stimmen. Und ein Boot-Screen, der dich jedes Mal begrüßt, als wärst du lange weg gewesen.</p>
+</section>
+
+<div class="nouveau-divider"></div>
+
+<!-- ===== FEATURES ===== -->
+<section id="features">
+  <div class="section-label">002 — Module</div>
+  <h2>Was da <em>alles</em> drin ist.</h2>
+  <div class="features">
+    <div class="feature-card">
+      <h3>Casino Suite</h3>
+      <p>Blackjack, Roulette, Craps, Hi-Lo, Baccarat, Slots, Keno, Wheel of Fortune. Mit Luck-Modifier, Glitch-System und Companion-Reaktionen.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Arcade</h3>
+      <p>Tetris, Snake, Minesweeper, Wordle, MonkeyType, 2048, Breakout, Memory Match, Dino Jump. Alles im Terminal. Alles mit WASD.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Pet System v2.0</h3>
+      <p>7 Girls. Bond 0–100. Mood-System. PvP-Arena. 3-Phasen-Raids. Breeding. Soul Link. Und ein Tutorial, das du überspringen kannst — wenn du mutig bist.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Adventure Engine</h3>
+      <p>16 Räume. Parser-basiert. Oxygen-System. EVA-Tod. Ein Raum, der nicht existieren sollte. Und ein Companion, der dir manchmal mehr sagt, als gut für dich ist.</p>
+    </div>
+    <div class="feature-card">
+      <h3>ARG — The Meridian</h3>
+      <p>6 Cheat-Codes, versteckt im Boot-Log, im Casino-Rauschen, in Companion-Erinnerungen. Ein Meta-Terminal. Und eine finale Entscheidung, die bleibt.</p>
+    </div>
+    <div class="feature-card">
+      <h3>TTS + APIs</h3>
+      <p>Edge-TTS mit Stimmen-Auswahl. Wetter. Bitcoin. Chuck Norris. Und ein Prompt-Override, der deine Shell-Befehle kommentiert.</p>
+    </div>
+  </div>
+</section>
+
+<div class="nouveau-divider"></div>
+
+<!-- ===== INSTALL ===== -->
+<section id="install">
+  <div class="section-label">003 — Installation</div>
+  <h2>In <em>zwei</em> Minuten daheim.</h2>
+  <p>Klone das Repo in dein PowerShell-Profilverzeichnis. Sourcen. Fertig. Keine Admin-Rechte. Keine Registry. Nur dot-sourcing.</p>
+
+  <div class="terminal-block">
+    <span class="cmd">git clone https://github.com/deusexlumen/buxe-os.git $env:USERPROFILE\Documents\PowerShell</span><br>
+    <span class="out">Cloning into 'PowerShell'...</span><br><br>
+    <span class="comment"># Dann in dein Profil eintragen:</span><br>
+    <span class="cmd">notepad $PROFILE</span><br><br>
+    <span class="comment"># Diese Zeile am Ende hinzufügen:</span><br>
+    <span class="cmd">. "$env:USERPROFILE\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"</span><br><br>
+    <span class="out">   BUXE_OS v24.0</span><br>
+    <span class="out">  Noch wach, Buxe.</span><br>
+    <span class="out">  Session #1. Wir sind im Endgame now.</span>
+  </div>
+
+  <p style="font-size:1rem;color:var(--gold-dim)"><em>Benötigt: PowerShell 7+, Oh-My-Posh, Terminal-Icons, PSFzf, Zoxide. Optional: edge-tts + ffplay.</em></p>
+</section>
+
+<div class="nouveau-divider"></div>
+
+<!-- ===== PHILOSOPHY ===== -->
+<section id="philosophy">
+  <div class="section-label">004 — Design</div>
+  <h2>LucasArts <em>Regeln</em>.</h2>
+  <p>Kein generischer Text. Keine game-over-Screens. Jede Zeile hat eine Stimme. Jeder Companion einen unveränderlichen Charakter. Fourth-Wall-Breaks sind Pflicht. Humor vor Drama. Und die 47 kommt immer wieder — aber nie zweimal am gleichen Ort.</p>
+  <p>Das System weiß, dass es Code ist. Die Charaktere wissen, dass sie in einer Shell leben. Und manchmal wissen sie mehr über dich, als du über sie.</p>
+</section>
+
+<footer>
+  <p>BUXE_OS v24.10 — Built in PowerShell · Designed for humans who read logs for fun</p>
+  <p style="margin-top:0.5rem">„Du bist hier. Ich bin hier. Das reicht.“</p>
+</footer>
+
+<script>
+// Subtle parallax on mouse move for the hero
+document.addEventListener('mousemove',e=>{
+  const x=(e.clientX/window.innerWidth-0.5)*20;
+  const y=(e.clientY/window.innerHeight-0.5)*20;
+  document.querySelector('.bg-mesh').style.transform=`translate(${x}px,${y}px) scale(1.05)`;
+});
+// Random terminal flicker in the install block
+const block=document.querySelector('.terminal-block');
+setInterval(()=>{
+  if(Math.random()>0.92){
+    block.style.opacity='0.85';
+    setTimeout(()=>block.style.opacity='1',80);
+  }
+},2000);
+</script>
+</body>
+</html>
