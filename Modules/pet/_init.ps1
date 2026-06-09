@@ -63,9 +63,11 @@ function Get-PetDefaults {
         Achievements = @()
         Memories = @()
         Tutorial = @{
-            Completed = $false
-            Step = 0
-            Skipped = $false
+            Completed     = $false
+            Step          = 0
+            Skipped       = $false
+            PendingBeacon = $null
+            BeaconsShown  = @()
         }
     }
 }
@@ -100,6 +102,15 @@ function Get-PetState {
             }
             Save-State
         }
+        # Lazy migration: Beacon System (v24.11)
+        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("PendingBeacon")) {
+            $script:BuxeState.Pet.Tutorial.PendingBeacon = $null
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("BeaconsShown")) {
+            $script:BuxeState.Pet.Tutorial.BeaconsShown = @()
+            Save-State
+        }
     }
     return $script:BuxeState.Pet
 }
@@ -127,6 +138,9 @@ function Add-PetXP($amount, $reason = "") {
     }
     if ($newLevel -gt $oldLevel) {
         $pet.Meta.Level = $newLevel
+        if ($newLevel -ge 3 -and (Get-Command Queue-LevelUpBeacon -ErrorAction SilentlyContinue)) {
+            Queue-LevelUpBeacon $newLevel
+        }
         Save-PetState $pet
         Invoke-PetLevelUp $oldLevel $newLevel
     } else {
@@ -210,6 +224,13 @@ function Unlock-PetFeature($feature) {
         $pet.Meta.Unlocked += $feature
         Save-PetState $pet
     }
+}
+
+function Queue-LevelUpBeacon($level) {
+    $pet = Get-PetState
+    if ($pet.Tutorial.BeaconsShown -contains $level) { return }
+    $pet.Tutorial.PendingBeacon = $level
+    Save-PetState $pet
 }
 
 } catch {
