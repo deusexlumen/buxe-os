@@ -268,6 +268,164 @@ function New-CombatState($playerPet, $companion) {
     }
 }
 
+function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
+    $stats = Get-EffectiveStats $playerPet $companion
+    $playerPet.HP = [math]::Min($playerPet.HP, $stats.MaxHP)
+    
+    $sc = 1 + ($playerPet.Level - 1) * 0.2
+    if ($isBoss) {
+        $et = @{ Name = "BOSS_OMEGA"; Type = "VIRUS"; HP = 150; MaxHP = 150; ATK = 20; DEF = 15; SPD = 10 }
+        $enemy = @{
+            Name = $et.Name; Type = $et.Type; HP = $et.HP; MaxHP = $et.MaxHP
+            ATK = $et.ATK; DEF = $et.DEF; SPD = $et.SPD
+            BossPattern = $script:BossPatterns[$et.Name]
+        }
+    } else {
+        $et = ($script:BPEnemies | Get-Random)
+        $enemy = @{
+            Name = $et.Name; Type = $et.Type
+            HP = [math]::Round($et.HP * $sc); MaxHP = [math]::Round($et.HP * $sc)
+            ATK = [math]::Round($et.ATK * $sc); DEF = [math]::Round($et.DEF * $sc); SPD = [math]::Round($et.SPD * $sc)
+            BossPattern = $null
+        }
+    }
+    
+    $enemyStats = @{ MaxHP = $enemy.MaxHP; ATK = $enemy.ATK; DEF = $enemy.DEF; SPD = $enemy.SPD }
+    $combatState = New-CombatState $playerPet $companion
+    
+    # Pre-fight companion ability
+    if ($companion) {
+        Use-CompanionCombatAbility $companion $playerPet $stats $enemy
+        $stats = Get-EffectiveStats $playerPet $companion
+    }
+    
+    # Combat loop
+    while ($playerPet.HP -gt 0 -and $enemy.HP -gt 0 -and -not $combatState.FleeAttempted) {
+        Show-CombatScreen $playerPet $enemy $companion $combatState $stats $enemyStats $isBoss
+        
+        # Limit Break check
+        $lbResult = Invoke-LimitBreak $playerPet $enemy $combatState $stats $companion
+        if ($combatState.FleeAttempted) { break }
+        
+        # Get player action
+        $validActions = "^(1|2|3|4|5|6|F1|F2|F3|F4)$"
+        $action = Read-Choice "Aktion" $validActions
+        
+        # Determine initiative
+        $playerFirst = Get-CombatInitiative $stats $enemyStats
+        
+        # Execute actions
+        if ($playerFirst) {
+            $pResult = Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats
+            if ($pResult -and $pResult.ActionType -eq "6" -and $combatState.FleeAttempted) { break }
+            if ($pResult -and $pResult.ActionType -ne "3") {
+                if ($enemy.HP -gt 0) {
+                    $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss
+                    if ($eResult.Narrative) {
+                        Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
+                        Wait-Enter
+                    }
+                }
+            }
+        } else {
+            $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss
+            if ($eResult.Narrative) {
+                Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
+                Wait-Enter
+            }
+            if ($playerPet.HP -gt 0) {
+                $pResult = Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats
+                if ($pResult -and $pResult.ActionType -eq "6" -and $combatState.FleeAttempted) { break }
+            }
+        }
+        
+        # Apply status effects
+        $seMessages = Apply-StatusEffects $combatState $playerPet $enemy $stats $enemyStats
+        foreach ($msg in $seMessages) {
+            Write-Host "  $msg" -ForegroundColor Yellow
+        }
+        if ($seMessages.Count -gt 0) { Wait-Enter }
+        
+        # Decrement companion cooldowns
+        foreach ($key in @($combatState.CompanionCooldowns.Keys)) {
+            if ($combatState.CompanionCooldowns[$key] -gt 0) {
+                $combatState.CompanionCooldowns[$key]--
+            }
+        }
+        
+        # Log round
+        $combatState.BattleLog += "R$($combatState.Round): $($playerPet.Name) vs $($enemy.Name)"
+        $combatState.Round++
+        
+        if ($playerPet.HP -le 0 -or $enemy.HP -le 0) { break }
+        
+        if (-not $combatState.FleeAttempted) {
+            Write-Host "`n  [Enter] fuer naechste Runde..." -ForegroundColor DarkGray
+            Read-Host
+        }
+    }
+    
+    Resolve-CombatEnd $playerPet $enemy $companion $combatState $stats $isBoss
+}
+
+function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $playerStats, $isBoss) {
+    try { Clear-Host } catch {}
+    $pet = Get-PetState
+    
+    if ($combatState.FleeAttempted) {
+        Show-PetFrame "FLUCHT" -Double | Out-Null
+        Write-Host "`n  Du bist erfolgreich geflohen!" -ForegroundColor Yellow
+        $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.5)
+        Save-PetState $pet
+        Wait-Enter
+        return
+    }
+    
+    if ($playerPet.HP -le 0) {
+        Show-PetFrame "NIEDERLAGE" -Double | Out-Null
+        $playerPet.Losses++
+        $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.3)
+        Write-Host "`n  NIEDERLAGE..." -ForegroundColor Red
+        if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_loss") -NoWait }
+        Add-PetXP 5 "Fight Loss"
+    } elseif ($enemy.HP -le 0) {
+        Show-PetFrame "SIEG" -Double | Out-Null
+        $xp = if ($isBoss) { 50 + ($playerPet.Level * 10) } else { 20 + ($playerPet.Level * 5) }
+        $gold = Get-Random -Minimum 5 -Maximum 16
+        if ($isBoss) { $gold += 25 }
+        $playerPet.Wins++
+        $playerPet.XP += $xp
+        $playerPet.HP = [math]::Min($playerPet.HP + [math]::Round($playerStats.MaxHP * 0.2), $playerStats.MaxHP)
+        $pet.Economy.Gold += $gold
+        
+        $lootChance = if ($isBoss) { 40 } else { 15 }
+        $lootText = ""
+        if ((Get-Random -Maximum 100) -lt $lootChance) {
+            $lootItems = @("Scrap Metal","Data Shard","Energy Cell")
+            if ($isBoss) { $lootItems += @("Rare Chip","Boss Core") }
+            $loot = $lootItems | Get-Random
+            $pet.Economy.Inventory += $loot
+            $lootText = " | Loot: $loot"
+        }
+        
+        if ($companion) {
+            $companion.Sync++
+            if ($companion.Sync -in @(10,25,50,100)) {
+                Write-Host "`n  SYNC LEVEL UP! $($companion.Sync) erreicht!" -ForegroundColor Magenta
+            }
+        }
+        
+        Write-Host "`n  SIEG! +$xp XP | +$gold G$lootText" -ForegroundColor Green
+        Invoke-PetLevelUpCheck $playerPet
+        if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_win") -NoWait }
+        Add-PetXP ($xp / 2) "Fight Win"
+    }
+    
+    $playerPet.FoodBuffs = @(); Save-PetState $pet
+    Invoke-Layer47Check
+    Wait-Enter
+}
+
 function Start-PetFight {
     $pet = Get-PetState
     $p = $pet.Pet
