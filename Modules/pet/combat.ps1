@@ -60,6 +60,7 @@ function New-Pet {
         Name = $st.Name; Type = $st.Type; Level = 1; XP = 0; NextXP = 50
         HP = $st.HP; MaxHP = $st.HP; ATK = $st.ATK; DEF = $st.DEF; SPD = $st.SPD
         Color = $st.Color; Attacks = @("Neural Overload","Bit Crusher")
+        LimitBreakUnlocked = $false
         Wins = 0; Losses = 0; Evolved = $false; Personality = "Balanced"
         Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }
         FoodBuffs = @()
@@ -456,6 +457,10 @@ function Invoke-PetLevelUpCheck($p) {
         if ($learn.ContainsKey($p.Level)) {
             $p.Attacks += $learn[$p.Level]
             Write-Host "  Neue Attacke gelernt: $($learn[$p.Level])!" -ForegroundColor Yellow
+        }
+        if ($p.Level -eq 5 -and -not $p.LimitBreakUnlocked) {
+            $p.LimitBreakUnlocked = $true
+            Write-Host "  LIMIT BREAK freigeschaltet!" -ForegroundColor Magenta
         }
     }
 }
