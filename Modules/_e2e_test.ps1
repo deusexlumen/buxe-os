@@ -501,6 +501,14 @@ Assert (Get-Command Apply-StatusEffects -ErrorAction SilentlyContinue) "E2E: App
 
 Write-Host " OK" -ForegroundColor Green
 
+# E2E: Hollow Promises Features
+Write-Host "Testing Hollow Promises Features..." -NoNewline
+Assert (Get-Command Invoke-ArchitectTerminal -ErrorAction SilentlyContinue) "E2E: Invoke-ArchitectTerminal exists"
+Assert (Get-Command Invoke-AwakeningTalk -ErrorAction SilentlyContinue) "E2E: Invoke-AwakeningTalk exists"
+Assert (Get-Command Invoke-FourthWall -ErrorAction SilentlyContinue) "E2E: Invoke-FourthWall exists"
+Assert (Get-Command Invoke-PetGlitch -ErrorAction SilentlyContinue) "E2E: Invoke-PetGlitch exists"
+Write-Host " OK" -ForegroundColor Green
+
 Write-Output ""
 if ($e2eErrors.Count -gt 0) {
     Write-Output "=== E2E FAILURES: $($e2eErrors -join ', ') ==="

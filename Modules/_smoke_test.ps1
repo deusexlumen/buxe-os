@@ -112,6 +112,12 @@ Queue-LevelUpBeacon 5
 $petState4 = Get-PetState
 Test-Assert "Duplicate beacon rejected (already in BeaconsShown)" ($petState4.Tutorial.PendingBeacons.Count -eq 0)
 
+# Hollow Promises features
+Test-Assert "Invoke-ArchitectTerminal exists" ((Get-Command Invoke-ArchitectTerminal -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-AwakeningTalk exists" ((Get-Command Invoke-AwakeningTalk -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-FourthWall exists" ((Get-Command Invoke-FourthWall -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Invoke-PetGlitch exists" ((Get-Command Invoke-PetGlitch -ErrorAction SilentlyContinue) -ne $null)
+
 # === TACTICAL COMBAT SYSTEM TESTS ===
 Write-Host "`n  Testing Tactical Combat System..." -ForegroundColor Yellow
 $pet = Get-PetState

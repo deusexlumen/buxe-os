@@ -64,11 +64,16 @@ function Wait-Enter {
 }
 
 function Read-Choice($Prompt, $ValidPattern, $QuitChar = 'Q') {
+    $emptyCount = 0
     while ($true) {
         $in = Read-Host "  $Prompt"
         if ($in -eq $QuitChar) { return $QuitChar }
         if ($in -match $ValidPattern) { return $in }
         Write-Host "  Ung??ltige Eingabe." -ForegroundColor Red
+        if ([string]::IsNullOrEmpty($in)) {
+            $emptyCount++
+            if ($emptyCount -gt 10) { return $QuitChar }
+        }
     }
 }
 

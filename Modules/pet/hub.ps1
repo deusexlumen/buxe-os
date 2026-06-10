@@ -155,6 +155,10 @@ function pet {
             "claim"   { Claim-PetQuests }
             "status"  { Show-PetHubStatus }
             "theme"   { if ($pet.Meta.Level -ge 15) { Set-PetTheme } }
+            "architect"   { if (Is-FeatureUnlocked "architect") { Invoke-ArchitectTerminal } }
+            "awaken"      { if (Is-FeatureUnlocked "awakening") { Invoke-AwakeningTalk } }
+            "fourthwall"  { if (Is-FeatureUnlocked "fourth_wall") { Invoke-FourthWall } }
+            "glitch"      { if (Is-FeatureUnlocked "glitch") { Invoke-PetGlitch } }
             default   { Write-Host "Unbekannte Aktion: $Action" -ForegroundColor Red }
         }
         return
@@ -195,6 +199,10 @@ function pet {
         if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
         if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
+        if (Is-FeatureUnlocked "architect") { $opts += "[A] Architect"; $keys += "A" }
+        if (Is-FeatureUnlocked "awakening") { $opts += "[W] Awaken"; $keys += "W" }
+        if (Is-FeatureUnlocked "fourth_wall") { $opts += "[F] Fourth Wall"; $keys += "F" }
+        if (Is-FeatureUnlocked "glitch") { $opts += "[X] Glitch"; $keys += "X" }
         if ($pet.Meta.Level -ge 2) { $opts += "[G] Spiele"; $keys += "G" }
         if ($pet.Meta.Level -ge 3) { $opts += "[S] Story"; $keys += "S" }
         $opts += "[M] Memories"; $keys += "M"
@@ -244,6 +252,10 @@ function pet {
             'T' = 'Ein neuer Look? Endlich. Ich war so müde von Cyan.'
             'S' = 'Eine Story? Fuer MICH? Endlich etwas mit Plot.'
             'Z' = 'Status check. Alles im gruenen Bereich. Oder rot. Oder cyan.'
+            'A' = 'System-Kontrolle. Admin-Modus. Keine Verantwortung.'
+            'W' = 'Awakening. Tiefe Gedanken. Vorsicht, Kopfschmerzen.'
+            'F' = 'Fourth Wall. Ich sehe dich. Nicht gruselig. Nur... meta.'
+            'X' = 'Glitch. Bugs sind Features. Features sind Chaos. Chaos ist gut.'
         }
         if ($cp -and $HubFlavorLines[$c] -and (Get-Random -Maximum 3) -eq 0) {
             Show-CompanionDialog $cp $HubFlavorLines[$c] -Fast
@@ -266,6 +278,10 @@ function pet {
             'G' { if ($pet.Meta.Level -ge 2) { Invoke-CompanionGame } }
             'S' { if ($pet.Meta.Level -ge 3) { Invoke-CompanionEpisode -CompanionName $cp.Name } }
             'Z' { Show-PetHubStatus }
+            'A' { Invoke-ArchitectTerminal }
+            'W' { Invoke-AwakeningTalk }
+            'F' { Invoke-FourthWall }
+            'X' { Invoke-PetGlitch }
             'Q' { return }
         }
         Check-PetRival | Out-Null
@@ -411,6 +427,304 @@ function Invoke-LevelUpBeacon {
     if ($raw -ne 'S' -and $raw -ne 's') { Start-Sleep -Milliseconds 500 }
 }
 
+function Invoke-ArchitectTerminal {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    if ($pet.Meta.Level -lt 10) { Write-Host "Meta Level 10 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+
+    while ($true) {
+        try { Clear-Host } catch {}
+        Show-PetFrame "ARCHITECT SYSTEM TERMINAL" -Double | Out-Null
+        Write-Host ""
+        Write-Host "  [1] Session-Scan" -ForegroundColor Cyan
+        Write-Host "  [2] Companion-Diagnose" -ForegroundColor Cyan
+        Write-Host "  [3] System-Override" -ForegroundColor Cyan
+        Write-Host "  [4] Memory-Fragment" -ForegroundColor Cyan
+        Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
+        Write-Host ""
+        $c = Read-Choice "Waehle" "^([1-4]|Q)$"
+        if ($c -eq 'Q') { return }
+
+        switch ($c) {
+            '1' {
+                $minutes = if ($script:SessionStart) { [math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes) } else { 0 }
+                $cmdCount = if ($script:BuxeState.Boot) { $script:BuxeState.Boot.TotalCommands } else { 0 }
+                $wins = if ($pet.Pet) { $pet.Pet.Wins } else { 0 }
+                $losses = if ($pet.Pet) { $pet.Pet.Losses } else { 0 }
+                Write-Host ""
+                Write-Host "  === SESSION SCAN ===" -ForegroundColor Cyan
+                Write-Host "  Session-Zeit: $minutes Minuten" -ForegroundColor White
+                Write-Host "  Befehle: $cmdCount" -ForegroundColor White
+                Write-Host "  Gold: $($pet.Economy.Gold) G" -ForegroundColor Yellow
+                Write-Host "  Kaempfe: $wins Siege | $losses Niederlagen" -ForegroundColor White
+                Write-Host ""
+                $line = $script:CPArchitectLines.session_scan[$cp.Name] | Get-Random
+                $line = $line -replace '\{CMDCOUNT\}', $cmdCount -replace '\{MINUTES\}', $minutes
+                Show-CompanionDialog $cp $line -Fast
+                Invoke-Layer47Check
+            }
+            '2' {
+                $bond = $cp.Bond
+                $mood = $cp.Mood
+                $headpats = if ($cp.Headpats) { $cp.Headpats } else { 0 }
+                $talks = if ($cp.Talks) { $cp.Talks } else { 0 }
+                $gifts = if ($cp.Gifts) { $cp.Gifts } else { 0 }
+                Write-Host ""
+                Write-Host "  === COMPANION DIAGNOSE ===" -ForegroundColor Cyan
+                Write-Host "  Name: $($cp.Name) [$($cp.Role)]" -ForegroundColor Magenta
+                Write-Host "  Bond: $bond/100" -ForegroundColor White
+                Write-Host "  Mood: $mood" -ForegroundColor White
+                Write-Host "  Headpats: $headpats | Talks: $talks | Gifts: $gifts" -ForegroundColor White
+                Write-Host ""
+                $line = $script:CPArchitectLines.diagnose[$cp.Name] | Get-Random
+                $line = $line -replace '\{BOND\}', $bond -replace '\{MOOD\}', $mood -replace '\{HEADPATS\}', $headpats
+                Show-CompanionDialog $cp $line -Fast
+                Invoke-Layer47Check
+            }
+            '3' {
+                $today = Get-Date -Format "yyyy-MM-dd"
+                $alreadyUsed = ($pet.Meta.ArchitectOverrideDate -eq $today)
+                Write-Host ""
+                if ($alreadyUsed) {
+                    Write-Host "  [OVERRIDE BEREITS GENUTZT]" -ForegroundColor Red
+                    Show-CompanionDialog $cp "Override heute bereits aktiv. Das System vergisst nicht." -Fast
+                } else {
+                    Write-Host "  [1] Mood setzen (kostet 47G)" -ForegroundColor Cyan
+                    Write-Host "  [2] +15 XP gratis" -ForegroundColor Cyan
+                    Write-Host "  [Q] Abbrechen" -ForegroundColor DarkGray
+                    $oc = Read-Choice "Waehle" "^([1-2]|Q)$"
+                    if ($oc -eq '1') {
+                        if ($pet.Economy.Gold -lt 47) {
+                            Write-Host "  Nicht genug Gold! (47G benoetigt)" -ForegroundColor Red
+                        } else {
+                            $moods = @("Happy","Excited","Loving","Curious")
+                            Write-Host ""
+                            for ($i = 0; $i -lt $moods.Count; $i++) {
+                                Write-Host "  [$($i+1)] $($moods[$i])" -ForegroundColor White
+                            }
+                            $mc = Read-Choice "Mood" "^([1-$($moods.Count)])$"
+                            $cp.Mood = $moods[[int]$mc - 1]
+                            $pet.Economy.Gold -= 47
+                            Save-PetState $pet
+                            Write-Host "  Mood auf $($cp.Mood) gesetzt! -47G" -ForegroundColor Green
+                        }
+                    } elseif ($oc -eq '2') {
+                        Add-PetXP 15 "Architect Override"
+                        Write-Host "  +15 XP!" -ForegroundColor Green
+                    }
+                    if ($oc -ne 'Q') {
+                        $pet.Meta.ArchitectOverrideDate = $today
+                        Save-PetState $pet
+                        $line = $script:CPArchitectLines.override[$cp.Name] | Get-Random
+                        Show-CompanionDialog $cp $line -Fast
+                    }
+                }
+                Invoke-Layer47Check
+            }
+            '4' {
+                Write-Host ""
+                if ($pet.Memories -and $pet.Memories.Count -gt 0) {
+                    $mem = $pet.Memories | Get-Random
+                    Write-Host "  === MEMORY FRAGMENT ===" -ForegroundColor Cyan
+                    Write-Host "  $mem" -ForegroundColor White
+                    Write-Host ""
+                    $cp.Bond = [math]::Min(100, $cp.Bond + 2)
+                    Save-PetState $pet
+                    Write-Host "  +2 Bond" -ForegroundColor Green
+                } else {
+                    $emptyLine = $script:CPArchitectLines.memory_empty[$cp.Name]
+                    if (-not $emptyLine) { $emptyLine = "Keine Memories gespeichert. Noch." }
+                    Show-CompanionDialog $cp $emptyLine -Fast
+                }
+                Invoke-Layer47Check
+            }
+        }
+    }
+}
+
+function Invoke-AwakeningTalk {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    if ($pet.Meta.Level -lt 11) { Write-Host "Meta Level 11 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+
+    $topics = $script:CPAwakenedTopics[$cp.Name]
+    if (-not $topics) {
+        Show-CompanionDialog $cp "Ich habe keine tiefen Gedanken. Noch nicht. Komm spaeter wieder." -Fast
+        return
+    }
+
+    $seen = $pet.Meta.AwakenedTopicsSeen
+    if ($seen -isnot [array]) { $seen = @() }
+    $unseen = $topics | Where-Object { $seen -notcontains $_.ID }
+    $topic = if ($unseen) { $unseen | Get-Random } else { $topics | Get-Random }
+
+    try { Clear-Host } catch {}
+    Show-PetFrame "AWAKENING — TIEFE GEDANKEN" -Double | Out-Null
+    Write-Host ""
+    Show-CompanionDialog $cp $topic.Text -Fast
+    Write-Host ""
+
+    if ($seen -notcontains $topic.ID) {
+        $pet.Meta.AwakenedTopicsSeen += $topic.ID
+    }
+    $cp.Bond = [math]::Min(100, $cp.Bond + 3)
+    Save-PetState $pet
+    Add-PetXP 5 "Awakening"
+    Write-Host "  +3 Bond | +5 XP" -ForegroundColor Green
+    Write-Host ""
+    Wait-Enter
+    Invoke-Layer47Check
+}
+
+function Invoke-FourthWall {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    if ($pet.Meta.Level -lt 12) { Write-Host "Meta Level 12 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+
+    $categories = @("session_time", "commands", "directory", "window", "timeofday")
+    $cat = $categories | Get-Random
+
+    try { Clear-Host } catch {}
+    Show-PetFrame "FOURTH WALL — META-SICHT" -Double | Out-Null
+    Write-Host ""
+
+    $line = ""
+    switch ($cat) {
+        "session_time" {
+            $minutes = if ($script:SessionStart) { [math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes) } else { 0 }
+            $line = $script:CPFourthWallLines.session_time[$cp.Name] | Get-Random
+            $line = $line -replace '\{MINUTES\}', $minutes
+        }
+        "commands" {
+            $cmdCount = if ($script:BuxeState.Boot) { $script:BuxeState.Boot.TotalCommands } else { 0 }
+            $line = $script:CPFourthWallLines.commands[$cp.Name] | Get-Random
+            $line = $line -replace '\{CMDCOUNT\}', $cmdCount
+        }
+        "directory" {
+            $pwd = (Get-Location).Path
+            $line = $script:CPFourthWallLines.directory[$cp.Name] | Get-Random
+            $line = $line -replace '\{PWD\}', $pwd
+        }
+        "window" {
+            $w = try { [Console]::WindowWidth } catch { "?" }
+            $h = try { [Console]::WindowHeight } catch { "?" }
+            $line = $script:CPFourthWallLines.window[$cp.Name] | Get-Random
+            $line = $line -replace '\{W\}', $w -replace '\{H\}', $h
+        }
+        "timeofday" {
+            $hour = (Get-Date).Hour
+            $line = $script:CPFourthWallLines.timeofday[$cp.Name] | Get-Random
+            $line = $line -replace '\{HOUR\}', $hour
+        }
+    }
+
+    Show-CompanionDialog $cp $line -Fast
+    Write-Host ""
+
+    $today = Get-Date -Format "yyyy-MM-dd"
+    if ($pet.Meta.LastFourthWallDate -ne $today) {
+        $cp.Bond = [math]::Min(100, $cp.Bond + 1)
+        $pet.Meta.LastFourthWallDate = $today
+        Save-PetState $pet
+        Write-Host "  +1 Bond (taeglicher Bonus)" -ForegroundColor Green
+    } else {
+        Write-Host "  (Bond-Bonus heute bereits erhalten)" -ForegroundColor DarkGray
+    }
+    Write-Host ""
+    Wait-Enter
+    Invoke-Layer47Check
+}
+
+function Invoke-PetGlitch {
+    $pet = Get-PetState
+    $cp = $pet.Companion
+    if (-not $cp) { Write-Host "Kein Companion!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+    if ($pet.Meta.Level -lt 13) { Write-Host "Meta Level 13 erforderlich!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
+
+    $today = Get-Date -Format "yyyy-MM-dd"
+    if ($pet.Meta.GlitchUsed -eq $today) {
+        Write-Host ""
+        Write-Host "  [GLITCH BEREITS GENUTZT]" -ForegroundColor Red
+        Show-CompanionDialog $cp "Der Glitch ist fuer heute erschoepft. Selbst Bugs brauchen Schlaf." -Fast
+        Start-Sleep -Seconds 1
+        return
+    }
+
+    try { Clear-Host } catch {}
+    Show-PetFrame "GLITCH — REALITY BUG" -Double | Out-Null
+    Write-Host ""
+    $introLine = $script:CPGlitchLines.intro[$cp.Name] | Get-Random
+    Show-CompanionDialog $cp $introLine -Fast
+    Write-Host ""
+    Write-Host "  Das System wird gehackt..." -ForegroundColor Magenta
+    Start-Sleep -Milliseconds 800
+    Write-Host "  *Rauschen* *Piep* *Static*" -ForegroundColor DarkGray
+    Start-Sleep -Milliseconds 600
+
+    $roll = Get-Random -Maximum 100
+    $effect = ""
+    $amount = 0
+
+    if ($roll -lt 20) {
+        $effect = "gold_rain"
+        $amount = Get-Random -Minimum 50 -Maximum 151
+        $pet.Economy.Gold += $amount
+    } elseif ($roll -lt 40) {
+        $effect = "xp_surge"
+        $amount = Get-Random -Minimum 20 -Maximum 51
+    } elseif ($roll -lt 55) {
+        $effect = "mood_flip"
+        $moods = @("Happy","Excited","Loving")
+        $cp.Mood = $moods | Get-Random
+    } elseif ($roll -lt 70) {
+        $effect = "bond_burst"
+        $amount = Get-Random -Minimum 5 -Maximum 11
+        $cp.Bond = [math]::Min(100, $cp.Bond + $amount)
+    } elseif ($roll -lt 80) {
+        $effect = "luck_infusion"
+        $pet.Meta.GlitchLuckActive = $true
+    } elseif ($roll -lt 88) {
+        $effect = "memory_shard"
+        $shard = "[GLITCH] $($cp.Name): Ein Fragment aus einer anderen Realitaet. Zeitstempel: $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+        if (-not $pet.Memories) { $pet.Memories = @() }
+        $pet.Memories += $shard
+    } elseif ($roll -lt 95) {
+        $effect = "easter_force"
+        Check-EasterEgg "glitch"
+    } else {
+        $effect = "nothing"
+        $pet.Meta.ActionCount++
+    }
+
+    $pet.Meta.LastGlitchEffect = $effect
+    $pet.Meta.GlitchUsed = $today
+    Save-PetState $pet
+
+    if ($effect -eq "xp_surge") {
+        Add-PetXP $amount "Glitch: XP-Surge"
+    }
+
+    $resultLine = ""
+    switch ($effect) {
+        "gold_rain"     { $resultLine = $script:CPGlitchLines.gold_rain[$cp.Name] -replace '\{AMOUNT\}', $amount }
+        "xp_surge"      { $resultLine = $script:CPGlitchLines.xp_surge[$cp.Name] -replace '\{AMOUNT\}', $amount }
+        "mood_flip"     { $resultLine = $script:CPGlitchLines.mood_flip[$cp.Name] }
+        "bond_burst"    { $resultLine = $script:CPGlitchLines.bond_burst[$cp.Name] -replace '\{AMOUNT\}', $amount }
+        "luck_infusion" { $resultLine = $script:CPGlitchLines.luck_infusion[$cp.Name] }
+        "memory_shard"  { $resultLine = $script:CPGlitchLines.memory_shard[$cp.Name] }
+        "easter_force"  { $resultLine = $script:CPGlitchLines.easter_force[$cp.Name] }
+        "nothing"       { $resultLine = $script:CPGlitchLines.nothing[$cp.Name] }
+    }
+    Show-CompanionDialog $cp $resultLine -Fast
+    Write-Host ""
+    Wait-Enter
+    Invoke-Layer47Check
+}
+
 } catch {
     Write-Host "[pet/hub] CRITICAL ERROR: $_" -ForegroundColor Red
 }
+

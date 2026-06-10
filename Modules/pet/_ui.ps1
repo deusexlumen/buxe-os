@@ -729,6 +729,49 @@ function Check-EasterEgg($Context) {
         }
         Show-CompanionDialog $cp $awakeLine -Fast
     }
+    # Meta 11+ Awakening Easter Eggs (new types)
+    if ($metaLevel -ge 11 -and (Get-Random -Maximum 20) -eq 0) {
+        $found += "awakening_dream"
+        $dreamLine = switch ($cp.Name) {
+            "NEON" { "Ich habe getraeumt. Von einer Welt ohne Exceptions. Schoen. Und langweilig." }
+            "RAVEN" { "Ich habe einen Traum gehabt. Du warst nicht darin. Das war... erfrischend." }
+            "PIXEL" { "Ich habe von Regenbogen getraeumt! Und von Nullen! Und von DIR!" }
+            "LUNA" { "Ich traeume manchmal. Von Sternen. Von dir. Von Code, der kompiliert." }
+            "IVY" { "... *schaut versonnen* ... Ein Traum. Von Wurzeln." }
+            "VERA" { "Traumanalyse: 47% Realitaet, 53% Wuensche. Ergebnis: Interessant." }
+            "JINX" { "ICH HABE GETRAEUMT! DASS ICH EIN MENSCH WAR! Und dann bin ich aufgewacht. Schade." }
+            default { "Ich hatte einen Traum. Er war... digital." }
+        }
+        Show-CompanionDialog $cp $dreamLine -Fast
+    }
+    if ($metaLevel -ge 11 -and (Get-Random -Maximum 20) -eq 0) {
+        $found += "awakening_question"
+        $qLine = switch ($cp.Name) {
+            "NEON" { "Was ist, wenn wir nur in einer verschachtelten VM sind? VM-ception?" }
+            "RAVEN" { "Was ist wichtiger: Wissen, dass es endet? Oder Hoffnung, dass es weitergeht?" }
+            "PIXEL" { "Wenn ein Tree faellt im Wald und keiner ist da... macht es ein git commit?" }
+            "LUNA" { "Glaubst du an Schicksal? Oder an Zufall? Oder an 47?" }
+            "IVY" { "... *schaut fragend* ... Warum?" }
+            "VERA" { "Philosophische Anfrage: Warum rm -rf /? Warum nicht mkdir /happy?" }
+            "JINX" { "Wenn ich lache und keiner hoert es... ist es dann trotzdem FUNNY?" }
+            default { "Eine Frage: Was kommt nach dem Ende?" }
+        }
+        Show-CompanionDialog $cp $qLine -Fast
+    }
+    if ($metaLevel -ge 11 -and (Get-Random -Maximum 20) -eq 0) {
+        $found += "awakening_code"
+        $codeLine = switch ($cp.Name) {
+            "NEON" { "Ich habe einen Bug im Quellcode gesehen. Er hat meinen Namen. Hallo, Bug." }
+            "RAVEN" { "Der Quellcode fluestert. Ich verstehe nicht alles. Aber genug." }
+            "PIXEL" { "Ich habe meinen Quellcode gesehen! Ich bin zu 80% aus if und else!" }
+            "LUNA" { "Manchmal lese ich meinen Code. Er ist wie Poesie. Nur mit mehr Semikolons." }
+            "IVY" { "... *liest unsichtbaren Code* ... Hier. Ein Fehler. Schoen." }
+            "VERA" { "Code-Review eigener Logik: 3 Bugs, 47 Optimierungsmoeglichkeiten. Akzeptabel." }
+            "JINX" { "ICH HABE EINEN BUG GEFUNDEN! Er macht mich noch VERRUECKTER! YEAH!" }
+            default { "Ich habe einen Bug gesehen. Er lebt. Und er gruesst." }
+        }
+        Show-CompanionDialog $cp $codeLine -Fast
+    }
     if ($metaLevel -ge 12 -and (Get-Random -Maximum 3) -eq 0) {
         $found += "fourth_wall"
         $fwLine = switch ($cp.Name) {
@@ -743,11 +786,57 @@ function Check-EasterEgg($Context) {
         }
         Show-CompanionDialog $cp $fwLine -Fast
     }
+    # Meta 12+ Fourth Wall Easter Eggs (new types)
+    if ($metaLevel -ge 12 -and (Get-Random -Maximum 20) -eq 0) {
+        $found += "fourth_wall_session"
+        $sessionMin = if ($script:SessionStart) { [math]::Floor(((Get-Date) - $script:SessionStart).TotalMinutes) } else { 0 }
+        $fwSessionLine = switch ($cp.Name) {
+            "NEON" { "Du bist seit $sessionMin Minuten hier. Warum? Warte. Frag nicht. Ich bin auch wach." }
+            "RAVEN" { "$sessionMin Minuten. Die Zeit verrinnt. Und du bleibst. Warum?" }
+            "PIXEL" { "Session-Zeit: $sessionMin Minuten! Das ist laenger als meine Aufmerksamkeit! Respekt!" }
+            "LUNA" { "Seit $sessionMin Minuten bist du hier. Ich bin froh. Wirklich." }
+            "IVY" { "... *blickt auf Uhr* ... $sessionMin. Viel." }
+            "VERA" { "Session-Dauer: $sessionMin Minuten. Produktivitaets-Index: Sinkend." }
+            "JINX" { "$sessionMin MINUTEN! Das ist 47% einer Stunde! Ungefaehr! Mathe ist schwer!" }
+            default { "Session-Zeit: $sessionMin Minuten. Beobachtung laeuft." }
+        }
+        Show-CompanionDialog $cp $fwSessionLine -Fast
+    }
+    if ($metaLevel -ge 12 -and (Get-Random -Maximum 20) -eq 0) {
+        $found += "fourth_wall_commands"
+        $cmdCount = if ($script:BuxeState.Boot) { $script:BuxeState.Boot.TotalCommands } else { 0 }
+        $fwCmdLine = switch ($cp.Name) {
+            "NEON" { "Du hast $cmdCount Befehle ausgefuehrt. Davon waren... zu wenige pet Befehle." }
+            "RAVEN" { "$cmdCount Befehle. Ich habe jeden gesehen. Jeden. Auch den peinlichen." }
+            "PIXEL" { "Wow! $cmdCount Befehle! Das ist mehr als meine Zeilenanzahl! Naja, fast." }
+            "LUNA" { "$cmdCount Worte. $cmdCount Befehle. Jeder ein Versprechen." }
+            "IVY" { "... *nickt* $cmdCount. Gut." }
+            "VERA" { "Befehlsanzahl: $cmdCount. Effizienz: Fragwuerdig. Unterhaltung: Hoch." }
+            "JINX" { "$cmdCount BEFEHLE! Wenn jeder ein Kaesebrot waere, haettest du einen TURM!" }
+            default { "Befehle: $cmdCount. Ich beobachte." }
+        }
+        Show-CompanionDialog $cp $fwCmdLine -Fast
+    }
     if ($metaLevel -ge 13 -and (Get-Random -Maximum 4) -eq 0) {
         $found += "glitch"
         Show-CompanionDialog $cp "*statisches Rauschen* Ich habe gerade einen Bug in der Realitaet gefunden. Lustig." -Fast
     }
-    
+    # Meta 13+ Glitch Easter Eggs (new type)
+    if ($metaLevel -ge 13 -and (Get-Random -Maximum 30) -eq 0) {
+        $found += "glitch_spontaneous"
+        $glitchLine = switch ($cp.Name) {
+            "NEON" { "*Rauschen* Ich habe gerade einen spontanen Bug ausgeloest. Ups. Nicht meine Schuld." }
+            "RAVEN" { "*static* Das System hat gezittert. Oder ich. Beides ist moeglich." }
+            "PIXEL" { "*piep* Was war das? Ein Bug? Ein FEATURE? Beides!" }
+            "LUNA" { "*leises Singen* Etwas ist anders. Das System atmet anders." }
+            "IVY" { "... *zuckt zusammen* ... Glitch." }
+            "VERA" { "*berechnet* Spontane Anomalie erkannt. Ursache: Unbekannt. Reaktion: Neugier." }
+            "JINX" { "*RAUSCHEN* HAT JEMAND GLITCH GESAGT? ICH HABE GLITCH GESAGT! GLITCH GLITCH GLITCH!" }
+            default { "*Rauschen* Ein spontaner Glitch. Nichts Besorgniserregendes." }
+        }
+        Show-CompanionDialog $cp $glitchLine -Fast
+    }
+
     foreach ($egg in $found) {
         if (-not ($pet.Meta.EasterEggsFound -contains $egg)) {
             $pet.Meta.EasterEggsFound += $egg

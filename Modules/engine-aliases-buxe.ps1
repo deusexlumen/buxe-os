@@ -116,7 +116,12 @@ function status {
         Write-Host "     Session: $sessionTime | Commands: $cmdCount | Meta: Lv.$($petMeta.Level)" -ForegroundColor DarkGray
         if ($petMeta.Level -ge 13) {
             $glitchStatus = if ($petMeta.GlitchUsed -eq (Get-Date -Format "yyyy-MM-dd")) { "USED" } else { "READY" }
-            Write-Host "     Glitch: $glitchStatus" -ForegroundColor $(if($glitchStatus -eq "READY"){"Green"}else{"Red"})
+            $glitchColor = if ($glitchStatus -eq "READY") { "Green" } else { "Red" }
+            if ($petMeta.GlitchLuckActive) {
+                $glitchStatus = "LUCK ACTIVE"
+                $glitchColor = "Magenta"
+            }
+            Write-Host "     Glitch: $glitchStatus" -ForegroundColor $glitchColor
         }
         if ($petMeta.Level -ge 14 -and $petMeta.ContainsKey("ActionCount")) {
             $nextLayer = 47 - ($petMeta.ActionCount % 47)

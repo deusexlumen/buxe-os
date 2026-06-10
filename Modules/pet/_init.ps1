@@ -40,6 +40,11 @@ function Get-PetDefaults {
             QuestDate = ""
             GlitchUsed = ""
             ActionCount = 0
+            GlitchLuckActive = $false
+            AwakenedTopicsSeen = @()
+            LastGlitchEffect = ""
+            LastFourthWallDate = ""
+            ArchitectOverrideDate = ""
         }
         Companion = $null
         Pet = $null
@@ -119,6 +124,28 @@ function Get-PetState {
                 $oldShown = @($script:BuxeState.Pet.Tutorial.BeaconsShown)
             }
             $script:BuxeState.Pet.Tutorial.BeaconsShown = $oldShown
+            Save-State
+        }
+        # Lazy migration: Hollow Promises v24.x
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("GlitchLuckActive")) {
+            $script:BuxeState.Pet.Meta.GlitchLuckActive = $false
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("AwakenedTopicsSeen") -or
+            $script:BuxeState.Pet.Meta.AwakenedTopicsSeen -isnot [array]) {
+            $script:BuxeState.Pet.Meta.AwakenedTopicsSeen = @()
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("LastGlitchEffect")) {
+            $script:BuxeState.Pet.Meta.LastGlitchEffect = ""
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("LastFourthWallDate")) {
+            $script:BuxeState.Pet.Meta.LastFourthWallDate = ""
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("ArchitectOverrideDate")) {
+            $script:BuxeState.Pet.Meta.ArchitectOverrideDate = ""
             Save-State
         }
     }

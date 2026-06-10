@@ -70,6 +70,18 @@ function Invoke-CasinoGame {
                 }
             }
         }
+
+        # Apply Pet System Glitch Luck Infusion (+20% on next win)
+        $petMeta = if ($script:BuxeState.Pet) { $script:BuxeState.Pet.Meta } else { $null }
+        if ($petMeta -and $petMeta.GlitchLuckActive) {
+            if ($result.Win -gt 0) {
+                $infusionBonus = [math]::Floor($result.Win * 0.2)
+                $result.Win += $infusionBonus
+                Write-Host "`n  [GLITCH LUCK INFUSION] +$infusionBonus G! Der Bug war ein Feature!" -ForegroundColor Magenta
+            }
+            $petMeta.GlitchLuckActive = $false
+            Save-State
+        }
         
         # Apply casino luck bonus
         $luckMod = Get-CasinoLuckModifier

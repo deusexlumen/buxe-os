@@ -201,6 +201,14 @@ $pet.Tutorial.PendingBeacons = $originalPending
 $pet.Tutorial.BeaconsShown = $originalShown
 Save-PetState $pet
 
+# Hollow Promises State Fields
+$pet = Get-PetState
+Test-Assert "Hollow Promises: GlitchLuckActive exists" ($pet.Meta.ContainsKey("GlitchLuckActive"))
+Test-Assert "Hollow Promises: AwakenedTopicsSeen exists" ($pet.Meta.ContainsKey("AwakenedTopicsSeen"))
+Test-Assert "Hollow Promises: LastGlitchEffect exists" ($pet.Meta.ContainsKey("LastGlitchEffect"))
+Test-Assert "Hollow Promises: LastFourthWallDate exists" ($pet.Meta.ContainsKey("LastFourthWallDate"))
+Test-Assert "Hollow Promises: ArchitectOverrideDate exists" ($pet.Meta.ContainsKey("ArchitectOverrideDate"))
+
 # Test 15: Adventure engine loads
 Test-Assert "Adventure engine loaded" ((Get-Command Invoke-Adventure -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Adventure alias 'adv' exists" ((Get-Command adv -ErrorAction SilentlyContinue) -ne $null)
