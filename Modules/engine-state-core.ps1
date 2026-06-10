@@ -53,6 +53,7 @@ function Get-StateDefaults {
             Game2048 = @{ BestScore = 0; BestTile = 0; GamesPlayed = 0 }
             DinoJump = @{ BestScore = 0; GamesPlayed = 0 }
             MemoryMatch = @{ BestTime = 0; BestMoves = 0; GamesPlayed = 0 }
+            Reflex = @{ BestAvg = 9999; GamesPlayed = 0; LastAvg = 0 }
         }
         Achievements = @{}
         Story = @{}

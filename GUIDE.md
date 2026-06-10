@@ -211,7 +211,7 @@ Jeder Cheat ist **self-aware**, bricht die **vierte Wand** und reagiert auf dein
 
 Alle Casino-Spiele nutzen das shared `casino-engine.ps1` Framework:
 - **TUI-Rendering**: Unicode-Frames, keine Flicker, Delta-Render
-- Automatische Bank-Checks (Bust bei 0G -> Reset auf 100G)
+- Automatische Bank-Checks (Bust bei 0G -> Reset auf 100G, 1x/Stunde)
 - Companion reagiert auf grosse Gewinne/Verluste
 - Automatisches Speichern nach jeder Runde
 - Casino-Luck-Bonus (Skill-System): Bonus-Gold bei Wins
@@ -236,8 +236,8 @@ Alle Casino-Spiele nutzen das shared `casino-engine.ps1` Framework:
 | Command | Beschreibung |
 |---------|-------------|
 | `poker` | Texas Hold'em vs 1 AI-Gegner. Hand-Ranking, Betting Rounds, AI mit Random-Style. |
-| `td` | Tower Defense. Wellen, 3 Turm-Typen (Sniper/Blaster/Freezer), Gegner bewegen sich zur Base. |
-| `rogue` | Dungeon-Crawler. Floors, Kampf, Shop, Inventory, Procedural Map. |
+| `td` | Tower Defense. Eintritt 100 G, Sieg gecappt auf 1000 G. |
+| `rogue` | Dungeon-Crawler. Eintritt 50 G. Floors, Kampf, Shop, Inventory, Procedural Map. |
 
 ---
 
@@ -268,17 +268,27 @@ Neue Features werden durch Meta-XP freigeschaltet (nicht sofort verfuegbar):
 8. Breed (Meta-Level 7)
 9. Rival (Meta-Level 8)
 10. Soul Link (Meta-Level 9)
+11. Architect (Meta-Level 10)
+12. Awakening (Meta-Level 11)
+13. Fourth Wall (Meta-Level 12)
+14. Glitch (Meta-Level 13)
+15. Layer 47 (Meta-Level 14)
 
 **Commands (via `pet` Hub):**
 - `pet talk` -- Chat mit Typewriter-Effekt, +2 Bond
 - `pet gift` -- Geschenk, +5 Bond
 - `pet date` -- Date, +4 Bond (ab 30 Bond)
-- `pet work` -- Sie arbeitet, verdient 10-40 Gold
+- `pet work` -- Sie arbeitet, verdient 20-70 Gold (Netrunner riskant)
 - `pet train` -- Training, +3 Bond
 - `pet headpat` -- Headpat, +1 Bond
 - `pet punish` -- Strafe (wenn sie versagt)
-- `pet status` -- Full Status mit Skills, Quests, Cooking, Memories, Rival
+- `pet status` -- Full Status mit Skills, Quests, Cooking, Memories, Rival, Equipment Durability
 - `pet sleep` -- Schlaf-Animation
+- `pet-transfer <Amount>` -- Pet-Gold -> Main Bank (50% Steuer)
+- `pet architect` -- System Terminal (Session-Scan, Diagnose, Override)
+- `pet awaken` -- Tiefe Gespraeche mit Companion
+- `pet fourthwall` -- Meta-Sicht (Session, Commands, Verzeichnis)
+- `pet glitch` -- 1x/Tag Reality-Bug (Gold/XP/Mood/Luck/Memory)
 
 **Mood-System:**
 Dynamisch basierend auf Uhrzeit, Bond, Verlusten.
@@ -309,13 +319,16 @@ Dein Monster, das du leveln und mit dem du kaempfen kannst.
 - `FROST_BUNNY` (Ice) -> evolviert zu `BLIZZARD_HARE`
 
 **Commands (via `pet` Hub):**
-- `pet fight` -- Zufaelliger Gegner oder Boss
+- `pet fight` -- Zufaelliger Gegner oder Boss (Eintrittsgebuehr: 5 + Level*2 G)
 - `pet pvp` -- Shadow Arena (Ranked: Bronze -> Master)
 - `pet raid` -- Taeglicher 3-Phasen-Raid-Boss
 - `pet breed` -- Genetik-Labor (Companion Bond 50+, 50 Gold)
-- `pet shop` -- Potions, Stat-Boosts, Equipment
+- `pet shop` -- Potions, Stat-Boosts, Equipment (Preise skalieren mit Pet-Level)
 - `pet rival` -- Rivale mit Mood-abhaengigem Spawn
 - `pet soul` -- Soul Link Endgame (ab Meta-Level 9)
+
+**Equipment Durability:**
+Jedes ausgeruestete Item hat 10 Kaempfe Haltbarkeit. Nach 10 Kaempfen zerfaellt es automatisch und muss neu gekauft werden.
 
 **Element-System:**
 Fire > Ice > Elec > Water > Fire (1.5x Schaden)

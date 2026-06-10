@@ -360,6 +360,7 @@ function Show-PetHubStatus {
     Write-Host "`n  Gold: $($pet.Economy.Gold) G | Level: $($pet.Meta.Level) | XP: $($pet.Meta.XP)" -ForegroundColor Yellow
     Write-Host "  Unlocked: $($pet.Meta.Unlocked -join ', ')" -ForegroundColor DarkGray
     Write-Host ""
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
     Wait-Enter
 }
 

@@ -8,7 +8,8 @@ $modulesDir = if ($PSScriptRoot) { $PSScriptRoot } else { Join-Path (Get-Locatio
 $subModules = @(
     "arcade-legacy.ps1", "arcade-minesweeper.ps1", "arcade-tetris.ps1",
     "arcade-monkeytype.ps1", "arcade-snake.ps1", "arcade-wordle.ps1",
-    "arcade-breakout.ps1", "arcade-2048.ps1", "arcade-dino.ps1", "arcade-memory.ps1"
+    "arcade-breakout.ps1", "arcade-2048.ps1", "arcade-dino.ps1", "arcade-memory.ps1",
+    "arcade-reflex.ps1"
 )
 foreach ($sm in $subModules) {
     $smPath = Join-Path $modulesDir $sm
@@ -38,6 +39,9 @@ function Show-ArcadeStats {
     if ($a.MemoryMatch.GamesPlayed -gt 0) {
         Write-Host "  Memory Match: Best Time: $($a.MemoryMatch.BestTime)s | Moves: $($a.MemoryMatch.BestMoves)" -ForegroundColor Magenta
     }
+    if ($a.Reflex.GamesPlayed -gt 0) {
+        Write-Host "  Reflex Test:  Best Avg: $($a.Reflex.BestAvg)ms | Games: $($a.Reflex.GamesPlayed)" -ForegroundColor Cyan
+    }
     Write-Host ""
     Wait-Enter
 }
@@ -57,6 +61,7 @@ function arcade {
             "2048" { Start-Game2048 }
             "dino" { Start-DinoJump }
             "memory" { Start-MemoryMatch }
+            "reflex" { Start-ReflexTest }
             default { Write-Host "Unbekanntes Game: $Game" -ForegroundColor Red }
         }
         return
@@ -78,9 +83,10 @@ function arcade {
         Write-Host "  [9] 2048            Best: $($a.Game2048.BestScore)" -ForegroundColor Cyan
         Write-Host "  [0] Dino Jump       Best: $($a.DinoJump.BestScore)" -ForegroundColor Green
         Write-Host "  [M] Memory Match    Best: $($a.MemoryMatch.BestTime)s" -ForegroundColor Magenta
+        Write-Host "  [R] Reflex Test     Best: $($a.Reflex.BestAvg)ms" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "  [S] Stats Overview  |  [Q] Exit" -ForegroundColor DarkGray
-        $c = Read-Choice "Waehle" '^[1234567890MSQ]$'
+        $c = Read-Choice "Waehle" '^[1234567890RMSQ]$'
         switch ($c) {
             '1' { tetris }
             '2' { snake }
@@ -93,6 +99,7 @@ function arcade {
             '9' { Start-Game2048 }
             '0' { Start-DinoJump }
             'M' { Start-MemoryMatch }
+            'R' { Start-ReflexTest }
             'S' { Show-ArcadeStats }
             'Q' { return }
         }

@@ -501,6 +501,21 @@ Assert (Get-Command Apply-StatusEffects -ErrorAction SilentlyContinue) "E2E: App
 
 Write-Host " OK" -ForegroundColor Green
 
+# E2E: Pet Transfer
+Write-Host "Testing Pet Transfer..." -NoNewline
+$pet = Get-PetState
+$originalGold = $pet.Economy.Gold
+$pet.Economy.Gold = 500
+Save-PetState $pet
+$originalBank = Get-Bankroll
+pet-transfer 100
+$pet = Get-PetState
+Assert ($pet.Economy.Gold -eq 400) "E2E: Pet gold deducted after transfer"
+Assert (Get-Bankroll -gt $originalBank) "E2E: Bank increased after transfer"
+$pet.Economy.Gold = $originalGold
+Save-PetState $pet
+Write-Host " OK" -ForegroundColor Green
+
 # E2E: Hollow Promises Features
 Write-Host "Testing Hollow Promises Features..." -NoNewline
 Assert (Get-Command Invoke-ArchitectTerminal -ErrorAction SilentlyContinue) "E2E: Invoke-ArchitectTerminal exists"

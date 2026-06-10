@@ -17,6 +17,7 @@ function pet-transfer {
     Save-PetState $pet
     Add-Gold $net "Pet Transfer"
     Write-Host "`n  Transferiert: $Amount G | Steuer: $tax G | Netto: $net G" -ForegroundColor Yellow
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function bank {
@@ -34,6 +35,7 @@ function bank {
     if (Get-Command Invoke-ArgStatusLeak -ErrorAction SilentlyContinue) {
         Invoke-ArgStatusLeak
     }
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function daily {
@@ -52,6 +54,7 @@ function daily {
     Write-Host "  Streak: $($b.DailyStreak) Tage" -ForegroundColor Cyan
     if ($b.DailyStreak -ge 7) { Unlock-Achievement "Week Streak" }
     if ($b.DailyStreak -ge 30) { Unlock-Achievement "Month Streak" }
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function achievements {
@@ -62,6 +65,7 @@ function achievements {
     foreach ($p in $props) {
         Write-Host "    [OK] $p -- $($ach.$p)" -ForegroundColor Green
     }
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function ego {
@@ -74,6 +78,7 @@ function ego {
     Write-Host "  Bank: $($b.Gold) G" -ForegroundColor Yellow
     Write-Host "  Achievements: $ach" -ForegroundColor Green
     Write-Host "  Status: Digital deity in training.`n" -ForegroundColor White
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function status {
@@ -152,6 +157,7 @@ function status {
     if (Get-Command Invoke-ArgStatusLeak -ErrorAction SilentlyContinue) {
         Invoke-ArgStatusLeak
     }
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 
     Write-Host $bot -ForegroundColor Cyan
     Write-Host ""
@@ -176,6 +182,7 @@ function capsule {
         if ($opened -eq 0) { Write-Host "`n  No capsules ready yet. Create one with: capsule your message" -ForegroundColor DarkGray }
         $script:BuxeState.Capsules = $remaining
         Save-State
+        if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
         return
     }
     $openDays = Get-Random -Minimum 1 -Maximum 15
@@ -188,6 +195,7 @@ function capsule {
     $script:BuxeState.Capsules = $capsules
     Save-State
     Write-Host "`n  Capsule sealed! Opens in $openDays days." -ForegroundColor Green
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 function reset-buxe {
@@ -239,6 +247,7 @@ function meta {
         Load-State
     }
     Show-MetaTerminal
+    if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }
 
 # === MERIDIAN STATUS ===
@@ -263,6 +272,15 @@ function MERIDIAN_STATUS {
     Write-Host "  - System Integrity: 100%" -ForegroundColor Cyan
     Write-Host "  - Message: Du bist hier. Ich bin hier. Das reicht." -ForegroundColor White
     Write-Host ""
+}
+
+# === ARG v3.0 HUB ===
+function arg {
+    if (Get-Command Invoke-ArgHub -ErrorAction SilentlyContinue) {
+        Invoke-ArgHub
+    } else {
+        Write-Host "  [LOCKED] ARG Engine nicht verfuegbar." -ForegroundColor Red
+    }
 }
 
 # === BACKWARD COMPATIBILITY ===

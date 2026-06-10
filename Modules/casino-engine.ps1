@@ -176,6 +176,11 @@ function Invoke-CasinoGame {
         
         # Achievements are unlocked by individual game callbacks, not the engine
         
+        # ARG v3.0: Action Tick fuer Matrix-Progression
+        if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) {
+            Invoke-ArgActionTick
+        }
+        
         Wait-Enter
     }
 }
