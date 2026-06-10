@@ -21,6 +21,11 @@ function rogue {
     $act = Read-GameChoice "" "^[Q]$"
     if ($act -eq 'Q') { return }
     
+    $entryFee = 50
+    $br = Get-Bankroll
+    if ($br -lt $entryFee) { Write-Host "`n  Nicht genug Gold! ($entryFee G)" -ForegroundColor Red; Wait-Enter; return }
+    Spend-Gold $entryFee "Rogue Entry"
+    
     $hero = @{ Name = "Hero"; HP = 100; MaxHP = 100; ATK = 15; DEF = 5; SPD = 10; Potions = 3; Level = 1; XP = 0 }
     $floor = 0; $maxFloor = 20
     

@@ -2,6 +2,18 @@
 
 try {
 
+function pet-transfer {
+    param([int]$Amount)
+    $pet = Get-PetState
+    if ($pet.Economy.Gold -lt $Amount) { Write-Host "`n  Nicht genug Pet-Gold!" -ForegroundColor Red; return }
+    $tax = [math]::Floor($Amount * 0.5)
+    $net = $Amount - $tax
+    $pet.Economy.Gold -= $Amount
+    Save-PetState $pet
+    Add-Gold $net "Pet Transfer"
+    Write-Host "`n  Transferiert: $Amount G | Steuer: $tax G | Netto: $net G" -ForegroundColor Yellow
+}
+
 function bank {
     Load-State
     $b = $script:BuxeState.Bank

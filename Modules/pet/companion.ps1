@@ -146,7 +146,7 @@ function Invoke-CompanionAction($action) {
             if ($jc -eq '1') { $earn = Get-Random -Minimum 20 -Maximum 41 }
             elseif ($jc -eq '2') { $earn = Get-Random -Minimum 40 -Maximum 71 }
             else {
-                if ((Get-Random -Maximum 2) -eq 0) { $earn = Get-Random -Minimum 80 -Maximum 151 }
+                if ((Get-Random -Maximum 100) -lt 60) { $earn = Get-Random -Minimum 40 -Maximum 81 }
                 else { $bonusText = " | Mission fehlgeschlagen..." }
             }
             if ($earn -gt 0) { $pet.Economy.Gold += $earn }

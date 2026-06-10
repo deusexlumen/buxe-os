@@ -422,6 +422,23 @@ function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $player
         Add-PetXP ($xp / 2) "Fight Win"
     }
     
+    # Equipment durability degradation
+    foreach ($slot in @("chip","armor","accessory")) {
+        $eq = $playerPet.Equipment.$slot
+        if ($eq) {
+            $durKey = "Dur_$slot"
+            if (-not $playerPet.$durKey) { $playerPet.$durKey = 10 }
+            $playerPet.$durKey--
+            if ($playerPet.$durKey -le 0) {
+                $playerPet.Equipment.$slot = $null
+                Write-Host "  $eq ist zerbrochen!" -ForegroundColor Red
+                $playerPet.$durKey = 0
+            } else {
+                Write-Host "  $eq Haltbarkeit: $($playerPet.$durKey)" -ForegroundColor DarkGray
+            }
+        }
+    }
+    
     $playerPet.FoodBuffs = @(); Save-PetState $pet
     Invoke-Layer47Check
     Wait-Enter

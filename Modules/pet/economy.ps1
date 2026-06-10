@@ -36,18 +36,23 @@ function Start-PetShop {
         Write-Host "`n  Gold: $($pet.Economy.Gold) G" -ForegroundColor Yellow
         Write-Host "  Aktiv: $($p.Name) [Lv.$($p.Level)]" -ForegroundColor $p.Color
         Write-Host ""
+        $levelMult = 1.0 + ($p.Level - 1) * 0.1
         for ($i = 0; $i -lt $script:PetShopItems.Count; $i++) {
             $it = $script:PetShopItems[$i]
-            Write-Host "  [$($i+1)] $($it.Name) [$($it.Type)] — $($it.Cost) G | $($it.Desc)" -ForegroundColor White
+            $displayCost = [math]::Floor($it.Cost * $levelMult)
+            Write-Host "  [$($i+1)] $($it.Name) [$($it.Type)] — $displayCost G | $($it.Desc)" -ForegroundColor White
         }
         Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
         $c = Read-Choice "Waehle" "^([1-$($script:PetShopItems.Count)]|Q)$"
         if ($c -eq 'Q') { return }
         $item = $script:PetShopItems[[int]$c - 1]
-        if ($pet.Economy.Gold -lt $item.Cost) { Write-Host "`n  Nicht genug Gold!" -ForegroundColor Red; Wait-Enter; continue }
+        $actualCost = [math]::Floor($item.Cost * $levelMult)
+        if ($pet.Economy.Gold -lt $actualCost) { Write-Host "`n  Nicht genug Gold!" -ForegroundColor Red; Wait-Enter; continue }
         $slot = $item.Type.ToLower()
         $p.Equipment.$slot = $item.Name
-        $pet.Economy.Gold -= $item.Cost
+        $durKey = "Dur_$slot"
+        $p.$durKey = 10
+        $pet.Economy.Gold -= $actualCost
         Save-PetState $pet
         Check-QuestProgress "shop"
         Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
@@ -66,20 +71,23 @@ function Start-PetCook {
     Show-PetFrame "COMPANION KUECHE" -Double | Out-Null
     Write-Host "`n  Waehle ein Gericht fuer $($p.Name):" -ForegroundColor White
     Write-Host ""
+    $levelMult = 1.0 + ($p.Level - 1) * 0.1
     for ($i = 0; $i -lt $script:PetRecipes.Count; $i++) {
         $r = $script:PetRecipes[$i]
-        Write-Host "  [$($i+1)] $($r.Name) — $($r.Cost) G | $($r.Desc)" -ForegroundColor White
+        $displayCost = [math]::Floor($r.Cost * $levelMult)
+        Write-Host "  [$($i+1)] $($r.Name) — $displayCost G | $($r.Desc)" -ForegroundColor White
     }
     Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
     $c = Read-Choice "Waehle" "^([1-$($script:PetRecipes.Count)]|Q)$"
     if ($c -eq 'Q') { return }
     $recipe = $script:PetRecipes[[int]$c - 1]
-    if ($pet.Economy.Gold -lt $recipe.Cost) {
-        Write-Host "`n  Nicht genug Gold! ($($recipe.Cost) G benoetigt)" -ForegroundColor Red
+    $actualCost = [math]::Floor($recipe.Cost * $levelMult)
+    if ($pet.Economy.Gold -lt $actualCost) {
+        Write-Host "`n  Nicht genug Gold! ($actualCost G benoetigt)" -ForegroundColor Red
         Wait-Enter
         return
     }
-    $pet.Economy.Gold -= $recipe.Cost
+    $pet.Economy.Gold -= $actualCost
     $p.FoodBuffs = @($recipe.Buff)
     if ($cp.Bond -ge 50 -and (Get-Random -Maximum 3) -eq 0) {
         $p.FoodBuffs += @{ Name = "Mystery Stew"; Desc = "+5% All"; Buff = @{ Stat = "ALL"; Value = 0.05 } }

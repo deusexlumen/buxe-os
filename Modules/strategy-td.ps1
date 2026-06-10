@@ -21,6 +21,11 @@ function td {
     $act = Read-GameChoice "" "^[Q]$"
     if ($act -eq 'Q') { return }
     
+    $entryFee = 100
+    $br = Get-Bankroll
+    if ($br -lt $entryFee) { Write-Host "`n  Nicht genug Gold! ($entryFee G)" -ForegroundColor Red; Wait-Enter; return }
+    Spend-Gold $entryFee "TD Entry"
+    
     $baseHP = 100; $gold = 200; $wave = 0; $maxWaves = 10
     $towers = @()
     
@@ -109,7 +114,7 @@ function td {
         Add-SceneText $fs 4 5 "SIEG! Alle $maxWaves Wellen ueberstanden!" 'Green'
         
         $insightMod = Get-StrategyInsightModifier
-        $win = [math]::Floor(($gold + 100) * $insightMod)
+        $win = [math]::Min(1000, [math]::Floor(($gold + 100) * $insightMod))
         $bonus = $win - ($gold + 100)
         Set-Bankroll $win -TrackCasino
         Add-SceneText $fs 4 7 "+$win G gesammelt!" 'Green'
