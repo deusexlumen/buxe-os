@@ -13,7 +13,7 @@ try {
 
 Write-Output ""
 Write-Output "=== VERIFYING FUNCTIONS ==="
-$required = @("status","bank","daily","achievements","ego","capsule","h","pet","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","insult","say","chuck","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
+$required = @("status","bank","daily","achievements","ego","capsule","h","pet","pet-transfer","companion","battlepet","snake","monkeytype","wordle","zork","hangman","minesweeper","tetris","breakout","blackjack","roulette","craps","hilo","baccarat","slot","poker","td","rogue","adv","insult","say","chuck","mem","sysinfo","uptime","weather","ip","port","reload","Invoke-BootSequence")
 $missing = @()
 foreach ($fn in $required) {
     if (-not (Get-Command $fn -ErrorAction SilentlyContinue)) { $missing += $fn }

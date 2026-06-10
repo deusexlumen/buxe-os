@@ -148,6 +148,14 @@ function Get-PetState {
             $script:BuxeState.Pet.Meta.ArchitectOverrideDate = ""
             Save-State
         }
+        # Lazy migration: Equipment Durability (Balance Patch)
+        if ($script:BuxeState.Pet.Pet) {
+            $p = $script:BuxeState.Pet.Pet
+            foreach ($durKey in @("Dur_chip","Dur_armor","Dur_accessory")) {
+                if (-not $p.$durKey) { $p.$durKey = 10 }
+            }
+            Save-State
+        }
     }
     return $script:BuxeState.Pet
 }

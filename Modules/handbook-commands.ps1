@@ -15,6 +15,7 @@ function Show-HBCommands {
     Write-Host "    pet              Pet-Hub Menu (v2.0)" -ForegroundColor DarkGray
     Write-Host "    pet <action>     Direkte Aktion (talk/fight/etc.)" -ForegroundColor DarkGray
     Write-Host "    pet status       Status-Uebersicht" -ForegroundColor DarkGray
+    Write-Host "    pet-transfer     Pet-Gold -> Bank (50% Steuer)" -ForegroundColor DarkGray
     Write-Host "    achievements     Alle Achievements anzeigen" -ForegroundColor DarkGray
     Write-Host "    pet strategy     Strategy-Spiele Stats" -ForegroundColor DarkGray
     Write-Host ""

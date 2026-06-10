@@ -191,6 +191,8 @@ function Start-Game2048 {
     if (-not $stats.BestTile -or $bestTile -gt $stats.BestTile) { $stats.BestTile = $bestTile }
     $stats.GamesPlayed++
     Set-ArcadeStats "Game2048" $stats
+    $reward = [math]::Floor($score / 20)
+    if ($reward -gt 0 -and $score -eq $stats.BestScore) { Add-Gold $reward "2048 Highscore"; Write-Host "  Highscore-Bonus: +$reward G" -ForegroundColor Green }
 
     if ($won) { Unlock-Achievement "2048 Master" }
 

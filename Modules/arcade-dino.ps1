@@ -136,6 +136,8 @@ function Start-DinoJump {
         if (-not $stats.BestScore -or $game.Score -gt $stats.BestScore) { $stats.BestScore = $game.Score }
         $stats.GamesPlayed++
         Set-ArcadeStats "DinoJump" $stats
+        $reward = [math]::Floor($game.Score / 2)
+        if ($reward -gt 0 -and $game.Score -eq $stats.BestScore) { Add-Gold $reward "Dino Highscore"; Write-Host "  Highscore-Bonus: +$reward G" -ForegroundColor Green }
 
         if ($game.Over) {
             Write-Host "`n  GAME OVER! Score: $($game.Score)" -ForegroundColor Red

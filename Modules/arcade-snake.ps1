@@ -139,6 +139,8 @@ function snake {
         }
         Set-ArcadeStats "Snake" $stats
         Save-State
+        $reward = [math]::Floor($game.Score / 5)
+        if ($reward -gt 0 -and $isHigh) { Add-Gold $reward "Snake Highscore"; Write-Host "  Highscore-Bonus: +$reward G" -ForegroundColor Green }
         
         # ARG v3.0: Matrix-Hinweis bei Score 1337 -- nur wenn IDDQD unlocked, Matrix noch nicht
         if ($game.Score -eq 1337) {

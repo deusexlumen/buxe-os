@@ -51,6 +51,11 @@ function Invoke-Adventure {
         if (-not $inputLine) { continue }
         if ($inputLine -eq "Q" -or $inputLine -eq "q") {
             Save-AdventureState
+            $reward = [math]::Floor($script:AdvState.Score / 10)
+            if ($reward -gt 0) {
+                Add-Gold $reward "Adventure"
+                Write-Host "`n  Adventure Reward: +$reward G (Score: $($script:AdvState.Score))" -ForegroundColor Green
+            }
             $running = $false
             continue
         }

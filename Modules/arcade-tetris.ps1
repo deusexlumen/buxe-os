@@ -339,6 +339,8 @@ function tetris {
     if ($lines -gt $stats.BestLines) { $stats.BestLines = $lines }
     $stats.GamesPlayed++
     Set-ArcadeStats "Tetris" $stats
+    $reward = [math]::Floor($score / 10)
+    if ($reward -gt 0 -and $score -eq $stats.BestScore) { Add-Gold $reward "Tetris Highscore"; Write-Host "  Highscore-Bonus: +$reward G" -ForegroundColor Green }
     
     if ($lines -ge 10) { Unlock-Achievement "Tetris Master" }
     

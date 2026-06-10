@@ -349,6 +349,13 @@ function Show-PetHubStatus {
         Write-Host "`n  PET: $($pet.Pet.Name) [$($pet.Pet.Type)] Lv.$($pet.Pet.Level)" -ForegroundColor Green
         Write-Host "  HP: [$hp] $($pet.Pet.HP)/$($s.MaxHP) | ATK:$($s.ATK) DEF:$($s.DEF) SPD:$($s.SPD)" -ForegroundColor White
         Write-Host "  Wins: $($pet.Pet.Wins) | Losses: $($pet.Pet.Losses) | Rank: $($pet.Pet.Rank)" -ForegroundColor DarkGray
+        $eq = $pet.Pet.Equipment
+        if ($eq.Chip -or $eq.Armor -or $eq.Accessory) {
+            $durChip = if ($eq.Chip) { "$($eq.Chip) [$($pet.Pet.Dur_chip)]" } else { "-" }
+            $durArmor = if ($eq.Armor) { "$($eq.Armor) [$($pet.Pet.Dur_armor)]" } else { "-" }
+            $durAcc = if ($eq.Accessory) { "$($eq.Accessory) [$($pet.Pet.Dur_accessory)]" } else { "-" }
+            Write-Host "  Equip: $durChip | $durArmor | $durAcc" -ForegroundColor DarkGray
+        }
     }
     Write-Host "`n  Gold: $($pet.Economy.Gold) G | Level: $($pet.Meta.Level) | XP: $($pet.Meta.XP)" -ForegroundColor Yellow
     Write-Host "  Unlocked: $($pet.Meta.Unlocked -join ', ')" -ForegroundColor DarkGray

@@ -8,6 +8,11 @@ function pet-transfer {
     if ($pet.Economy.Gold -lt $Amount) { Write-Host "`n  Nicht genug Pet-Gold!" -ForegroundColor Red; return }
     $tax = [math]::Floor($Amount * 0.5)
     $net = $Amount - $tax
+    if ($Amount -gt 100) {
+        Write-Host "`n  Transfer: $Amount G | Steuer: $tax G | Netto: $net G" -ForegroundColor Yellow
+        $confirm = Read-Choice "Bestaetigen" "^(J|N)$"
+        if ($confirm -ne 'J') { Write-Host "  Abgebrochen." -ForegroundColor DarkGray; return }
+    }
     $pet.Economy.Gold -= $Amount
     Save-PetState $pet
     Add-Gold $net "Pet Transfer"
