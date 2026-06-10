@@ -21,6 +21,7 @@ function Get-StateDefaults {
             PokerIncome = 0
             DailyStreak = 0
             LastDaily = ""
+            LastBustReset = ""
         }
         Companion = $null
         Battlepet = $null

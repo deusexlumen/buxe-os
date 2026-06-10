@@ -116,7 +116,7 @@ function wheel {
             }
             default {
                 $multiplier = [int]($result -replace "x", "")
-                $win = $bet * $multiplier
+                $win = $bet * ($multiplier - 1)
                 if ($win -gt $stats.BestWin) { $stats.BestWin = $win }
                 Write-Host "  Result: $result!" -ForegroundColor Green
                 Write-Host "  Gewinn: $win G" -ForegroundColor Green

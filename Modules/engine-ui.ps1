@@ -99,10 +99,25 @@ function Confirm-Bust($gameName) {
     Load-State
     $br = $script:BuxeState.Bank.Gold
     if ($br -gt 0) { return $br }
+    
+    # Bailout cooldown: once per hour
+    $now = Get-Date
+    $lastBust = $script:BuxeState.Bank.LastBustReset
+    if ($lastBust) {
+        $hoursSince = ($now - [datetime]$lastBust).TotalHours
+        if ($hoursSince -lt 1) {
+            $mins = [math]::Ceiling(60 - $hoursSince * 60)
+            Write-Host "`n  [BANKROTT] Du hast kein Gold mehr!" -ForegroundColor Red
+            Write-Host "  Bailout nicht verfuegbar. Naechste Chance in $mins Minuten." -ForegroundColor DarkGray
+            return 0
+        }
+    }
+    
     Write-Host "`n  [BANKROTT] Du hast kein Gold mehr!" -ForegroundColor Red
     Write-Host "  Die Bank gibt dir einen Neuanfang: +100 G" -ForegroundColor Yellow
     Start-Sleep -Milliseconds 800
     $script:BuxeState.Bank.Gold = 100
+    $script:BuxeState.Bank.LastBustReset = $now.ToString("yyyy-MM-dd HH:mm")
     Save-State
     Unlock-Achievement "Bankrupt"
     return 100

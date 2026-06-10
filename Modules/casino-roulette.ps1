@@ -286,7 +286,7 @@ function roulette {
         Add-SceneText $fs 26 7 "$result" $rCol
 
         if ($won) {
-            $winAmount = $bet * $payout
+            $winAmount = $bet * ($payout - 1)
             if ($winAmount -gt $stats.BiggestWin) { $stats.BiggestWin = $winAmount }
             Add-SceneText $fs 4 11 "GEWONNEN! $winAmount G (${payout}x)" 'Green'
             Show-Scene $fs -Force

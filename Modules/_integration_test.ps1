@@ -21,6 +21,7 @@ Write-Host "`n  BUXE_OS v24.0 INTEGRATION TEST`n" -ForegroundColor Cyan
 
 # Test 1: State
 Test-Assert "State defaults v24" ((Get-StateDefaults).Version -eq 24)
+Test-Assert "Bust cooldown default" ((Get-StateDefaults).Bank.LastBustReset -eq "")
 
 # Test 1b: ARG v3.0 State Structure
 $argDefaults = (Get-StateDefaults).Arg

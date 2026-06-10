@@ -433,6 +433,15 @@ function Start-PetFight {
     $cp = $pet.Companion
     if (-not $p) { New-Pet; return }
     
+    # Combat entry fee (scales with pet level)
+    $entryFee = 5 + ($p.Level * 2)
+    if ($pet.Economy.Gold -lt $entryFee) {
+        Write-Host "`n  Nicht genug Gold fuer den Kampf! ($entryFee G benoetigt)" -ForegroundColor Red
+        Wait-Enter; return
+    }
+    $pet.Economy.Gold -= $entryFee
+    Save-PetState $pet
+    
     # Passive HP regeneration between fights (10% per hour, max 100%)
     $now = Get-Date
     if ($p.LastFightTime) {

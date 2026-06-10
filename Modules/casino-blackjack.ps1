@@ -33,7 +33,7 @@ function blackjack {
             $stats.HandsPlayed++
             return @{ Win = 0; Loss = 0; Stats = $stats }
         } elseif ($pBJ) {
-            $win = [math]::Floor($bet * 2.5)
+            $win = [math]::Floor($bet * 1.5)
             $stats.HandsWon++; $stats.HandsPlayed++
             if ($win -gt $stats.BiggestWin) { $stats.BiggestWin = $win }
             $s = New-Scene $w $h

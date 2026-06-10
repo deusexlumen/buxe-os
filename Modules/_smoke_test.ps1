@@ -35,6 +35,7 @@ Write-Host "  Testing Engine..." -ForegroundColor Yellow
 $defaults = Get-StateDefaults
 Test-Assert "State defaults exist" ($defaults.Version -eq 24)
 Test-Assert "Bank defaults" ($defaults.Bank.Gold -eq 500)
+Test-Assert "Bust cooldown default" ($defaults.Bank.LastBustReset -eq "")
 Test-Assert "Casino defaults" ($defaults.Casino.Blackjack.HandsPlayed -eq 0)
 
 $deck = New-CardDeck
