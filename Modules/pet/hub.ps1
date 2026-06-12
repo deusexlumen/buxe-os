@@ -17,20 +17,35 @@ function Get-ArgBeaconHints {
 function Invoke-PetTutorial {
     $pet = Get-PetState
     $cp = $pet.Companion
+    $flags = $pet.Tutorial.Flags
+    if (-not $flags) {
+        $pet.Tutorial.Flags = @{
+            companionCreated = $false
+            firstTalk = $false
+            firstGift = $false
+            firstFight = $false
+            firstShop = $false
+            firstSkillPoint = $false
+        }
+        $flags = $pet.Tutorial.Flags
+    }
     $today = Get-Date -Format "yyyy-MM-dd"
-    
+
     # Step 0/1: Companion creation if none exists
-    if (-not $cp) {
-        New-Companion
-        $pet = Get-PetState
-        $cp = $pet.Companion
+    if (-not $flags.companionCreated) {
+        if (-not $cp) {
+            New-Companion
+            $pet = Get-PetState
+            $cp = $pet.Companion
+        }
         Add-PetXP 5 "Tutorial: Companion Created"
-        $pet.Tutorial.Step = 1
+        $flags.companionCreated = $true
+        $pet.Tutorial.Step = [math]::Max($pet.Tutorial.Step, 1)
         Save-PetState $pet
     }
-    
+
     # Step 2: First Talk (Accelerated)
-    if ($pet.Tutorial.Step -lt 2) {
+    if (-not $flags.firstTalk) {
         try { Clear-Host } catch {}
         Show-PetFrame "TUTORIAL — KOMMUNIKATION" -Double | Out-Null
         Write-Host ""
@@ -47,12 +62,13 @@ function Invoke-PetTutorial {
         $cp.Talks++
         $cp.Bond = [math]::Min(100, $cp.Bond + 5)
         Add-PetXP 10 "Tutorial: First Talk"
-        $pet.Tutorial.Step = 2
+        $flags.firstTalk = $true
+        $pet.Tutorial.Step = [math]::Max($pet.Tutorial.Step, 2)
         Save-PetState $pet
     }
-    
+
     # Step 3: First Gift (Accelerated)
-    if ($pet.Tutorial.Step -lt 3) {
+    if (-not $flags.firstGift) {
         try { Clear-Host } catch {}
         Show-PetFrame "TUTORIAL — BESCHERUNG" -Double | Out-Null
         Write-Host ""
@@ -74,12 +90,13 @@ function Invoke-PetTutorial {
         Add-PetXP 10 "Tutorial: First Gift"
         Unlock-PetFeature "gift"
         Unlock-PetFeature "mood"
-        $pet.Tutorial.Step = 3
+        $flags.firstGift = $true
+        $pet.Tutorial.Step = [math]::Max($pet.Tutorial.Step, 3)
         Save-PetState $pet
     }
-    
+
     # Step 4: Battlepet + First Fight
-    if ($pet.Tutorial.Step -lt 4) {
+    if (-not $flags.firstFight) {
         if (-not $pet.Pet) {
             New-Pet
             $pet = Get-PetState
@@ -102,10 +119,20 @@ function Invoke-PetTutorial {
         Unlock-PetFeature "pet_create"
         Unlock-PetFeature "combat"
         Unlock-PetFeature "companion_games"
-        $pet.Tutorial.Step = 4
-        $pet.Tutorial.Completed = $true
+        $flags.firstFight = $true
+        $pet.Tutorial.Step = [math]::Max($pet.Tutorial.Step, 4)
         Save-PetState $pet
     }
+
+    # Skill point hint (adaptive)
+    if (-not $flags.firstSkillPoint -and $pet.SkillPoints -gt 0) {
+        Write-Host "`n  Du hast einen Skill-Punkt! Tippe im Hub [S] Skill Tree, um ihn zu investieren." -ForegroundColor Cyan
+        $flags.firstSkillPoint = $true
+        Save-PetState $pet
+    }
+
+    $pet.Tutorial.Completed = $true
+    Save-PetState $pet
 }
 
 function Invoke-TutorialSkip($cp) {
@@ -118,6 +145,22 @@ function Invoke-TutorialSkip($cp) {
     Unlock-PetFeature "pet_create"
     Unlock-PetFeature "combat"
     Unlock-PetFeature "companion_games"
+    $flags = $pet.Tutorial.Flags
+    if (-not $flags) {
+        $pet.Tutorial.Flags = @{
+            companionCreated = $true
+            firstTalk = $true
+            firstGift = $true
+            firstFight = $true
+            firstShop = $false
+            firstSkillPoint = $false
+        }
+    } else {
+        $flags.companionCreated = $true
+        $flags.firstTalk = $true
+        $flags.firstGift = $true
+        $flags.firstFight = $true
+    }
     $pet.Tutorial.Skipped = $true
     $pet.Tutorial.Completed = $true
     $pet.Tutorial.Step = 4

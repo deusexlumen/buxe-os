@@ -83,6 +83,8 @@ function Get-PetDefaults {
             BeaconsShown  = @()
             Flags = @{
                 companionCreated = $false
+                firstTalk = $false
+                firstGift = $false
                 firstFight = $false
                 firstShop = $false
                 firstSkillPoint = $false
@@ -195,6 +197,8 @@ function Get-PetState {
         if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("Flags")) {
             $script:BuxeState.Pet.Tutorial.Flags = @{
                 companionCreated = $false
+                firstTalk = $false
+                firstGift = $false
                 firstFight = $false
                 firstShop = $false
                 firstSkillPoint = $false

@@ -65,6 +65,9 @@ function Start-PetShop {
         $durKey = "Dur_$slot"
         $p.$durKey = 10
         $pet.Economy.Gold -= $actualCost
+        if (-not $pet.Tutorial.Flags.firstShop) {
+            $pet.Tutorial.Flags.firstShop = $true
+        }
         Save-PetState $pet
         Check-QuestProgress "shop"
         Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
