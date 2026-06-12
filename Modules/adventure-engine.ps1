@@ -227,6 +227,7 @@ function Process-AdventureCommand($Cmd) {
             if (Get-Command Invoke-AdventureCompanionHook -ErrorAction SilentlyContinue) {
                 Invoke-AdventureCompanionHook $Cmd.Verb $Cmd.Noun $room $absurd
             }
+            Save-AdventureState
             return @{ Success = $true; Message = $absurd.Line; CompanionContext = $absurd.Context }
         }
     }
@@ -480,6 +481,9 @@ function Process-AdventureCommand($Cmd) {
         $result.CompanionContext = $gag.Context
     }
 
+    # Speichere Adventure-State hoechstens einmal pro Befehl
+    Save-AdventureState
+
     return $result
 }
 
@@ -526,7 +530,9 @@ KOMMANDOS:
 # === RENDERER ===
 
 function Show-AdventureRoom($Room) {
-    $w = [math]::Min(70, [math]::Max(40, $Host.UI.RawUI.WindowSize.Width - 4))
+    $windowWidth = 70
+    try { $windowWidth = $Host.UI.RawUI.WindowSize.Width } catch { $windowWidth = 70 }
+    $w = [math]::Min(70, [math]::Max(40, $windowWidth - 4))
     $bot = Show-Frame $Room.Name -Width $w -Double
     Write-Host ""
 

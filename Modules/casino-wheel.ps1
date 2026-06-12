@@ -13,20 +13,19 @@ function wheel {
         if (-not $stats.Bankrupts) { $stats.Bankrupts = 0 }
         if (-not $stats.Jackpots) { $stats.Jackpots = 0 }
 
+        # Balanciert auf ~97% RTP: mehr Push-/Kleingewinne, grosse Treffer entfernt.
         $segments = @(
-            "2x","2x","2x","2x",
-            "3x","3x","3x",
-            "5x","5x",
-            "10x",
-            "50x",
-            "BANKRUPT","BANKRUPT",
-            "JACKPOT"
+            "1x","1x","1x","1x","1x","1x","1x","1x","1x",
+            "2x","2x","2x","2x","2x","2x","2x",
+            "3x",
+            "5x",
+            "BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT",
+            "BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT"
         )
 
         $segmentColors = @{
-            "2x" = "White"; "3x" = "Cyan"; "5x" = "Yellow"
-            "10x" = "Green"; "50x" = "Magenta"
-            "BANKRUPT" = "Red"; "JACKPOT" = "Yellow"
+            "1x" = "DarkGray"; "2x" = "White"; "3x" = "Cyan"; "5x" = "Yellow"
+            "BANKRUPT" = "Red"
         }
 
         $stats.Spins++
@@ -41,7 +40,7 @@ function wheel {
         Write-Host "    +--------------+" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "  Segmente:" -ForegroundColor White
-        Write-Host "  2x(4) | 3x(3) | 5x(2) | 10x(1) | 50x(1) | BANKRUPT(2) | JACKPOT(1)" -ForegroundColor DarkGray
+        Write-Host "  1x(9) | 2x(7) | 3x(1) | 5x(1) | BANKRUPT(14)" -ForegroundColor DarkGray
         Write-Host ""
         Write-Host "  Bet: $bet G" -ForegroundColor Yellow
         Write-Host ""
@@ -98,21 +97,9 @@ function wheel {
                 Write-Host "  Result: BANKRUPT!" -ForegroundColor Red
                 Write-Host "  Das Rad hat gesprochen. Dein Einsatz ist Geschichte." -ForegroundColor Red
             }
-            "JACKPOT" {
-                $slotStats = Get-CasinoStats "Slot"
-                $jackpot = if ($slotStats -and $slotStats.ProgressiveJackpot) { $slotStats.ProgressiveJackpot } else { 500 }
-                $win = $jackpot
-                $stats.Jackpots++
-                if ($win -gt $stats.BestWin) { $stats.BestWin = $win }
-                $achievement = "Wheel Jackpot"
-
-                if ($slotStats) {
-                    $slotStats.ProgressiveJackpot = 500
-                    Set-CasinoStats "Slot" $slotStats
-                }
-
-                Write-Host "  Result: JACKPOT!" -ForegroundColor Yellow -BackgroundColor DarkRed
-                Write-Host "  Progressiver Jackpot geknackt: $win G!" -ForegroundColor Magenta
+            "1x" {
+                Write-Host "  Result: $result!" -ForegroundColor DarkGray
+                Write-Host "  Push. Einsatz zurueck." -ForegroundColor DarkGray
             }
             default {
                 $multiplier = [int]($result -replace "x", "")

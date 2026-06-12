@@ -45,6 +45,8 @@ function Get-PetDefaults {
             LastGlitchEffect = ""
             LastFourthWallDate = ""
             ArchitectOverrideDate = ""
+            RivalActive = $false
+            LastWhileAway = ""
         }
         Companion = $null
         Pet = $null
@@ -146,6 +148,15 @@ function Get-PetState {
         }
         if (-not $script:BuxeState.Pet.Meta.ContainsKey("ArchitectOverrideDate")) {
             $script:BuxeState.Pet.Meta.ArchitectOverrideDate = ""
+            Save-State
+        }
+        # Lazy migration: RivalActive und LastWhileAway (Pet-System-Fixes)
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("RivalActive")) {
+            $script:BuxeState.Pet.Meta.RivalActive = $false
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("LastWhileAway")) {
+            $script:BuxeState.Pet.Meta.LastWhileAway = ""
             Save-State
         }
         # Lazy migration: Equipment Durability (Balance Patch)

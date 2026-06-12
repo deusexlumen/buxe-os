@@ -8,9 +8,17 @@ function Show-WhileAway {
     $pet = Get-PetState
     $cp = $pet.Companion
     if (-not $cp) { return }
+
+    # Cooldown: While-Away nur einmal pro Stunde oder pro Sitzung
+    $now = Get-Date
+    if ($pet.Meta.LastWhileAway) {
+        $last = [datetime]$pet.Meta.LastWhileAway
+        if (($now - $last).TotalHours -lt 1) { return }
+    }
+
     $hour = (Get-Date).Hour
     $eventsOccurred = $false
-    
+
     # Night watch event
     if ($hour -ge 2 -and $hour -le 5) {
         Show-CompanionDialog $cp "Ich habe die Nachtwache gehalten. Ein Spam-Bot hat versucht, dich zu verkaufen. Ich habe ihn gelöscht. +15 Gold." -Fast
@@ -57,7 +65,8 @@ function Show-WhileAway {
     if (-not $eventsOccurred) {
         Show-CompanionDialog $cp "Ich habe auf dich gewartet. Nichts passiert. Absolut nichts." -Fast
     }
-    
+
+    $pet.Meta.LastWhileAway = $now.ToString("yyyy-MM-dd HH:mm")
     Save-PetState $pet
 }
 

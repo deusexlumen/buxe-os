@@ -25,7 +25,7 @@ function Get-CompanionAI {
     if (-not $script:AdvState) { return (Get-CompanionAIDefaults) }
     if (-not $script:AdvState.CompanionAI) {
         $script:AdvState.CompanionAI = Get-CompanionAIDefaults
-        Save-AdventureState
+        $script:AdvStateDirty = $true
     }
     # Convert from JSON-loaded PSCustomObject to Hashtable if needed
     $ai = $script:AdvState.CompanionAI
@@ -48,7 +48,7 @@ function Set-CompanionAI($Key, $Value) {
     $ai = Get-CompanionAI
     $ai[$Key] = $Value
     $script:AdvState.CompanionAI = $ai
-    Save-AdventureState
+    $script:AdvStateDirty = $true
 }
 
 # === MOOD SYSTEM ===
@@ -382,13 +382,10 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
         return
     }
 
-    # 3. Check Absurd Combinations (nur bei 'use')
-    if ($Action -eq "use" -and $Target) {
-        $absurd = Test-AbsurdCombo $Action $Target
-        if ($absurd.IsAbsurd) {
-            Show-AdventureCompanionDialog $absurd.Context $absurd.Line
-            return
-        }
+    # 3. Absurde Kombinationen wurden bereits von Process-AdventureCommand geprueft
+    if ($Action -eq "use" -and $Target -and $Result.IsAbsurd) {
+        Show-AdventureCompanionDialog $Result.Context $Result.Line
+        return
     }
 
     # 4. Random Event (nur bei 'go' in neuen Raeumen)

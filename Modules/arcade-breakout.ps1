@@ -92,13 +92,19 @@ function Update-Breakout($game) {
             } else {
                 Invoke-GameSound 'Click'
             }
-            # Determine bounce direction
-            $bx = $game.BallX - $game.BallDX
-            $by = $game.BallY - $game.BallDY
-            if ($bx -lt $brick.X -or $bx -ge $brick.X + $brick.Width) {
+            # Determine bounce direction and backtrack to collision boundary
+            $prevX = $game.BallX - $game.BallDX
+            $prevY = $game.BallY - $game.BallDY
+            $hitLeft = ($prevX + 1) -le $brick.X
+            $hitRight = $prevX -ge ($brick.X + $brick.Width)
+            $hitTop = ($prevY + 1) -le $brick.Y
+            $hitBottom = $prevY -ge ($brick.Y + $brick.Height)
+            if ($hitLeft -or $hitRight) {
                 $game.BallDX = -$game.BallDX
+                if ($hitLeft) { $game.BallX = $brick.X - 1 } else { $game.BallX = $brick.X + $brick.Width }
             } else {
                 $game.BallDY = -$game.BallDY
+                if ($hitTop) { $game.BallY = $brick.Y - 1 } else { $game.BallY = $brick.Y + $brick.Height }
             }
             break
         }

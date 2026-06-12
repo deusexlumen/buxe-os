@@ -54,7 +54,7 @@ function blackjack {
         }
         
         # Insurance
-        $insured = $false
+        $insured = $false; $insBet = 0
         if ($dealerHand[0].Rank -eq "A") {
             $ins = New-Scene $w $h
             Add-SceneFrame $ins 0 0 $w $h "BLACKJACK" 'Cyan' -Double
@@ -92,12 +92,14 @@ function blackjack {
         $hands = [System.Collections.Generic.List[object]]::new()
         $hands.Add($playerHand)
         $totalBet = $bet
-        $totalWin = 0
+        # Insurance-Einsatz wird bei Dealer-kein-BJ als Verlust verbucht.
+        $totalWin = if ($insured) { -$insBet } else { 0 }
         $handsWon = 0
         $handsPlayedCount = 0
         
         while ($hands.Count -gt 0) {
             $hand = $hands[0]; $hands.RemoveAt(0)
+            $canDouble = $true
             $handIdx = if ($split) { " Hand $($hands.Count + 1)" } else { "" }
             
             while ((Get-HandValue $hand) -lt 21) {

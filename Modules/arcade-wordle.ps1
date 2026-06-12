@@ -138,7 +138,7 @@ $script:WordleWords = @(
     "DCGAN","PROGAN","STYLE","BIGGAN","SAGAN","SELF","ATTENTION","TRANSFORMER","BERT","GPT",
     "T5","BART","PEGASUS","REFORMER","LONGFORMER","BIGBIRD","PERFORMER","LINFORMER","NYSTROM","SWIN",
     "VIT","DETR","MASK","RCNN","YOLO","SSD","EFFICIENT","DET","SEGMENT","SAM"
-)
+) | Where-Object { $_ -match '^[A-Z]{5}$' }
 
 function wordle {
     # Mode selection
@@ -182,8 +182,13 @@ function wordle {
         try { [Console]::CursorVisible = $false } catch {}
         
         if ($guess -eq 'Q') { return }
-        if ($guess.Length -ne $target.Length) {
-            Write-Host "  Ungueltig! ($($target.Length) Buchstaben)" -ForegroundColor Red
+        if ($guess.Length -ne $target.Length -or $guess -notmatch '^[A-Z]{5}$') {
+            Write-Host "  Ungueltig! ($($target.Length) Buchstaben, nur A-Z)" -ForegroundColor Red
+            Start-Sleep -Milliseconds 800
+            continue
+        }
+        if ($script:WordleWords -notcontains $guess) {
+            Write-Host "  Nicht in der Wortliste!" -ForegroundColor Red
             Start-Sleep -Milliseconds 800
             continue
         }

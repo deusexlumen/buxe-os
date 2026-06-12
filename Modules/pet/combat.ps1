@@ -104,7 +104,7 @@ function Start-PetTutorialFight {
         
         # Tutorial: always win regardless of choice, but show correct logic
         if ($beats[$pm] -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 2 * $playerMod) * (100 / (100 + $enemy.DEF))))
+            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (100 / (100 + $enemy.DEF))))
             $enemy.HP -= $dmg; $playerScore++
             Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
         } elseif ($pm -eq $rm) {
@@ -116,7 +116,7 @@ function Start-PetTutorialFight {
             Write-Host "  Gleichstand! Beide treffen! -$dmg HP | -$eDmg HP!" -ForegroundColor Yellow
         } else {
             # Tutorial safety net: enemy "glitches" and misses
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 2 * $playerMod) * (100 / (100 + $enemy.DEF))))
+            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (100 / (100 + $enemy.DEF))))
             $enemy.HP -= $dmg; $playerScore++
             Write-Host "  Der Gegner verpatzt seinen Zug! Treffer! -$dmg HP!" -ForegroundColor Green
         }
@@ -266,6 +266,7 @@ function New-CombatState($playerPet, $companion) {
         BattleLog = @()
         PlayerPetIndex = 0
         FleeAttempted = $false
+        Defending = $false
     }
 }
 
@@ -311,7 +312,10 @@ function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
         # Get player action
         $validActions = "^(1|2|3|4|5|6|F1|F2|F3|F4)$"
         $action = Read-Choice "Aktion" $validActions
-        
+
+        # Defend-Flag vor Initiative setzen, damit Schadensreduktion unabhaengig von der Reihenfolge wirkt
+        $combatState.Defending = ($action -eq "2")
+
         # Determine initiative
         $playerFirst = Get-CombatInitiative $stats $enemyStats
         
@@ -353,6 +357,9 @@ function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
                 $combatState.CompanionCooldowns[$key]--
             }
         }
+        
+        # Defending flag gilt nur eine Runde
+        $combatState.Defending = $false
         
         # Log round
         $combatState.BattleLog += "R$($combatState.Round): $($playerPet.Name) vs $($enemy.Name)"
@@ -630,15 +637,25 @@ function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatSt
             $accRoll = Get-Random -Minimum 1 -Maximum 101
             if ($accRoll -le $attack.Accuracy) {
                 $playerMod = Get-ElementModifier $attack.Type $enemy.Type
-                $baseDmg = $attack.Power + $playerStats.ATK
-                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod * 2) * (100 / (100 + $enemy.DEF))))
+
+                # Status-Effekte in Schadensberechnung einfliessen lassen
+                $effectiveAtk = $playerStats.ATK
+                $atkUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "ATK-Up" } | Select-Object -First 1
+                if ($atkUp) { $effectiveAtk = [math]::Round($effectiveAtk * (1 + $atkUp.Value)) }
+
+                $effectiveDef = $enemy.DEF
+                $defDown = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "DEF-Down" } | Select-Object -First 1
+                if ($defDown) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 - $defDown.Value))) }
+
+                $baseDmg = $attack.Power + $effectiveAtk
+                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod) * (100 / (100 + $effectiveDef))))
                 $damageDealt = $dmg
                 $enemy.HP -= $dmg
-                
+
                 if ($playerMod -gt 1.0) { $narrative += " Typ-Vorteil!" }
                 if ($playerMod -lt 1.0) { $narrative += " Typ-Nachteil..." }
                 $narrative += " Treffer! -$dmg HP!"
-                
+
                 if ($attack.Effect -and (Get-Random -Minimum 1 -Maximum 101) -le $attack.EffectChance) {
                     $effectApplied = $attack.Effect
                     $turns = if ($attack.Effect -eq "Freeze") { 1 } elseif ($attack.Effect -eq "Paralyze") { 2 } else { 3 }
@@ -740,17 +757,31 @@ function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $en
     }
     
     $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
-    $narrative = "$($enemy.Name) setzt $($moves[$chosenAction]) ein!"
-    
+
+    # Silence blockiert Special-Attacken des Gegners
+    $silence = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Silence" } | Select-Object -First 1
+    if ($silence -and $chosenAction -eq "S") {
+        $chosenAction = "A"
+        $narrative = "$($enemy.Name) ist silenced! Special blockiert!"
+    } else {
+        $narrative = "$($enemy.Name) setzt $($moves[$chosenAction]) ein!"
+    }
+
     if ($chosenAction -eq "A" -or $chosenAction -eq "S") {
         $enemyMod = Get-ElementModifier $enemy.Type $playerPet.Type
         $multiplier = if ($chosenAction -eq "S") { 1.5 } else { 1.0 }
         $baseDmg = $enemyStats.ATK * $multiplier
-        
+
+        # Defend-Flag halbiert einkommenden Schaden fuer eine Runde
         $defendMod = 1.0
-        if ($combatState.PlayerStance -eq "Defensiv") { $defendMod = 0.5 }
-        
-        $dmg = [math]::Max(1, [math]::Round(($baseDmg * $enemyMod * $defendMod) * (100 / (100 + $playerStats.DEF))))
+        if ($combatState.Defending -eq $true) { $defendMod = 0.5 }
+
+        # DEF-Up des Spielers verringert einkommenden Schaden
+        $effectiveDef = $playerStats.DEF
+        $defUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "DEF-Up" } | Select-Object -First 1
+        if ($defUp) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 + $defUp.Value))) }
+
+        $dmg = [math]::Max(1, [math]::Round(($baseDmg * $enemyMod * $defendMod) * (100 / (100 + $effectiveDef))))
         $damageDealt = $dmg
         $playerPet.HP -= $dmg
         $narrative += " Treffer! -$dmg HP!"

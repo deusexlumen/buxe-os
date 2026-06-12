@@ -344,7 +344,13 @@ function tetris {
     
     if ($lines -ge 10) { Unlock-Achievement "Tetris Master" }
     
-    Show-Scene $startScene -Force
+    # Dedizierter Game-Over-Screen
+    $gameOverScene = New-Scene 50 10
+    Add-SceneFrame $gameOverScene 0 0 50 10 "TETRIS" 'Cyan' -Double
+    Add-SceneText $gameOverScene 16 3 "GAME OVER" 'Red'
+    Add-SceneText $gameOverScene 12 4 "Score: $score | Lines: $lines" 'Yellow'
+    Add-SceneText $gameOverScene 14 6 "[ENTER] Fortfahren" 'Green'
+    Show-Scene $gameOverScene -Force
     Wait-Enter
 }
 

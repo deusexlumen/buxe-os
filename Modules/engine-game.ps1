@@ -12,8 +12,9 @@ $script:_CachedDeck = $null
 
 function New-CardDeck {
     if ($script:_CachedDeck) {
-        # In-place Fisher-Yates shuffle on cached deck (no allocation)
-        $deck = $script:_CachedDeck
+        # Kopie des gecachten Decks zurueckgeben, damit In-Place-Shuffle
+        # nicht den globalen Shared-State mutiert.
+        $deck = $script:_CachedDeck.Clone()
         for ($i = $deck.Count - 1; $i -gt 0; $i--) {
             $j = Get-Random -Minimum 0 -Maximum ($i + 1)
             $temp = $deck[$i]; $deck[$i] = $deck[$j]; $deck[$j] = $temp
@@ -137,7 +138,7 @@ function Get-CasinoLuckModifier {
     if ($cache.Value -ne $null -and ($now - $cache.TS) -lt $script:_ModifierCacheTTL) {
         return $cache.Value
     }
-    $pet = Get-PetState
+    $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
     $cp = if ($pet) { $pet.Companion } else { $null }
     if (-not $cp) { $cp = Load-CompanionState }
     if (-not $cp -or -not $cp.Skills) { $cache.Value = 1.0; $cache.TS = $now; return 1.0 }
@@ -153,7 +154,7 @@ function Get-StrategyInsightModifier {
     if ($cache.Value -ne $null -and ($now - $cache.TS) -lt $script:_ModifierCacheTTL) {
         return $cache.Value
     }
-    $pet = Get-PetState
+    $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
     $cp = if ($pet) { $pet.Companion } else { $null }
     if (-not $cp) { $cp = Load-CompanionState }
     if (-not $cp -or -not $cp.Skills) { $cache.Value = 1.0; $cache.TS = $now; return 1.0 }

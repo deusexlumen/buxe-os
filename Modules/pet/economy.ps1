@@ -90,7 +90,7 @@ function Start-PetCook {
     $pet.Economy.Gold -= $actualCost
     $p.FoodBuffs = @($recipe.Buff)
     if ($cp.Bond -ge 50 -and (Get-Random -Maximum 3) -eq 0) {
-        $p.FoodBuffs += @{ Name = "Mystery Stew"; Desc = "+5% All"; Buff = @{ Stat = "ALL"; Value = 0.05 } }
+        $p.FoodBuffs += @{ Name = "Mystery Stew"; Desc = "+5% All"; Stat = "ALL"; Value = 0.05 }
         Write-Host "`n  BONUS DISH! Mystery Stew gezaubert!" -ForegroundColor Magenta
     }
     Save-PetState $pet
@@ -146,6 +146,8 @@ function Start-PetCrafting {
         $pet.Economy.Inventory = @($invList)
         $slot = $item.Type.ToLower()
         $p.Equipment.$slot = $item.Name
+        $durKey = "Dur_$slot"
+        $p.$durKey = 10
         Save-PetState $pet
         if ($cp) { Show-CompanionDialog $cp "Handgefertigt. Von mir. Fuer dich. Das ist... romantisch?" -Fast }
         Write-Host "`n  $($item.Name) hergestellt und ausgeruestet!" -ForegroundColor Green

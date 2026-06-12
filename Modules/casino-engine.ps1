@@ -174,7 +174,10 @@ function Invoke-CasinoGame {
             Check-EasterEgg "casino"
         }
         
-        # Achievements are unlocked by individual game callbacks, not the engine
+        # Achievements werden vom Engine-Callback ausgewertet.
+        if ($result.Achievement -and (Get-Command Unlock-Achievement -ErrorAction SilentlyContinue)) {
+            Unlock-Achievement $result.Achievement
+        }
         
         # ARG v3.0: Action Tick fuer Matrix-Progression
         if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) {

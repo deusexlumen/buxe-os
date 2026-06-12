@@ -11,14 +11,15 @@ function Migrate-v23Tov24 {
     if (Test-Path $bankFile) {
         try {
             $old = Get-Content $bankFile | ConvertFrom-Json
-            $script:BuxeState.Bank.Gold = if ($old.Gold) { $old.Gold } else { 500 }
-            $script:BuxeState.Bank.CasinoWinnings = if ($old.CasinoWinnings) { $old.CasinoWinnings } else { 0 }
-            $script:BuxeState.Bank.CasinoLosses = if ($old.CasinoLosses) { $old.CasinoLosses } else { 0 }
-            $script:BuxeState.Bank.TotalEarned = if ($old.TotalEarned) { $old.TotalEarned } else { 0 }
-            $script:BuxeState.Bank.TotalSpent = if ($old.TotalSpent) { $old.TotalSpent } else { 0 }
-            $script:BuxeState.Bank.PokerIncome = if ($old.PokerIncome) { $old.PokerIncome } else { 0 }
-            $script:BuxeState.Bank.DailyStreak = if ($old.DailyStreak) { $old.DailyStreak } else { 0 }
-            $script:BuxeState.Bank.LastDaily = if ($old.LastDaily) { $old.LastDaily } else { "" }
+            # Property-Existenz pruefen, damit gueltige 0-Werte nicht durch Defaults ueberschrieben werden.
+            $script:BuxeState.Bank.Gold = if ($old.PSObject.Properties['Gold']) { $old.Gold } else { 500 }
+            $script:BuxeState.Bank.CasinoWinnings = if ($old.PSObject.Properties['CasinoWinnings']) { $old.CasinoWinnings } else { 0 }
+            $script:BuxeState.Bank.CasinoLosses = if ($old.PSObject.Properties['CasinoLosses']) { $old.CasinoLosses } else { 0 }
+            $script:BuxeState.Bank.TotalEarned = if ($old.PSObject.Properties['TotalEarned']) { $old.TotalEarned } else { 0 }
+            $script:BuxeState.Bank.TotalSpent = if ($old.PSObject.Properties['TotalSpent']) { $old.TotalSpent } else { 0 }
+            $script:BuxeState.Bank.PokerIncome = if ($old.PSObject.Properties['PokerIncome']) { $old.PokerIncome } else { 0 }
+            $script:BuxeState.Bank.DailyStreak = if ($old.PSObject.Properties['DailyStreak']) { $old.DailyStreak } else { 0 }
+            $script:BuxeState.Bank.LastDaily = if ($old.PSObject.Properties['LastDaily']) { $old.LastDaily } else { "" }
             $migrated++
         } catch {}
     }
@@ -104,10 +105,10 @@ function Migrate-v23Tov24 {
     if (Test-Path $bootFile) {
         try {
             $old = Get-Content $bootFile | ConvertFrom-Json
-            $script:BuxeState.Boot.Loads = if ($old.Loads) { $old.Loads } else { 0 }
-            $script:BuxeState.Boot.TotalCommands = if ($old.TotalCommands) { $old.TotalCommands } else { 0 }
-            $script:BuxeState.Boot.FavoriteCommand = if ($old.FavoriteCommand) { $old.FavoriteCommand } else { "" }
-            $script:BuxeState.Boot.LastBoot = if ($old.LastBoot) { $old.LastBoot } else { "" }
+            $script:BuxeState.Boot.Loads = if ($old.PSObject.Properties['Loads']) { $old.Loads } else { 0 }
+            $script:BuxeState.Boot.TotalCommands = if ($old.PSObject.Properties['TotalCommands']) { $old.TotalCommands } else { 0 }
+            $script:BuxeState.Boot.FavoriteCommand = if ($old.PSObject.Properties['FavoriteCommand']) { $old.FavoriteCommand } else { "" }
+            $script:BuxeState.Boot.LastBoot = if ($old.PSObject.Properties['LastBoot']) { $old.LastBoot } else { "" }
             $migrated++
         } catch {}
     }

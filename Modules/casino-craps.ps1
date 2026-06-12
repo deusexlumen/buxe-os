@@ -172,7 +172,8 @@ function craps {
             Show-Scene $rs -Force
             Start-Sleep -Milliseconds 600
 
-            if ($type -in @("2","4")) {
+            # Place Bet (4) gewinnt bei Point, verliert bei 7 — wie Pass Line.
+            if ($type -in @("2")) {
                 if ($sum -eq $point) { $lost = $true }
                 elseif ($sum -eq 7) { $won = $true }
             } else {

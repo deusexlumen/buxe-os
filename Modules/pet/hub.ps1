@@ -535,7 +535,7 @@ function Invoke-ArchitectTerminal {
                 if ($pet.Memories -and $pet.Memories.Count -gt 0) {
                     $mem = $pet.Memories | Get-Random
                     Write-Host "  === MEMORY FRAGMENT ===" -ForegroundColor Cyan
-                    Write-Host "  $mem" -ForegroundColor White
+                    Write-Host "  $($mem.Text)" -ForegroundColor White
                     Write-Host ""
                     $cp.Bond = [math]::Min(100, $cp.Bond + 2)
                     Save-PetState $pet
@@ -696,7 +696,11 @@ function Invoke-PetGlitch {
         $pet.Meta.GlitchLuckActive = $true
     } elseif ($roll -lt 88) {
         $effect = "memory_shard"
-        $shard = "[GLITCH] $($cp.Name): Ein Fragment aus einer anderen Realitaet. Zeitstempel: $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+        $shard = @{
+            Icon = "[GLITCH]"
+            Text = "$($cp.Name): Ein Fragment aus einer anderen Realitaet."
+            Date = (Get-Date -Format "yyyy-MM-dd HH:mm")
+        }
         if (-not $pet.Memories) { $pet.Memories = @() }
         $pet.Memories += $shard
     } elseif ($roll -lt 95) {

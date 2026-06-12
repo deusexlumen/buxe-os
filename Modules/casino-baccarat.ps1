@@ -139,6 +139,13 @@ function baccarat {
             Show-Scene $rs -Force
             Start-Sleep -Milliseconds 600
             return @{ Win = ($bet * 8); Loss = 0; Stats = $stats; Achievement = "Baccarat Tie" }
+        } elseif ($result -eq "TIE" -and $side -in @('P','B')) {
+            # Tie bei Player/Banker-Wette ist Push (Loss = 0).
+            $stats.Ties++
+            Add-SceneText $rs 4 14 "TIE! Einsatz zurueck." 'Yellow'
+            Show-Scene $rs -Force
+            Start-Sleep -Milliseconds 600
+            return @{ Win = 0; Loss = 0; Stats = $stats }
         } else {
             Add-SceneText $rs 4 14 "Verloren." 'Red'
             Show-Scene $rs -Force

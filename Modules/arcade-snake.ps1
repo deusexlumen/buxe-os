@@ -31,19 +31,20 @@ function snake {
     }
     $game.Food = @{ X = $fx; Y = $fy }
     
-    $init = { }
+    $script:SnakeDirChangedThisTick = $false
     
     $inputHandler = {
         param($evt, $tick)
+        if ($script:SnakeDirChangedThisTick) { return }
         switch ($evt.Key) {
-            'W' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP" } }
-            'S' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN" } }
-            'A' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT" } }
-            'D' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT" } }
-            'UpArrow' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP" } }
-            'DownArrow' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN" } }
-            'LeftArrow' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT" } }
-            'RightArrow' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT" } }
+            'W' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP"; $script:SnakeDirChangedThisTick = $true } }
+            'S' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN"; $script:SnakeDirChangedThisTick = $true } }
+            'A' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT"; $script:SnakeDirChangedThisTick = $true } }
+            'D' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT"; $script:SnakeDirChangedThisTick = $true } }
+            'UpArrow' { if ($game.NextDir -ne "DOWN") { $game.NextDir = "UP"; $script:SnakeDirChangedThisTick = $true } }
+            'DownArrow' { if ($game.NextDir -ne "UP") { $game.NextDir = "DOWN"; $script:SnakeDirChangedThisTick = $true } }
+            'LeftArrow' { if ($game.NextDir -ne "RIGHT") { $game.NextDir = "LEFT"; $script:SnakeDirChangedThisTick = $true } }
+            'RightArrow' { if ($game.NextDir -ne "LEFT") { $game.NextDir = "RIGHT"; $script:SnakeDirChangedThisTick = $true } }
             'Escape' { $game.Over = $true; return 'QUIT' }
         }
     }
@@ -124,6 +125,7 @@ function snake {
         }
         
         Show-Scene $scene
+        $script:SnakeDirChangedThisTick = $false
     }
     
     $cleanup = {

@@ -79,16 +79,22 @@ function Invoke-GameLoop {
                 }
                 if ($char -eq 'Q') { $running = $false; break }
             } else {
-                while ([Console]::KeyAvailable) {
-                    $keyInfo = [Console]::ReadKey($true)
-                    $evt = New-InputEvent $keyInfo
-                    $inputEvents += $evt
-                    
-                    # Global quit handler
-                    if ($evt.IsQuit) {
-                        $running = $false
-                        break
+                try {
+                    while ([Console]::KeyAvailable) {
+                        $keyInfo = [Console]::ReadKey($true)
+                        $evt = New-InputEvent $keyInfo
+                        $inputEvents += $evt
+
+                        # Global quit handler
+                        if ($evt.IsQuit) {
+                            $running = $false
+                            break
+                        }
                     }
+                } catch {
+                    Write-Host "`n[GameLoop] Console-Input nicht verfuegbar. Beende Loop." -ForegroundColor Yellow
+                    $running = $false
+                    break
                 }
             }
             
@@ -162,23 +168,31 @@ function Read-GameChoice($Prompt, $ValidPattern, $TimeoutSec = 0) {
     if ($TimeoutSec -gt 0) {
         $start = Get-Date
         while (((Get-Date) - $start).TotalSeconds -lt $TimeoutSec) {
-            if ([Console]::KeyAvailable) {
+            try {
+                if ([Console]::KeyAvailable) {
+                    $key = [Console]::ReadKey($true)
+                    $char = $key.KeyChar.ToString().ToUpper()
+                    if ($char -match $ValidPattern) {
+                        return $char
+                    }
+                }
+            } catch {
+                return $null
+            }
+            Start-Sleep -Milliseconds 50
+        }
+        return $null
+    } else {
+        try {
+            while ($true) {
                 $key = [Console]::ReadKey($true)
                 $char = $key.KeyChar.ToString().ToUpper()
                 if ($char -match $ValidPattern) {
                     return $char
                 }
             }
-            Start-Sleep -Milliseconds 50
-        }
-        return $null
-    } else {
-        while ($true) {
-            $key = [Console]::ReadKey($true)
-            $char = $key.KeyChar.ToString().ToUpper()
-            if ($char -match $ValidPattern) {
-                return $char
-            }
+        } catch {
+            return $null
         }
     }
 }

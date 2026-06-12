@@ -77,9 +77,10 @@ function Get-StateDefaults {
 # === ATOMIC SAVE / LOAD ===
 function Save-State {
     if ($script:BuxeStateTransactionDepth -gt 0) { return }
-    # Throttle: max 1 Save pro 500ms (vermeidet I/O-Overhead bei schnellen Aktionen)
+    # Throttle: max 1 Save pro 500ms (vermeidet I/O-Overhead bei schnellen Aktionen).
+    # Ausstehende Saves werden beim naechsten Aufruf sofort geschrieben, um Datenverlust zu vermeiden.
     $now = Get-Date
-    if ($script:BuxeStateLastSave -and ($now - $script:BuxeStateLastSave).TotalMilliseconds -lt 500) {
+    if (-not $script:BuxeStatePendingSave -and $script:BuxeStateLastSave -and ($now - $script:BuxeStateLastSave).TotalMilliseconds -lt 500) {
         $script:BuxeStatePendingSave = $true
         return
     }
@@ -278,6 +279,14 @@ function Set-Bankroll($delta, [switch]$TrackCasino, $Reason = "Bankroll") {
 }
 
 function Add-Gold($amount, $source) {
+    if (-not ($amount -is [int] -or $amount -is [double] -or $amount -is [float] -or $amount -is [decimal])) {
+        Write-Warning "[StateManager] Add-Gold erfordert eine Zahl."
+        return
+    }
+    if ($amount -le 0) {
+        Write-Warning "[StateManager] Add-Gold erfordert einen positiven Betrag (war: $amount)."
+        return
+    }
     Load-State
     $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold += $amount
@@ -291,6 +300,14 @@ function Add-Gold($amount, $source) {
 }
 
 function Spend-Gold($amount, $reason) {
+    if (-not ($amount -is [int] -or $amount -is [double] -or $amount -is [float] -or $amount -is [decimal])) {
+        Write-Warning "[StateManager] Spend-Gold erfordert eine Zahl."
+        return
+    }
+    if ($amount -le 0) {
+        Write-Warning "[StateManager] Spend-Gold erfordert einen positiven Betrag (war: $amount)."
+        return
+    }
     Load-State
     $before = $script:BuxeState.Bank.Gold
     $script:BuxeState.Bank.Gold -= $amount
