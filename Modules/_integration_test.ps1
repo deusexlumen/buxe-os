@@ -86,6 +86,11 @@ Test-Assert "Pet Tutorial defaults step 0" ((Get-PetDefaults).Tutorial.Step -eq 
 Test-Assert "Pet XP Table Lv1 threshold is 3" ($script:PetXPTable[1] -eq 3)
 
 # Test 7: Pet effective stats
+$pet = Get-PetState
+$pet.SkillTree.Combat.Level = 0
+$pet.SkillTree.Economy.Level = 0
+$pet.SkillTree.Social.Level = 0
+Save-PetState $pet
 $testPet = @{ MaxHP = 100; ATK = 10; DEF = 5; SPD = 8; Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }; BonusMaxHP = 0; BonusATK = 0; BonusDEF = 0; BonusSPD = 0; CritBonus = 0; CritResist = 0 }
 $es = Get-EffectiveStats $testPet
 Test-Assert "Effective stats calc" ($es.MaxHP -eq 100 -and $es.ATK -eq 10)
@@ -162,6 +167,8 @@ Test-Assert "Tutorial orchestrator exists" ((Get-Command Invoke-PetTutorial -Err
 Test-Assert "Tutorial skip exists" ((Get-Command Invoke-TutorialSkip -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Tutorial dialog engine exists" ((Get-Command Get-TutorialLines -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Tutorial fight exists" ((Get-Command Start-PetTutorialFight -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Skill tree functions exist" ((Get-Command Add-PetSkillPoint -ErrorAction SilentlyContinue) -ne $null -and (Get-Command Get-PetSkillBonus -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Achievement reward function exists" ((Get-Command Claim-AchievementReward -ErrorAction SilentlyContinue) -ne $null)
 
 # Test 14b: Tutorial dialog returns non-empty string
 $tutLine = Get-TutorialLines "NEON" 2
@@ -201,6 +208,42 @@ Test-Assert "Integration: Duplicate queue ignored" ($pet.Tutorial.PendingBeacons
 $pet.Tutorial.PendingBeacons = $originalPending
 $pet.Tutorial.BeaconsShown = $originalShown
 Save-PetState $pet
+
+# Progress Overhaul State Roundtrip
+$pet = Get-PetState
+$pet.SkillTree.Combat.Level = 3
+$pet.SkillTree.Economy.Level = 2
+$pet.SkillTree.Social.Level = 1
+$pet.SkillPoints = 5
+$pet.Tutorial.Flags.firstFight = $true
+$pet.Tutorial.Flags.firstShop = $true
+Save-PetState $pet
+Load-State
+$reloaded = Get-PetState
+Test-Assert "SkillTree Combat level persists" ($reloaded.SkillTree.Combat.Level -eq 3)
+Test-Assert "SkillTree Economy level persists" ($reloaded.SkillTree.Economy.Level -eq 2)
+Test-Assert "SkillTree Social level persists" ($reloaded.SkillTree.Social.Level -eq 1)
+Test-Assert "SkillPoints persist" ($reloaded.SkillPoints -eq 5)
+Test-Assert "Tutorial firstFight flag persists" ($reloaded.Tutorial.Flags.firstFight -eq $true)
+Test-Assert "Tutorial firstShop flag persists" ($reloaded.Tutorial.Flags.firstShop -eq $true)
+
+# Achievement reward roundtrip
+Load-State
+$script:BuxeState.Achievements['First Step'] = (Get-Date -Format 'yyyy-MM-dd')
+$script:BuxeState.Achievements['RewardsClaimed'] = @{}
+$beforeGold = Get-Bankroll
+Claim-AchievementReward 'First Step' | Out-Null
+Test-Assert "Achievement reward grants gold (integration)" ((Get-Bankroll) -eq $beforeGold + 50)
+$script:BuxeState.Achievements.Remove('First Step')
+$script:BuxeState.Achievements.Remove('RewardsClaimed')
+Save-State
+
+# All companions have episode 1 story data
+Test-Assert "RAVEN episode 1 data" ($script:CompanionEpisodeData.ContainsKey('RAVEN') -and $script:CompanionEpisodeData.RAVEN.ContainsKey(1))
+Test-Assert "PIXEL episode 1 data" ($script:CompanionEpisodeData.ContainsKey('PIXEL') -and $script:CompanionEpisodeData.PIXEL.ContainsKey(1))
+Test-Assert "LUNA episode 1 data" ($script:CompanionEpisodeData.ContainsKey('LUNA') -and $script:CompanionEpisodeData.LUNA.ContainsKey(1))
+Test-Assert "IVY episode 1 data" ($script:CompanionEpisodeData.ContainsKey('IVY') -and $script:CompanionEpisodeData.IVY.ContainsKey(1))
+Test-Assert "VERA episode 1 data" ($script:CompanionEpisodeData.ContainsKey('VERA') -and $script:CompanionEpisodeData.VERA.ContainsKey(1))
 
 # Hollow Promises State Fields
 $pet = Get-PetState
