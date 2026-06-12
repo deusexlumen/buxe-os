@@ -118,6 +118,16 @@ $stateAfter = Get-PetState
 Test-Assert "Skill point consumed" ($stateAfter.SkillPoints -eq 1)
 Test-Assert "Combat level increased" ($stateAfter.SkillTree.Combat.Level -eq 1)
 
+# Skill points granted on level-up
+$xpState = Get-PetState
+$xpState.Meta.Level = 0
+$xpState.Meta.XP = 0
+$xpState.SkillPoints = 0
+Save-PetState $xpState
+Add-PetXP -amount 5
+$xpStateAfter = Get-PetState
+Test-Assert "Level-up grants skill point" ($xpStateAfter.SkillPoints -ge 1)
+
 # Queue-LevelUpBeacon
 # Clear any prior test pollution before testing queue behavior
 $cleanState = Get-PetState
