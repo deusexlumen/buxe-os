@@ -317,13 +317,50 @@ function Spend-Gold($amount, $reason) {
     Save-State
 }
 
+$script:AchievementCatalog = @{
+    'First Step'   = @{ Gold = 50;  XP = 0;  Title = 'Neuling' }
+    'High Roller'  = @{ Gold = 200; XP = 0;  Title = 'High Roller' }
+    'Pet Tamer'    = @{ Gold = 100; XP = 25; Title = 'Pet Tamer' }
+    'Dungeon Master' = @{ Gold = 300; XP = 50; Title = 'Dungeon Master' }
+    'Casino King'  = @{ Gold = 500; XP = 0;  Title = 'Casino King' }
+    'Layer 47'     = @{ Gold = 47;  XP = 47; Title = 'Layer Walker' }
+}
+
 function Unlock-Achievement($name) {
     Load-State
     if (-not $script:BuxeState.Achievements.$name) {
         $script:BuxeState.Achievements[$name] = (Get-Date -Format "yyyy-MM-dd")
         Save-State
         Write-Host "  [ACHIEVEMENT UNLOCKED] $name" -ForegroundColor Yellow -BackgroundColor DarkRed
+        if ($script:AchievementCatalog.ContainsKey($name)) {
+            $reward = $script:AchievementCatalog[$name]
+            Write-Host "  Belohnung verfuegbar: $($reward.Gold)G" -ForegroundColor DarkYellow
+            if ($reward.XP -gt 0) { Write-Host "                  +$($reward.XP) XP" -ForegroundColor DarkYellow }
+            Write-Host "  Tippe 'achievements' zum Einloesen." -ForegroundColor DarkGray
+        }
     }
+}
+
+function Claim-AchievementReward($name) {
+    Load-State
+    if (-not $script:BuxeState.Achievements.ContainsKey($name)) { return $false }
+    if (-not $script:BuxeState.Achievements.ContainsKey('RewardsClaimed')) {
+        $script:BuxeState.Achievements['RewardsClaimed'] = @{}
+    }
+    if ($script:BuxeState.Achievements.RewardsClaimed.ContainsKey($name)) { return $false }
+    $reward = $script:AchievementCatalog[$name]
+    if (-not $reward) { return $false }
+
+    Add-Gold $reward.Gold "Achievement Reward: $name"
+    if ($reward.XP -gt 0) {
+        if (Get-Command Add-PetXP -ErrorAction SilentlyContinue) {
+            Add-PetXP $reward.XP "Achievement Reward: $name"
+        }
+    }
+    $script:BuxeState.Achievements.RewardsClaimed[$name] = (Get-Date -Format "yyyy-MM-dd")
+    Save-State
+    Write-Host "  Belohnung eingeloest: $name -> $($reward.Gold)G" -ForegroundColor Green
+    return $true
 }
 
 function Load-CompanionState {

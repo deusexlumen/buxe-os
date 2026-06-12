@@ -264,6 +264,20 @@ Test-Assert "CompanionGames ChaosChipsHighscore default 0" `
 Test-Assert "CompanionGames MemoryBestTime default 999" `
     ($petDefaults.CompanionGames.MemoryBestTime -eq 999)
 
+# === ACHIEVEMENT REWARDS ===
+Write-Host "`n  Testing Achievement Rewards..." -ForegroundColor Yellow
+Load-State
+$achGoldBefore = (Get-Bankroll)
+Unlock-Achievement 'First Step'
+$claimResult = Claim-AchievementReward -name 'First Step'
+Test-Assert "Claim-AchievementReward succeeds" ($claimResult -eq $true)
+Test-Assert "Achievement reward grants gold" ((Get-Bankroll) -gt $achGoldBefore)
+$doubleClaim = Claim-AchievementReward -name 'First Step'
+Test-Assert "Double claim prevented" ($doubleClaim -eq $false)
+$script:BuxeState.Achievements.Remove('First Step')
+$script:BuxeState.Achievements.Remove('RewardsClaimed')
+Save-State
+
 # === STATE ACCESSORS ===
 Write-Host "`n  Testing State Access..." -ForegroundColor Yellow
 Test-Assert "Get-Bankroll" ((Get-Bankroll) -ge 0)
