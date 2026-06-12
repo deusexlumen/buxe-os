@@ -275,6 +275,9 @@ Test-Assert "Achievement reward grants gold" ((Get-Bankroll) -gt $achGoldBefore)
 $doubleClaim = Claim-AchievementReward -name 'First Step'
 Test-Assert "Double claim prevented" ($doubleClaim -eq $false)
 Test-Assert "Achievements command exists" ((Get-Command achievements -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "ARG beacon hints function exists" ((Get-Command Get-ArgBeaconHints -ErrorAction SilentlyContinue) -ne $null)
+$hints = Get-ArgBeaconHints
+Test-Assert "ARG beacon hints returned" ($hints.Count -ge 3)
 $script:BuxeState.Achievements.Remove('First Step')
 $script:BuxeState.Achievements.Remove('RewardsClaimed')
 Save-State

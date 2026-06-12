@@ -3,6 +3,17 @@
 
 try {
 
+function Get-ArgBeaconHints {
+    return @(
+        'Manchmal fluestert das Terminal vom Rueckzug: rosebud...'
+        'Der 47. Layer ist duenn. Druecke hoch, hoch, runter, runter...'
+        'Wenn das Rad dreht, hoerst du MERIDIAN?'
+        'Die Huehnchen sind ausnahmsweise nicht aus Gummi. Cheate ruhig.'
+        'Jemand hat KONAMI in den Tastaturtreiber geaetzt.'
+        'Das System kennt einen Befehl: meta. Nicht jeder sieht ihn.'
+    )
+}
+
 function Invoke-PetTutorial {
     $pet = Get-PetState
     $cp = $pet.Companion
@@ -183,6 +194,12 @@ function pet {
         if ($pet.Pet) { Write-Host "  [$($pet.Pet.Name)] Lv.$($pet.Pet.Level) | HP:$($pet.Pet.HP)/$((Get-EffectiveStats $pet.Pet).MaxHP) | Wins:$($pet.Pet.Wins)" -ForegroundColor Green }
         Write-Host "  Gold: $($pet.Economy.Gold) G | XP: $($pet.Meta.XP)" -ForegroundColor Yellow
         Write-Host ""
+        # ARG v3.0 beacon hints (subtle, rare)
+        if ((Get-Random -Maximum 100) -lt 5) {
+            $hint = (Get-ArgBeaconHints) | Get-Random
+            Write-Host "  [Beacon] $hint" -ForegroundColor DarkGray
+            Write-Host ""
+        }
         # Dynamic menu based on unlocked features
         $opts = @(); $keys = @()
         if (Is-FeatureUnlocked "talk") { $opts += "[1] Talk"; $keys += "1" }
