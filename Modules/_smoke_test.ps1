@@ -89,6 +89,16 @@ Test-Assert "Pet Tutorial PendingBeacons default empty" ($petDefaults.Tutorial.P
 Test-Assert "Pet Tutorial BeaconsShown default array" ($petDefaults.Tutorial.BeaconsShown -is [array])
 Test-Assert "Pet Tutorial BeaconsShown default empty" ($petDefaults.Tutorial.BeaconsShown.Count -eq 0)
 
+# Skill Tree & Adaptive Tutorial Defaults
+$petDefaults = Get-PetDefaults
+Test-Assert "Pet SkillTree default exists" ($petDefaults.SkillTree -ne $null)
+Test-Assert "Pet SkillTree Combat branch" ($petDefaults.SkillTree.Combat -ne $null -and $petDefaults.SkillTree.Combat.MaxLevel -eq 5)
+Test-Assert "Pet SkillTree Economy branch" ($petDefaults.SkillTree.Economy -ne $null)
+Test-Assert "Pet SkillTree Social branch" ($petDefaults.SkillTree.Social -ne $null)
+Test-Assert "Pet SkillPoints default 0" ($petDefaults.SkillPoints -eq 0)
+Test-Assert "Pet Tutorial Flags exist" ($petDefaults.Tutorial.Flags -ne $null)
+Test-Assert "Pet Tutorial companionCreated flag" ($petDefaults.Tutorial.Flags.companionCreated -eq $false)
+
 # Queue-LevelUpBeacon
 # Clear any prior test pollution before testing queue behavior
 $cleanState = Get-PetState

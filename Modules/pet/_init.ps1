@@ -7,7 +7,7 @@ $script:PetXPTable = @(0, 3, 15, 40, 100, 300, 600, 1200, 2500, 5000, 10000, 150
 $script:PetFeatureUnlocks = @{
     0 = @("talk", "companion_create")
     1 = @("gift", "mood")
-    2 = @("pet_create", "combat", "companion_games")
+    2 = @("pet_create", "combat", "companion_games", "skilltree")
     3 = @("train", "work", "gold", "companion_story")
     4 = @("shop", "cooking", "equipment")
     5 = @("pvp")
@@ -69,12 +69,24 @@ function Get-PetDefaults {
         Economy = @{ Gold = 500; Inventory = @() }
         Achievements = @()
         Memories = @()
+        SkillTree = @{
+            Combat = @{ Level = 0; MaxLevel = 5; Perks = @('Damage +5%','Crit +5%','Damage +10%','Crit +10%','Ultimate: Rage') }
+            Economy = @{ Level = 0; MaxLevel = 5; Perks = @('Gold +5%','Work XP +10%','Shop Discount 5%','Gold +10%','Ultimate: Midas') }
+            Social = @{ Level = 0; MaxLevel = 5; Perks = @('Bond +5%','Mood +5%','Gift Bonus +10%','Bond +10%','Ultimate: Charm') }
+        }
+        SkillPoints = 0
         Tutorial = @{
             Completed     = $false
             Step          = 0
             Skipped       = $false
             PendingBeacons = @()
             BeaconsShown  = @()
+            Flags = @{
+                companionCreated = $false
+                firstFight = $false
+                firstShop = $false
+                firstSkillPoint = $false
+            }
         }
     }
 }
@@ -167,6 +179,28 @@ function Get-PetState {
             }
             Save-State
         }
+        # Lazy migration: Skill Tree & Adaptive Tutorial Flags (Progress Overhaul v24.12)
+        if (-not $script:BuxeState.Pet.ContainsKey("SkillTree")) {
+            $script:BuxeState.Pet.SkillTree = @{
+                Combat = @{ Level = 0; MaxLevel = 5; Perks = @('Damage +5%','Crit +5%','Damage +10%','Crit +10%','Ultimate: Rage') }
+                Economy = @{ Level = 0; MaxLevel = 5; Perks = @('Gold +5%','Work XP +10%','Shop Discount 5%','Gold +10%','Ultimate: Midas') }
+                Social = @{ Level = 0; MaxLevel = 5; Perks = @('Bond +5%','Mood +5%','Gift Bonus +10%','Bond +10%','Ultimate: Charm') }
+            }
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.ContainsKey("SkillPoints")) {
+            $script:BuxeState.Pet.SkillPoints = 0
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Tutorial.ContainsKey("Flags")) {
+            $script:BuxeState.Pet.Tutorial.Flags = @{
+                companionCreated = $false
+                firstFight = $false
+                firstShop = $false
+                firstSkillPoint = $false
+            }
+            Save-State
+        }
     }
     return $script:BuxeState.Pet
 }
@@ -194,6 +228,8 @@ function Add-PetXP($amount, $reason = "") {
     }
     if ($newLevel -gt $oldLevel) {
         $pet.Meta.Level = $newLevel
+        $levelsGained = $newLevel - $oldLevel
+        $pet.SkillPoints += $levelsGained
         for ($lvl = $oldLevel + 1; $lvl -le $newLevel; $lvl++) {
             if ($lvl -ge 3 -and (Get-Command Queue-LevelUpBeacon -ErrorAction SilentlyContinue)) {
                 Queue-LevelUpBeacon $lvl
