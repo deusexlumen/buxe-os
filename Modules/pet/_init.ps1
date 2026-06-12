@@ -52,11 +52,11 @@ function Get-PetDefaults {
         Pet = $null
         CompanionStories = @{
             NEON  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
-            RAVEN = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-            PIXEL = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-            LUNA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-            IVY   = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
-            VERA  = @{ Episode = 0; Choices = @(); Completed = $false; LastPlayed = $null }
+            RAVEN = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            PIXEL = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            LUNA  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            IVY   = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
+            VERA  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
             JINX  = @{ Episode = 1; Choices = @(); Completed = $false; LastPlayed = $null }
         }
         CompanionGames = @{

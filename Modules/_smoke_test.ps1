@@ -241,8 +241,28 @@ Test-Assert "CompanionStories State-Branch vorhanden" `
     ($petDefaults.CompanionStories -ne $null)
 Test-Assert "NEON Episode 1 default korrekt" `
     ($petDefaults.CompanionStories.NEON.Episode -eq 1)
+Test-Assert "RAVEN Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.RAVEN.Episode -eq 1)
+Test-Assert "PIXEL Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.PIXEL.Episode -eq 1)
+Test-Assert "LUNA Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.LUNA.Episode -eq 1)
+Test-Assert "IVY Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.IVY.Episode -eq 1)
+Test-Assert "VERA Episode 1 default korrekt" `
+    ($petDefaults.CompanionStories.VERA.Episode -eq 1)
 Test-Assert "JINX Episode 1 default korrekt" `
     ($petDefaults.CompanionStories.JINX.Episode -eq 1)
+Test-Assert "RAVEN story data has scenes" `
+    ($script:CompanionEpisodeData.RAVEN[1].Scenes.Count -gt 0)
+Test-Assert "PIXEL story data has scenes" `
+    ($script:CompanionEpisodeData.PIXEL[1].Scenes.Count -gt 0)
+Test-Assert "LUNA story data has scenes" `
+    ($script:CompanionEpisodeData.LUNA[1].Scenes.Count -gt 0)
+Test-Assert "IVY story data has scenes" `
+    ($script:CompanionEpisodeData.IVY[1].Scenes.Count -gt 0)
+Test-Assert "VERA story data has scenes" `
+    ($script:CompanionEpisodeData.VERA[1].Scenes.Count -gt 0)
 
 $storyDataPath = Join-Path $modDir "pet\companion-story-data.ps1"
 Test-Assert "Story data file existiert" (Test-Path $storyDataPath)
