@@ -72,6 +72,11 @@ $defaults = Get-PetDefaults
 Test-Assert "Pet defaults exist" ($defaults.Meta -ne $null)
 Test-Assert "Pet default level 0" ($defaults.Meta.Level -eq 0)
 
+$cleanStatsState = Get-PetState
+$cleanStatsState.SkillTree.Combat.Level = 0
+$cleanStatsState.SkillTree.Economy.Level = 0
+$cleanStatsState.SkillTree.Social.Level = 0
+Save-PetState $cleanStatsState
 $testPet = @{ MaxHP = 100; ATK = 10; DEF = 5; SPD = 8; Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }; BonusMaxHP = 0; BonusATK = 0; BonusDEF = 0; BonusSPD = 0; CritBonus = 0; CritResist = 0 }
 $es = Get-EffectiveStats $testPet
 Test-Assert "Effective stats calc" ($es.MaxHP -eq 100 -and $es.ATK -eq 10)

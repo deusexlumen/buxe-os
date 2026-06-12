@@ -156,7 +156,7 @@ Beim ersten Start werden alte v23 JSON-Dateien automatisch in das neue unified F
 | `status` | Full Dashboard: Bank, Companion, Battlepet, Achievements |
 | `bank` | Kontostand, Verdient/Ausgegeben, Casino W/L, Poker |
 | `daily` | Taeglicher Bonus (100G + Streak-Bonus) |
-| `achievements` | Freigeschaltete Achievements anzeigen |
+| `achievements` | Freigeschaltete Achievements anzeigen + Belohnungen einloesen |
 | `ego` | Session-Stats, Bank, Achievements-Count |
 | `capsule <text>` | Zeitkapsel erstellen (oeffnet nach 1-14 Tagen) |
 | `h` | Alle verfuegbaren Commands auf einen Blick |
@@ -249,12 +249,14 @@ Companion + Battlepet in einem unified System. Der `pet` Command ist der zentral
 
 Deine Netrunner-Girl. Lebt im Terminal. Reagiert auf deine Actions.
 
-**5 Girls zur Auswahl:**
+**7 Girls zur Auswahl:**
 - **NEON** (Netrunner, Cyan) - Sarkastisch, cool
 - **RAVEN** (Enforcer, Red) - Dominant, hart
 - **PIXEL** (Engineer, Magenta) - Schuechtern, sued
 - **LUNA** (Medic, Green) - Fuersorglich, mutterlich
 - **IVY** (Stealth, DarkGray) - Geheimnisvoll, kalt
+- **VERA** (Scientist, Yellow) - Buerokratisch, analytisch
+- **JINX** (Jester, Magenta) - Chaotisch, verschwoerungstheoretisch
 
 **Progressive Unlock-System:**
 Neue Features werden durch Meta-XP freigeschaltet (nicht sofort verfuegbar):
@@ -302,6 +304,20 @@ Dynamisch basierend auf Uhrzeit, Bond, Verlusten.
 - Chance-basierte Kommentare (Coffee, No-Life, Midnight Snack, Workaholic, etc.)
 - Meta-Kommentare im Hub-Menue (Companion reagiert auf Menuewahl)
 - Spezielle Dialoge bei 3am-Login, 42x pet-Aufruf, etc.
+
+**Skill Trees:**
+Ab Meta-Level 2 erhaeltst du bei jedem Level-Up einen Skill-Punkt. Investiere ihn in:
+- **Combat**: mehr Schaden, mehr Crit, Ultimate Rage
+- **Economy**: mehr Gold, Rabatt im Shop, Ultimate Midas
+- **Social**: schnellerer Bond, bessere Geschenke, Ultimate Charm
+
+Befehl: `pet` -> `[I] Skill Tree`
+
+**Companion Story Episodes:**
+Jede der 7 Companions hat eine Episode 1 Story, die du im Hub unter `[S] Story` erleben kannst (ab Meta-Level 3). Deine Entscheidungen beeinflussen den Bond.
+
+**Adaptive Tutorial:**
+Das Pet-Tutorial merkt sich, welche Schritte du bereits gemacht hast (Companion erstellen, Talk, Gift, erster Kampf, erster Shop-Besuch, erster Skill-Punkt) und wiederholt sie nicht.
 
 **Cooking:**
 Sie kann Buff-Food kochen: Ramen, Energy Drink, Sushi Platter.

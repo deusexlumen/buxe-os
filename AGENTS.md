@@ -550,6 +550,7 @@ Keine API-Keys erforderlich. Alle genutzten APIs sind oeffentlich und keylos.
 | `Modules/desktop-pet.ps1` | Desktop Pet (Prompt-Override) |
 | `Modules/pet/_init.ps1` | Pet System Schema, Meta-Progression, Tutorial |
 | `Modules/pet/hub.ps1` | Pet Hub Router mit dynamischem Menu |
+| `Modules/pet/skilltree.ps1` | Skill-Tree-Engine: Punkte vergeben, Boni berechnen, UI |
 | `Modules/pet/companion.ps1` | Companion-Datenmodell und Actions |
 | `Modules/pet/combat.ps1` | Battlepet Kampf-Engine |
 | `Modules/handbook.ps1` | Vollstaendige Spiele-Mechanik-Doku |
