@@ -60,10 +60,35 @@ function daily {
 function achievements {
     Load-State
     $ach = $script:BuxeState.Achievements
-    $props = $ach | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name
-    Write-Host "`n  ACHIEVEMENTS ($($props.Count) freigeschaltet):" -ForegroundColor Yellow
-    foreach ($p in $props) {
-        Write-Host "    [OK] $p -- $($ach.$p)" -ForegroundColor Green
+    $props = $ach | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name | Where-Object { $_ -ne 'RewardsClaimed' }
+    try { Clear-Host } catch {}
+    Show-Frame "ACHIEVEMENTS" -Double | Out-Null
+    Write-Host ""
+    if ($props.Count -eq 0) {
+        Write-Host "  Noch keine Achievements. Mach dich nuetzlich, User." -ForegroundColor Gray
+    } else {
+        Write-Host "  ($($props.Count) freigeschaltet):" -ForegroundColor Yellow
+        foreach ($p in $props) {
+            $claimed = $ach.RewardsClaimed -and $ach.RewardsClaimed.ContainsKey($p)
+            $reward = $script:AchievementCatalog[$p]
+            $status = if ($claimed) { '[x]' } else { '[!]' }
+            $color = if ($claimed) { 'Green' } else { 'Yellow' }
+            $line = "  $status $p -- $($ach.$p)"
+            if ($reward) { $line += " -> $($reward.Gold)G" }
+            Write-Host $line -ForegroundColor $color
+        }
+        Write-Host "`n  [N] Name eingeben zum Einloesen | [Q] Zurueck" -ForegroundColor DarkGray
+        $c = Read-Choice "Waehle" "^(N|Q)$"
+        if ($c -eq 'N') {
+            $name = Read-Host "Achievement-Name"
+            if ($props -contains $name) {
+                $result = Claim-AchievementReward $name
+                if (-not $result) { Write-Host "  Bereits eingeloest oder keine Belohnung." -ForegroundColor Red }
+            } else {
+                Write-Host "  Ungueltiger Name." -ForegroundColor Red
+            }
+            Wait-Enter
+        }
     }
     if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
 }

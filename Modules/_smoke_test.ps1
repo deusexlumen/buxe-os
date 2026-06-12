@@ -274,6 +274,7 @@ Test-Assert "Claim-AchievementReward succeeds" ($claimResult -eq $true)
 Test-Assert "Achievement reward grants gold" ((Get-Bankroll) -gt $achGoldBefore)
 $doubleClaim = Claim-AchievementReward -name 'First Step'
 Test-Assert "Double claim prevented" ($doubleClaim -eq $false)
+Test-Assert "Achievements command exists" ((Get-Command achievements -ErrorAction SilentlyContinue) -ne $null)
 $script:BuxeState.Achievements.Remove('First Step')
 $script:BuxeState.Achievements.Remove('RewardsClaimed')
 Save-State
