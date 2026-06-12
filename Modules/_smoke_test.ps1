@@ -128,6 +128,31 @@ Add-PetXP -amount 5
 $xpStateAfter = Get-PetState
 Test-Assert "Level-up grants skill point" ($xpStateAfter.SkillPoints -ge 1)
 
+# Skill bonuses applied in core loops
+$bonusState = Get-PetState
+$bonusState.SkillTree.Combat.Level = 2
+$bonusState.SkillTree.Economy.Level = 3
+$bonusState.SkillTree.Social.Level = 1
+Save-PetState $bonusState
+
+$testPetForStats = @{ MaxHP = 100; ATK = 10; DEF = 5; SPD = 8; Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }; FoodBuffs = @(); Personality = "Balanced" }
+$effective = Get-EffectiveStats $testPetForStats
+Test-Assert "Combat skill bonus increases ATK" ($effective.ATK -gt 10)
+
+$shopPrice = Get-PetShopPrice -ItemName 'Neural Chip'
+Test-Assert "Economy skill discount reduces shop price" ($shopPrice -lt 60)
+
+$socialTotal = Get-TotalPetSkillBonus -Branch 'Social'
+Test-Assert "Social skill bonus is positive" ($socialTotal -gt 0)
+
+# Reset test state
+$cleanState = Get-PetState
+$cleanState.SkillTree.Combat.Level = 0
+$cleanState.SkillTree.Economy.Level = 0
+$cleanState.SkillTree.Social.Level = 0
+$cleanState.SkillPoints = 0
+Save-PetState $cleanState
+
 # Queue-LevelUpBeacon
 # Clear any prior test pollution before testing queue behavior
 $cleanState = Get-PetState

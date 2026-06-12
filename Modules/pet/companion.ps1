@@ -87,6 +87,8 @@ function Invoke-CompanionAction($action) {
         $cp.LastLogin = $today
         $pet.Meta.TotalSessions++
         $bonus = Get-Random -Minimum 3 -Maximum 8
+        $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+        if ($socialBonus -gt 0) { $bonus = [math]::Min(100 - $cp.Bond, [math]::Round($bonus * (1 + $socialBonus))) }
         $cp.Bond = [math]::Min(100, $cp.Bond + $bonus)
         if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
             Update-ArgBondCheck $cp.Bond
@@ -98,7 +100,10 @@ function Invoke-CompanionAction($action) {
         "talk" {
             $isFirstTalk = ($pet.Meta.Stats.TalkCount -eq 0)
             $pet.Meta.Stats.TalkCount++
-            $gain = [math]::Min(100, $cp.Bond + 2); $cp.Bond = $gain; $cp.Talks++
+            $bondGain = 2
+            $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+            if ($socialBonus -gt 0) { $bondGain = [math]::Min(100 - $cp.Bond, [math]::Round($bondGain * (1 + $socialBonus))) }
+            $cp.Bond = [math]::Min(100, $cp.Bond + $bondGain); $cp.Talks++
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
@@ -111,7 +116,10 @@ function Invoke-CompanionAction($action) {
         }
         "gift" {
             $pet.Meta.Stats.GiftCount++
-            $cp.Gifts++; $cp.Bond = [math]::Min(100, $cp.Bond + 5)
+            $bondGain = 5
+            $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+            if ($socialBonus -gt 0) { $bondGain = [math]::Min(100 - $cp.Bond, [math]::Round($bondGain * (1 + $socialBonus))) }
+            $cp.Gifts++; $cp.Bond = [math]::Min(100, $cp.Bond + $bondGain)
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
@@ -122,7 +130,10 @@ function Invoke-CompanionAction($action) {
         }
         "date" {
             if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..." -NoWait; Wait-Enter; return }
-            $cp.Dates++; $cp.Bond = [math]::Min(100, $cp.Bond + 4); $cp.Mood = "Loving"
+            $bondGain = 4
+            $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+            if ($socialBonus -gt 0) { $bondGain = [math]::Min(100 - $cp.Bond, [math]::Round($bondGain * (1 + $socialBonus))) }
+            $cp.Dates++; $cp.Bond = [math]::Min(100, $cp.Bond + $bondGain); $cp.Mood = "Loving"
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
@@ -149,6 +160,12 @@ function Invoke-CompanionAction($action) {
                 if ((Get-Random -Maximum 100) -lt 60) { $earn = Get-Random -Minimum 40 -Maximum 81 }
                 else { $bonusText = " | Mission fehlgeschlagen..." }
             }
+            # Economy skill tree: Gold bonuses
+            $goldBonus = Get-TotalPetSkillBonus -Branch 'Economy'
+            if ($goldBonus -gt 0 -and $earn -gt 0) {
+                $earn = [math]::Floor($earn * (1 + $goldBonus))
+                $bonusText += " | Skill-Bonus +$([math]::Round($goldBonus * 100))%"
+            }
             if ($earn -gt 0) { $pet.Economy.Gold += $earn }
             if ($cp.WorkCount -eq 1) { Add-PetMemory "Erster Job mit $($cp.Name). Earned $earn G." "WORK" }
             # CasinoLuck skill progression
@@ -160,11 +177,17 @@ function Invoke-CompanionAction($action) {
             Save-PetState $pet
             Show-CompanionDialog $cp (Get-CompanionLine $cp "work")
             Write-Host "  Verdient: $earn G$bonusText" -ForegroundColor Yellow
-            Add-PetXP ($earn / 5) "Work"
+            $workXp = $earn / 5
+            $workXpBonus = Get-PetSkillBonus -Branch 'Economy' -Tier 2
+            if ($workXpBonus -gt 0) { $workXp = [math]::Floor($workXp * (1 + $workXpBonus)) }
+            Add-PetXP $workXp "Work"
         }
         "train" {
             $pet.Meta.Stats.TrainCount++; $cp.Trains++; $cp.Mood = "Excited"
-            $cp.Bond = [math]::Min(100, $cp.Bond + 3)
+            $bondGain = 3
+            $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+            if ($socialBonus -gt 0) { $bondGain = [math]::Min(100 - $cp.Bond, [math]::Round($bondGain * (1 + $socialBonus))) }
+            $cp.Bond = [math]::Min(100, $cp.Bond + $bondGain)
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
@@ -188,7 +211,10 @@ function Invoke-CompanionAction($action) {
         }
         "headpat" {
             $cp.Headpats++; $cp.Mood = if ($cp.Bond -ge 50) { "Loving" } else { "Happy" }
-            $cp.Bond = [math]::Min(100, $cp.Bond + 1)
+            $bondGain = 1
+            $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+            if ($socialBonus -gt 0) { $bondGain = [math]::Min(100 - $cp.Bond, [math]::Round($bondGain * (1 + $socialBonus))) }
+            $cp.Bond = [math]::Min(100, $cp.Bond + $bondGain)
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
@@ -231,6 +257,8 @@ function Invoke-CompanionTalk {
         $cp.LastLogin = $today
         $pet.Meta.TotalSessions++
         $bonus = Get-Random -Minimum 3 -Maximum 8
+        $socialBonus = Get-TotalPetSkillBonus -Branch 'Social'
+        if ($socialBonus -gt 0) { $bonus = [math]::Min(100 - $cp.Bond, [math]::Round($bonus * (1 + $socialBonus))) }
         $cp.Bond = [math]::Min(100, $cp.Bond + $bonus)
         if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
             Update-ArgBondCheck $cp.Bond

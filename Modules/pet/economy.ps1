@@ -11,6 +11,18 @@ $script:PetShopItems = @(
     @{ Type = "Armor"; Name = "Aegis Plate"; Cost = 150; Desc = "+6 DEF, +20 HP"; DEF = 6; HP = 20 }
     @{ Type = "Accessory"; Name = "Hyper Loop"; Cost = 150; Desc = "+6 SPD"; SPD = 6 }
 )
+
+function Get-PetShopPrice {
+    param(
+        [Parameter(Mandatory=$true)][string]$ItemName,
+        [Parameter(Mandatory=$false)][double]$LevelMultiplier = 1.0
+    )
+    $item = $script:PetShopItems | Where-Object { $_.Name -eq $ItemName } | Select-Object -First 1
+    if (-not $item) { return $null }
+    $discount = Get-PetSkillBonus -Branch 'Economy' -Tier 3
+    $base = [math]::Floor($item.Cost * $LevelMultiplier)
+    return [math]::Max(1, [math]::Floor($base * (1 - $discount)))
+}
 $script:PetRecipes = @(
     @{ Name = "Ramen"; Cost = 15; Desc = "+10% MaxHP (1 Kampf)"; Buff = @{ Stat = "MaxHP"; Value = 0.10 } }
     @{ Name = "Energy Drink"; Cost = 20; Desc = "+20% SPD (1 Kampf)"; Buff = @{ Stat = "SPD"; Value = 0.20 } }
@@ -39,14 +51,14 @@ function Start-PetShop {
         $levelMult = 1.0 + ($p.Level - 1) * 0.1
         for ($i = 0; $i -lt $script:PetShopItems.Count; $i++) {
             $it = $script:PetShopItems[$i]
-            $displayCost = [math]::Floor($it.Cost * $levelMult)
+            $displayCost = Get-PetShopPrice -ItemName $it.Name -LevelMultiplier $levelMult
             Write-Host "  [$($i+1)] $($it.Name) [$($it.Type)] — $displayCost G | $($it.Desc)" -ForegroundColor White
         }
         Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
         $c = Read-Choice "Waehle" "^([1-$($script:PetShopItems.Count)]|Q)$"
         if ($c -eq 'Q') { return }
         $item = $script:PetShopItems[[int]$c - 1]
-        $actualCost = [math]::Floor($item.Cost * $levelMult)
+        $actualCost = Get-PetShopPrice -ItemName $item.Name -LevelMultiplier $levelMult
         if ($pet.Economy.Gold -lt $actualCost) { Write-Host "`n  Nicht genug Gold!" -ForegroundColor Red; Wait-Enter; continue }
         $slot = $item.Type.ToLower()
         $p.Equipment.$slot = $item.Name
@@ -72,16 +84,17 @@ function Start-PetCook {
     Write-Host "`n  Waehle ein Gericht fuer $($p.Name):" -ForegroundColor White
     Write-Host ""
     $levelMult = 1.0 + ($p.Level - 1) * 0.1
+    $cookingDiscount = Get-PetSkillBonus -Branch 'Economy' -Tier 3
     for ($i = 0; $i -lt $script:PetRecipes.Count; $i++) {
         $r = $script:PetRecipes[$i]
-        $displayCost = [math]::Floor($r.Cost * $levelMult)
+        $displayCost = [math]::Max(1, [math]::Floor($r.Cost * $levelMult * (1 - $cookingDiscount)))
         Write-Host "  [$($i+1)] $($r.Name) — $displayCost G | $($r.Desc)" -ForegroundColor White
     }
     Write-Host "  [Q] Zurueck" -ForegroundColor DarkGray
     $c = Read-Choice "Waehle" "^([1-$($script:PetRecipes.Count)]|Q)$"
     if ($c -eq 'Q') { return }
     $recipe = $script:PetRecipes[[int]$c - 1]
-    $actualCost = [math]::Floor($recipe.Cost * $levelMult)
+    $actualCost = [math]::Max(1, [math]::Floor($recipe.Cost * $levelMult * (1 - $cookingDiscount)))
     if ($pet.Economy.Gold -lt $actualCost) {
         Write-Host "`n  Nicht genug Gold! ($actualCost G benoetigt)" -ForegroundColor Red
         Wait-Enter

@@ -192,6 +192,11 @@ function Get-EffectiveStats($p, $companion = $null) {
             $atk += [math]::Round($p.ATK * ($companion.Skills.CombatBoost * 0.02))
         }
     }
+    # Skill Tree: Combat branch bonuses apply to base ATK
+    $combatBonus = Get-TotalPetSkillBonus -Branch 'Combat'
+    if ($combatBonus -gt 0) {
+        $atk += [math]::Round($p.ATK * $combatBonus)
+    }
     $fMaxHP = $p.MaxHP + $hp; $fATK = $p.ATK + $atk; $fDEF = $p.DEF + $def; $fSPD = $p.SPD + $spd
     foreach ($buff in $p.FoodBuffs) {
         if ($buff.Stat -eq "MaxHP") { $fMaxHP += [math]::Round($fMaxHP * $buff.Value) }
