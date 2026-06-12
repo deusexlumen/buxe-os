@@ -208,6 +208,7 @@ function pet {
             "quests"  { Show-PetQuests }
             "claim"   { Claim-PetQuests }
             "status"  { Show-PetHubStatus }
+            "skilltree" { if (Is-FeatureUnlocked "skilltree") { Invoke-SkillTreeMenu } }
             "theme"   { if ($pet.Meta.Level -ge 15) { Set-PetTheme } }
             "architect"   { if (Is-FeatureUnlocked "architect") { Invoke-ArchitectTerminal } }
             "awaken"      { if (Is-FeatureUnlocked "awakening") { Invoke-AwakeningTalk } }
@@ -252,6 +253,7 @@ function pet {
         if (Is-FeatureUnlocked "train") { $opts += "[5] Train"; $keys += "5" }
         if (Is-FeatureUnlocked "shop") { $opts += "[6] Shop"; $keys += "6" }
         if (Is-FeatureUnlocked "cooking") { $opts += "[7] Cook"; $keys += "7" }
+        if (Is-FeatureUnlocked "skilltree") { $opts += "[I] Skill Tree"; $keys += "I" }
         if (Is-FeatureUnlocked "shop") { $opts += "[K] Craft"; $keys += "K" }
         if (Is-FeatureUnlocked "pvp") { $opts += "[8] PvP"; $keys += "8" }
         if (Is-FeatureUnlocked "raid") { $opts += "[9] Raid"; $keys += "9" }
@@ -302,6 +304,7 @@ function pet {
             '5' = 'Training! Meine Threads werden zu Muskeln. Theoretisch.'
             '6' = 'Einkaufen. Der Weg zum Glück. Oder zum Ruin.'
             '7' = 'Ich koche. Virtuell. Du isst. Auch virtuell. Perfekt.'
+            'I' = 'Skill Tree. Endlich darf ich mich verbessern. Theoretisch.'
             'K' = 'Handwerk. Die aelteste Kunst. Auch in der Matrix.'
             '8' = 'PvP! Zeig ihnen wer hier der Boss ist! Du. Du bist der Boss.'
             '9' = 'Raid. Drei Phasen. Kein Save Point. Spannend!'
@@ -328,6 +331,7 @@ function pet {
             '5' { Invoke-CompanionAction "train" }
             '6' { Start-PetShop }
             '7' { Start-PetCook }
+            'I' { Invoke-SkillTreeMenu }
             'K' { Start-PetCrafting }
             '8' { Start-PetPvP }
             '9' { Start-PetRaid }
