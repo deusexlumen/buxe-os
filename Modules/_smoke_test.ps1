@@ -99,6 +99,25 @@ Test-Assert "Pet SkillPoints default 0" ($petDefaults.SkillPoints -eq 0)
 Test-Assert "Pet Tutorial Flags exist" ($petDefaults.Tutorial.Flags -ne $null)
 Test-Assert "Pet Tutorial companionCreated flag" ($petDefaults.Tutorial.Flags.companionCreated -eq $false)
 
+# Skill Tree Engine
+$cleanState = Get-PetState
+$cleanState.Meta.Level = 3
+$cleanState.SkillPoints = 2
+$cleanState.SkillTree.Combat.Level = 0
+$cleanState.SkillTree.Economy.Level = 0
+$cleanState.SkillTree.Social.Level = 0
+Save-PetState $cleanState
+
+Test-Assert "Add-PetSkillPoint function exists" ((Get-Command Add-PetSkillPoint -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Get-PetSkillBonus function exists" ((Get-Command Get-PetSkillBonus -ErrorAction SilentlyContinue) -ne $null)
+$addResult = Add-PetSkillPoint -Branch 'Combat'
+Test-Assert "Add-PetSkillPoint succeeds" ($addResult -eq $true)
+$bonus = Get-PetSkillBonus -Branch 'Combat' -Tier 1
+Test-Assert "Combat tier 1 bonus is 5%" ($bonus -eq 0.05)
+$stateAfter = Get-PetState
+Test-Assert "Skill point consumed" ($stateAfter.SkillPoints -eq 1)
+Test-Assert "Combat level increased" ($stateAfter.SkillTree.Combat.Level -eq 1)
+
 # Queue-LevelUpBeacon
 # Clear any prior test pollution before testing queue behavior
 $cleanState = Get-PetState
