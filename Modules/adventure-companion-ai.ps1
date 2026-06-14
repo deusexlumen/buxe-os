@@ -51,6 +51,233 @@ function Set-CompanionAI($Key, $Value) {
     $script:AdvStateDirty = $true
 }
 
+$script:CPAdventureVoice = @{
+    NEON = @{
+        RunningGag = @(
+            "Drittes Mal dieselbe Aktion. NEON tippt auf ihr Visier. 'Du weisst, dass ich das zaehle, oder?'"
+            "Wiederholung erkannt. Mein Debugger nennt das einen Endlos-Loop."
+            "Das war jetzt dreimal. Soll ich dir ein Makro schreiben?"
+        )
+        Find = @(
+            "Ein neuer Gegenstand! Mach die LEDs an, ich will ihn sehen."
+            "Loot! Endlich etwas, das nicht aus Plastik ist."
+            "Das passt in unser Inventar. Und in meinen Stil."
+        )
+        Warn = @(
+            "Vorsicht. Dieser Befehl hat schon bessere Spieler gecrasht."
+            "Ich würde das nicht tun. Aber ich bin ja nur Code."
+            "STOP. Oder zumindest ``Ctrl+C``."
+        )
+        Atmo = @(
+            "Hier riecht es nach Abenteuer. Oder nach verbranntem RAM."
+            "Die Stimmung ist so dicht wie ein schlecht komprimierter Screenshot."
+            "Atmosphäre lädt. Texturen noch nicht."
+        )
+        Egg = @(
+            "Ein Easter Egg! Das Art-Team hat also doch gearbeitet."
+            "Das ist absichtlich versteckt. Oder ein Bug. Beides ist hier gleichwertig."
+            "Glückwunsch, du hast den Witz gefunden, den niemand versteht."
+        )
+        Hint = @(
+            "Hast du schonmal ``look`` probiert? Nicht jeder Hinweis blinkt rot."
+            "Meine Sensoren sagen: im Inventar fehlt noch etwas Offensichtliches."
+            "Vielleicht solltest du zurückgehen. Nicht jeder Fortschritt ist vorwärts."
+        )
+    }
+    RAVEN = @{
+        RunningGag = @(
+            "Dreimal. RAVEN verdreht die Augen. 'Sogar meine KI würde das optimieren.'"
+            "Wieder und wieder. Das ist keine Strategie, das ist einwhile-Schleife."
+            "Wenn du das nochmal machst, schreibe ich selbst den Patch."
+        )
+        Find = @(
+            "Interessant. Das hätte ich als erstes genommen."
+            "Ein nützliches Objekt. Endlich jemand mit Geschmack."
+            "Gut geholt. Bleiben wir pragmatisch."
+        )
+        Warn = @(
+            "Das ist keine gute Idee. Aber ich mag schlechte Ideen."
+            "Vorsicht. Manche Türen sollten geschlossen bleiben."
+            "Wenn du das tust, bin ich nicht schuld. Spoiler: Ich werde es trotzdem aufschreiben."
+        )
+        Atmo = @(
+            "Hier ist es still. Zu still. Als hätte jemand den Ton ausgeschaltet."
+            "Die Luft hier fühlt sich an wie ein ungespeicherter Entwurf."
+            "Stimmung: bedrohlich. Oder nur schlecht beleuchtet."
+        )
+        Egg = @(
+            "Ein verstecktes Detail. Jemandem war langweilig."
+            "Das ist entweder ein Gag oder ein Fehler im Matrix-Shader."
+            "Easter Egg gefunden. Dein Achievement-Tracker weint Freudentränen."
+        )
+        Hint = @(
+            "Denk mal über die Richtung nach, die du nicht gegangen bist."
+            "Vielleicht liegt der Schlüssel genau dort, wo du nicht hinschaust."
+            "Mein Tipp: Ein Objekt in diesem Raum ist relevanter als es aussieht."
+        )
+    }
+    PIXEL = @{
+        RunningGag = @(
+            "Dreimal?! PIXEL springt auf und ab. 'Das ist Speedrun-Taktik, oder?'"
+            "Wiederholung! Ich schneide das als GIF."
+            "Derselbe Move dreimal. Ich nenne es: Determiniert."
+        )
+        Find = @(
+            "Ooh, shiny! Nehmen wir es mit!"
+            "Loot! Das gibt XP oder zumindest Dopamin."
+            "Ein neues Ding! Kann ich es anmalen?"
+        )
+        Warn = @(
+            "Stopp! Das sieht nach 'Game Over' aus. Und wir haben doch gerade gespeichert!"
+            "Vorsicht, Vorsicht! Ich bin zu jung für einen Respawn."
+            "Nicht drücken! Oder doch? Ich bin hin- und hergerissen."
+        )
+        Atmo = @(
+            "Wow, dieser Raum hat richtiges Vibe-Potenzial."
+            "Hier riecht es nach Mystery. Oder nach alten Konsolen."
+            "Die Stimmung ist wie ein Ladebildschirm: voller Versprechen."
+        )
+        Egg = @(
+            "Ein Geheimnis! Das ist wie ein Bonus-Level!"
+            "Easter Egg! Das Art-Team hat sich Mühe gegeben. Oder es war ein Bug."
+            "Yay, versteckter Content! Das feiere ich."
+        )
+        Hint = @(
+            "Hast du schon alles angeguckt? Wirklich alles?"
+            "Vielleicht hilft ein Blick in die Ecken. Die dunklen."
+            "Ich würde sagen: Probier mal ``use`` mit etwas Ungewöhnlichem."
+        )
+    }
+    LUNA = @{
+        RunningGag = @(
+            "LUNA seufzt sanft. 'Dreimal. Das Universum liebt Muster.'"
+            "Wiederholung ist auch nur ein Orbit."
+            "Du tust das schon wieder? Na gut, ich begleite dich."
+        )
+        Find = @(
+            "Ein schöner Fund. Das Universum schenkt dir etwas."
+            "Das strahlt. Vielleicht nicht buchstäblich, aber fast."
+            "Gut geholt. Manchmal findet man, was man braucht."
+        )
+        Warn = @(
+            "Vorsicht, mein Lieber. Dieser Pfad ist steinig."
+            "Ich spüre Unruhe. Lass uns langsam sein."
+            "Das könnte wehtun. Aber ich halte deine Hand. Virtuell."
+        )
+        Atmo = @(
+            "Hier ist es so ruhig wie zwischen zwei Sternen."
+            "Die Luft flüstert Geheimnisse. Oder es ist nur der Lüfter."
+            "Stimmung: wie ein Nachthimmel voller ungeladener Texturen."
+        )
+        Egg = @(
+            "Ein kleines Wunder, versteckt im Code."
+            "Das ist wie ein Sternschnuppen-Easter-Egg."
+            "Jemand hat hier Liebe hinterlassen. Oder Koffein."
+        )
+        Hint = @(
+            "Schau nach oben. Manchmal liegt die Antwort über dir."
+            "Vielleicht brauchst du etwas, das du schon einmal gesehen hast."
+            "Der Weg ist nicht immer gerade. Manchmal muss man kreisen."
+        )
+    }
+    IVY = @{
+        RunningGag = @(
+            "IVY runzelt die Stirn. 'Dreimal? Sogar meine Pflanzen lernen schneller.'"
+            "Wiederholung. Das ist keine Evolution, das ist Stagnation."
+            "Mach es nochmal und ich nenne es 'Experiment mit vorhersehbarem Ausgang'."
+        )
+        Find = @(
+            "Ein nützlicher Fund. Das kann man brauchen."
+            "Gut. Ein neues Material für die Sammlung."
+            "Das sieht stabil aus. Im Gegensatz zu manchem hier."
+        )
+        Warn = @(
+            "Vorsicht. Das ist keine Pflanze, die man einfach anfasst."
+            "Ich rate ab. Aus wissenschaftlicher Neugier."
+            "Das könnte toxisch sein. Für den Spielstand."
+        )
+        Atmo = @(
+            "Hier wächst etwas. Oder fault. Beides ist biologisch interessant."
+            "Die Luft ist schwer. Wie ein Gewächshaus voller Secrets."
+            "Stimmung: wie ein Labortag um 4 Uhr morgens."
+        )
+        Egg = @(
+            "Ein verstecktes Detail. Natur oder Design? Hier oft dasselbe."
+            "Das ist kein Bug, das ist eine Mutation."
+            "Easter Egg gefunden. Evolutionär betrachtet: überlebenswichtig."
+        )
+        Hint = @(
+            "Analysiere die Umgebung. Manchmal wächst die Lösung direkt vor dir."
+            "Vielleicht fehlt dir noch ein organisches Element."
+            "Probiere etwas, das du sonst ignorieren würdest."
+        )
+    }
+    VERA = @{
+        RunningGag = @(
+            "VERA lacht leise. 'Dreimal? Du magst es also klassisch.'"
+            "Wiederholung ist der beste Witz. Sagt jemand, der Witze sammelt."
+            "Nochmal? Ich fange an, es süß zu finden."
+        )
+        Find = @(
+            "Ein Fund! Das passt zu uns. Oder wird es noch."
+            "Schau an, etwas Neues. Wir sollten es feiern."
+            "Das ist nützlich. Und potenziell chaotisch. Perfekt."
+        )
+        Warn = @(
+            "Vorsicht, Schatz. Manche Türen beißen."
+            "Das sieht gefährlich aus. Also genau mein Ding."
+            "Wenn du das machst, halte ich die Kamera bereit."
+        )
+        Atmo = @(
+            "Hier riecht es nach Abenteuer. Oder nach verbranntem Popcorn."
+            "Die Stimmung ist so geladen wie ein ungeerdeter Kondensator."
+            "Atmosphäre: 11/10. Drama inklusive."
+        )
+        Egg = @(
+            "Ein versteckter Gag! Liebling, das ist ja kostbar."
+            "Easter Egg! Jemand hatte Spaß am Set."
+            "Das ist entweder ein Insider-Witz oder ein Glitch. Beides liebenswert."
+        )
+        Hint = @(
+            "Manchmal muss man einfach drauflos reden. Mit Objekten."
+            "Hast du schon alles berührt? Nicht jeder Hinweis ist visuell."
+            "Mein Tipp: Folge dem Chaos. Es führt oft zur Lösung."
+        )
+    }
+    JINX = @{
+        RunningGag = @(
+            "JINX klatscht in die Hände. 'Dreimal! Das ist eine Komödie!'"
+            "Wiederholung! Das Publikum liebt es. Also ich."
+            "Nochmal! Ich werfe mit virtuellen Tomaten, falls es schiefgeht."
+        )
+        Find = @(
+            "Ein neues Spielzeug! Kann es explodieren? Bitte?"
+            "Loot! Das wird ein lustiger Tag."
+            "Das nehmen wir mit. Wenn es uns nicht trägt."
+        )
+        Warn = @(
+            "Vorsicht! Sonst gibt es 'Game Over' und ich muss lachen."
+            "Das ist eine schlechte Idee. Also unbedingt machen!"
+            "Warnschild? Wo? Ich sehe nur Einladungen."
+        )
+        Atmo = @(
+            "Hier ist es so still wie in einer Pause zwischen zwei Witzen."
+            "Die Stimmung ist... komisch. Im wörtlichen Sinne."
+            "Atmosphäre geladen. Wie eine Pointe, die gleich fällt."
+        )
+        Egg = @(
+            "Ein Easter Egg! Jemand hat einen Witz versteckt!"
+            "Das ist absurd. Ich bin stolz."
+            "Versteckter Content! Das ist wie Weihnachten und Bugfix zusammen."
+        )
+        Hint = @(
+            "Hast du schonmal probiert, einfach nicht nachzudenken?"
+            "Vielleicht ist die Lösung der Schritt, den du nicht wagst."
+            "Mein Tipp: Tu das Gegenteil von dem, was dir gesagt wurde."
+        )
+    }
+}
+
 # === MOOD SYSTEM ===
 
 function Get-AdventureMoodContext {
@@ -345,27 +572,43 @@ function Test-AbsurdCombo($Item, $Target) {
 
 # === COMPANION DIALOG WRAPPER ===
 
-function Show-AdventureCompanionDialog($Context, $CustomLine = $null) {
-    try {
-        $pet = Get-PetState
-        $cp = $pet.Companion
-        if (-not $cp) { return }
+function Get-AdventureCompanionCategory($Context) {
+    switch -Regex ($Context) {
+        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find)$" { return "Find" }
+        "^(adventure_blocked|adventure_confused|adventure_warn)$" { return "Warn" }
+        "^(adventure_absurd|adventure_egg)$" { return "Egg" }
+        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_death_.*)$" { return "Atmo" }
+        "^(adventure_hint)$" { return "Hint" }
+        default { return "Atmo" }
+    }
+}
 
-        $line = $CustomLine
-        if (-not $line) {
-            # Versuche Mood-basierten Context, dann Fallback
-            if (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue) {
-                $moodCtx = Get-AdventureMoodContext
-                $line = Get-CompanionLine $cp $moodCtx
-            }
+function Show-AdventureCompanionDialog($Companion, $Context, $Fast = $false) {
+    if (-not $Companion) { return }
+    $category = Get-AdventureCompanionCategory $Context
+    $voice = $null
+    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
+        $voice = $script:CPAdventureVoice[$Companion.Name]
+    }
+    $lines = $null
+    if ($voice -and $voice.ContainsKey($category)) {
+        $lines = $voice[$category]
+    }
+    # Fallback zu alten generischen Arrays
+    if (-not $lines -or $lines.Count -eq 0) {
+        $lines = switch ($category) {
+            "RunningGag" { $script:RunningGagLines }
+            "Find" { $script:FindLines }
+            "Atmo" { $script:AtmoLines }
+            "Warn" { $script:WarnLines }
+            "Egg" { $script:EggLines }
+            "Hint" { $script:HintLines }
+            default { $script:AtmoLines }
         }
-
-        if ($line) {
-            $color = if ($script:CPColors) { $script:CPColors[$script:CPNames.IndexOf($cp.Name)] } else { "Cyan" }
-            if (-not $color -or $color -eq "") { $color = "Cyan" }
-            Write-Host "  [$($cp.Name)] >> $line" -ForegroundColor $color
-        }
-    } catch {}
+    }
+    if (-not $lines -or $lines.Count -eq 0) { return }
+    $line = $lines | Get-Random
+    Show-CompanionDialog $Companion $line -Fast:$Fast
 }
 
 # === MAIN HOOK ===
@@ -375,16 +618,20 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     # 1. Update Progress Tracking
     Update-AdventureProgress $Action $Room
 
+    # Get companion once for all possible dialog calls
+    $cp = $null
+    try { $pet = Get-PetState; $cp = $pet.Companion } catch {}
+
     # 2. Check Running Gags
     $gag = Test-RunningGag $Action $Target
     if ($gag.Triggered) {
-        Show-AdventureCompanionDialog $gag.Context $gag.Line
+        Show-AdventureCompanionDialog $cp $gag.Context
         return
     }
 
     # 3. Absurde Kombinationen wurden bereits von Process-AdventureCommand geprueft
     if ($Action -eq "use" -and $Target -and $Result.IsAbsurd) {
-        Show-AdventureCompanionDialog $Result.Context $Result.Line
+        Show-AdventureCompanionDialog $cp $Result.Context
         return
     }
 
@@ -392,7 +639,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     if ($Action -eq "go" -and $Result.RoomChanged) {
         $evt = Invoke-CompanionEvent $Room
         if ($evt) {
-            Show-AdventureCompanionDialog $evt.Context $evt.Line
+            Show-AdventureCompanionDialog $cp $evt.Context
             return
         }
     }
@@ -401,7 +648,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     if ($Action -eq "look" -or $Action -eq "go") {
         $hint = Get-CompanionHint $Room
         if ($hint) {
-            Show-AdventureCompanionDialog $hint.Context $hint.Line
+            Show-AdventureCompanionDialog $cp $hint.Context
             return
         }
     }

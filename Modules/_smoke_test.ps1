@@ -411,6 +411,11 @@ Test-Assert "Bridge unlocked flag" ($script:AdvState.Flags["bridge_unlocked"] -e
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 Test-Assert "Companion AI defaults" ($script:AdvState.CompanionAI.Mood -eq "Curious")
 
+Test-Assert "CPAdventureVoice exists" ((Get-Variable CPAdventureVoice -Scope Script -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "CPAdventureVoice has NEON" ($script:CPAdventureVoice.ContainsKey("NEON"))
+Test-Assert "CPAdventureVoice NEON has Find" ($script:CPAdventureVoice["NEON"].ContainsKey("Find"))
+Test-Assert "CPAdventureVoice NEON Find not empty" ($script:CPAdventureVoice["NEON"].Find.Count -gt 0)
+
 # Running Gag test
 $script:AdvState.CompanionAI = Get-CompanionAIDefaults
 $script:AdvState.CompanionAI.RunningGags = @{}
