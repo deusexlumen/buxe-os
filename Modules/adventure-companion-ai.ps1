@@ -51,6 +51,37 @@ function Set-CompanionAI($Key, $Value) {
     $script:AdvStateDirty = $true
 }
 
+$script:RunningGagLines = @(
+    "Drittes Mal. Selbe Aktion. Selbe Reaktion."
+    "Wiederholung ist auch nur ein Debugging-Schritt."
+    "Ich speichere das unter 'Nutzer-verzweifelt'."
+)
+$script:FindLines = @(
+    "Da ist etwas. Nimm es, bevor es despawned."
+    "Ein Fund! Vielleicht nützlich. Vielleicht nur Dekoration."
+    "Meine Scanner sagen: lootable."
+)
+$script:AtmoLines = @(
+    "Hier ist es... interessant."
+    "Die Stimmung liegt schwer in der Luft. Oder das ist Staub."
+    "Atmosphäre geladen. Wörtlich oder metaphorisch."
+)
+$script:WarnLines = @(
+    "Vorsicht. Das sieht nach einem Fehler aus."
+    "Ich würde das nicht tun. Aber ich bin nur eine Stimme."
+    "Warnung: Mögliche Konsequenzen."
+)
+$script:EggLines = @(
+    "Ein Easter Egg! Jemand hatte hier Spaß."
+    "Verstecktes Detail gefunden. Das gibt interne Punkte."
+    "Das ist entweder ein Gag oder ein Bug. Beides okay."
+)
+$script:HintLines = @(
+    "Vielleicht solltest du nochmal umsehen."
+    "Ein Hinweis: Nicht alles ist offensichtlich."
+    "Probiere etwas, das du noch nicht probiert hast."
+)
+
 $script:CPAdventureVoice = @{
     NEON = @{
         RunningGag = @(
@@ -373,7 +404,7 @@ function Invoke-CompanionEvent($Room) {
             "Meine Sensoren piepen. Hier ist etwas versteckt."
         )
         $found = $finds | Get-Random
-        $result = @{ Type = "find"; Context = "adventure_excited"; Line = $found; BondBonus = 1 }
+        $result = @{ Type = "find"; Context = "adventure_find"; Line = $found; BondBonus = 1 }
     }
     # 5%: Atmosphaere-Event
     elseif ($roll -lt 15) {
