@@ -529,6 +529,8 @@ Test-Assert "Breakout score increased" ($bg.Score -gt 0)
 Write-Host "`n  Testing Backup Rotation..." -ForegroundColor Yellow
 $bakPattern = "$script:BuxeStateFile.bak*"
 Remove-Item $bakPattern -Force -ErrorAction SilentlyContinue
+# Ensure throttle window from previous saves has passed
+Start-Sleep -Milliseconds 700
 # Save 6 times to trigger rotation (600ms Pause fuer Throttle)
 for ($i = 1; $i -le 6; $i++) {
     $script:BuxeState.Bank.Gold = 500 + $i

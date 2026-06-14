@@ -41,6 +41,7 @@ $script:CraftedItems = @(
 function Start-PetShop {
     $pet = Get-PetState
     $p = $pet.Pet
+    $cp = $pet.Companion
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     while ($true) {
     try { Clear-Host } catch {}
@@ -70,6 +71,7 @@ function Start-PetShop {
         }
         Save-PetState $pet
         Check-QuestProgress "shop"
+        if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "shop_buy") -Fast }
         Write-Host "`n  $($item.Name) ausgeruestet!" -ForegroundColor Green
         Invoke-Layer47Check
         Wait-Enter
@@ -111,7 +113,7 @@ function Start-PetCook {
     }
     Save-PetState $pet
     Check-QuestProgress "cook"
-    Show-CompanionDialog $cp "Mmm, das riecht gut! Ich habe mein Bestes gegeben!" -Fast
+    Show-CompanionDialog $cp (Get-CompanionLine $cp "cook") -Fast
     Write-Host "  $($recipe.Name) fuer $($p.Name)! Naechster Kampf: $($recipe.Desc)" -ForegroundColor Green
     Invoke-Layer47Check
     Wait-Enter
@@ -165,7 +167,7 @@ function Start-PetCrafting {
         $durKey = "Dur_$slot"
         $p.$durKey = 10
         Save-PetState $pet
-        if ($cp) { Show-CompanionDialog $cp "Handgefertigt. Von mir. Fuer dich. Das ist... romantisch?" -Fast }
+        if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "craft") -Fast }
         Write-Host "`n  $($item.Name) hergestellt und ausgeruestet!" -ForegroundColor Green
         Invoke-Layer47Check
         Wait-Enter

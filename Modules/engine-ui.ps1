@@ -1,5 +1,5 @@
 # BUXE_OS v24.0 -- UI FRAMEWORK
-# Einheitliches UI-Framework f??r alle Module.
+# Einheitliches UI-Framework fuer alle Module.
 
 try {
 
@@ -51,7 +51,7 @@ function Show-Menu($Title, [array]$Options, [switch]$Clear) {
     for ($i = 0; $i -lt $Options.Count; $i++) {
         Write-Host "  [$($i+1)] $($Options[$i])" -ForegroundColor White
     }
-    Write-Host "  [Q] Zur??ck / Quit" -ForegroundColor DarkGray
+    Write-Host "  [Q] Zurueck / Quit" -ForegroundColor DarkGray
     Write-Host ""
     return $bot
 }
@@ -69,7 +69,7 @@ function Read-Choice($Prompt, $ValidPattern, $QuitChar = 'Q') {
         $in = Read-Host "  $Prompt"
         if ($in -eq $QuitChar) { return $QuitChar }
         if ($in -match $ValidPattern) { return $in }
-        Write-Host "  Ung??ltige Eingabe." -ForegroundColor Red
+        Write-Host "  Ungueltige Eingabe." -ForegroundColor Red
         if ([string]::IsNullOrEmpty($in)) {
             $emptyCount++
             if ($emptyCount -gt 10) { return $QuitChar }
@@ -80,7 +80,7 @@ function Read-Choice($Prompt, $ValidPattern, $QuitChar = 'Q') {
 # === BET INPUT ===
 function Read-Bet($Max, $Prompt = "Einsatz", $AllowAllIn = $true) {
     while ($true) {
-        $hint = if ($AllowAllIn) { " (oder 'all' f??r All-In, 'Q' f??r Zur??ck)" } else { " (oder 'Q' f??r Zur??ck)" }
+        $hint = if ($AllowAllIn) { " (oder 'all' fuer All-In, 'Q' fuer Zurueck)" } else { " (oder 'Q' fuer Zurueck)" }
         $in = Read-Host "  $Prompt$hint"
         if ($in -eq 'Q') { return 0 }
         if ($AllowAllIn -and $in -eq 'all') { return $Max }
@@ -90,7 +90,7 @@ function Read-Bet($Max, $Prompt = "Einsatz", $AllowAllIn = $true) {
             if ($bet -gt $Max) { Write-Host "  Nicht genug Gold! (Max: $Max G)" -ForegroundColor Red; continue }
             return $bet
         }
-        Write-Host "  Ung??ltige Eingabe." -ForegroundColor Red
+        Write-Host "  Ungueltige Eingabe." -ForegroundColor Red
     }
 }
 
@@ -138,12 +138,20 @@ function Show-Bankroll {
 }
 
 function Show-GameCompanionComment($Companion, $GameName, $Context) {
-    if (-not $Companion) { return }
+    if (-not (Get-Command Get-PetState -ErrorAction SilentlyContinue)) { return }
+    $pet = Get-PetState
+    $cp = if ($pet) { $pet.Companion } else { $null }
+    if (-not $cp) { return }
+    # Single-argument calls pass the context directly (e.g. "game_snake_start")
+    if ($Context -eq $null -and $GameName -eq $null) {
+        $Context = $Companion
+    }
+    if (-not $Context) { return }
     if (-not (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) { return }
     if (-not (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue)) { return }
-    $comment = Get-CompanionLine $Companion "game_$($GameName)_$Context"
+    $comment = Get-CompanionLine $cp $Context
     if ($comment -and $comment -ne "Ich bin nur ein Bug in der Matrix. Hallo.") {
-        Show-CompanionDialog $Companion $comment -Fast
+        Show-CompanionDialog $cp $comment -Fast
     }
 }
 

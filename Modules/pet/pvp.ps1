@@ -102,7 +102,7 @@ function Start-PetPvP {
     if ($newRank -ne $pet.Pet.Rank) {
         Write-Host "  RANK UP! $($pet.Pet.Rank) -> $newRank!" -ForegroundColor Magenta
         $pet.Pet.Rank = $newRank
-        if ($pet.Companion) { Show-CompanionDialog $pet.Companion "Du bist unglaublich! $newRank! Das ist... das ist ETWAS!" -Fast }
+        if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "pvp_rankup") -Fast }
     }
     Save-PetState $pet
     Invoke-Layer47Check

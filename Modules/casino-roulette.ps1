@@ -55,6 +55,12 @@ function roulette {
                 try { [Console]::CursorVisible = $false } catch {}
                 if ($inputStr -match '^[Qq]$') { return @{ Win = 0; Loss = 0; Stats = $stats } }
                 try { $numBet = [int]$inputStr } catch { $numBet = -1 }
+                if ($numBet -lt 0 -or $numBet -gt 36) {
+                    Add-SceneText $sub 4 4 "Ungueltige Zahl! Rueckgabe." 'Red'
+                    Show-Scene $sub -Force
+                    Start-Sleep -Milliseconds 800
+                    return @{ Win = 0; Loss = 0; Stats = $stats }
+                }
                 $payout = 36
             }
             "2" {

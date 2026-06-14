@@ -3,6 +3,22 @@
 
 try {
 
+$script:CasinoLossLines = @{
+    "SLOT MACHINE"     = @("Die Walzen lachen. Dein Gold nicht.", "Das Haus gewinnt. Das ist kein Bug, das ist ein Feature.", "Kein Match. Selbst die Symbole sind introvertiert.")
+    "BLACKJACK"        = @("Dealer gewinnt. Wie ueberraschend.", "Bust. Nicht das erste Mal, oder?", "Die Bank hat gesprochen. Lautlos.")
+    "EUROPEAN ROULETTE"= @("Die Kugel rollt woandershin. Wie deine Karriere.", "Rot? Schwarz? Egal. Du verlierst trotzdem.", "Null. Das Rad hat einen Sinn fuer Dramatik.")
+    "CRAPS"            = @("Seven out. Die Wuerfel sind keine Freunde.", "Snake eyes. Zwei Augen, die dich anstarren.", "Craps. Der Name ist Programm.")
+    "HIGHER OR LOWER"  = @("Falsch geraten. Die Karten luegen nie.", "Lower? Higher? Auf jeden Fall weniger Gold.", "Gleicher Wert haette gereicht. Tut er aber nicht.")
+    "BACCARAT"         = @("Banker gewinnt. Wie ueberraschend.", "Tie? Nein. Nur du verlierst.", "Kommission faellig. Auch fuer dich.")
+    "KENO"             = @("0 Treffer. Die Zahlen haben sich verschworen.", "Keine Uebereinstimmung. Nicht mal mit deinem Glueck.", "Keno: Die Illusion haelt laenger als das Geld.")
+    "WHEEL OF FORTUNE" = @("BANKRUPT. Das Rad ist ein Poet.", "0x. Null Komma Null.", "Das Rad dreht sich. Dein Kontostand auch. Nach unten.")
+}
+function Get-CasinoLossLine($GameName) {
+    $pool = $script:CasinoLossLines[$GameName]
+    if (-not $pool) { return "Das Casino gewinnt. Wie immer." }
+    return $pool | Get-Random
+}
+
 function Invoke-CasinoGame {
     param(
         [Parameter(Mandatory)] [string]$GameName,
@@ -35,7 +51,8 @@ function Invoke-CasinoGame {
                 $petMeta.GlitchUsed = $today
                 # GlitchUsed wird spaeter via Set-Bankroll -> Save-State persistiert
                 if (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue) {
-                    $cp = $script:BuxeState.Pet.Companion
+                    $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
+                    $cp = if ($pet) { $pet.Companion } else { $null }
                     if ($cp) {
                         $glitchLine = switch ($cp.Name) {
                             "NEON" { "Reality-Glitch aktiv. Die Wahrscheinlichkeiten sind... angepasst." }
@@ -133,6 +150,7 @@ function Invoke-CasinoGame {
         } elseif ($result.Loss -gt 0) {
             Set-Bankroll (-$result.Loss) -TrackCasino
             Write-Host "`n  -$($result.Loss) G verloren." -ForegroundColor Red
+            Write-Host "  $(Get-CasinoLossLine $GameName)" -ForegroundColor DarkGray
         }
         
         # Update stats
@@ -150,7 +168,8 @@ function Invoke-CasinoGame {
         
         # Companion reactions (LucasArts-Style)
         Load-State
-        $cp = $script:BuxeState.Companion
+        $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
+        $cp = if ($pet) { $pet.Companion } else { $null }
         if ($cp -and (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) {
             if ($script:BuxeState.Bank.Gold -le 0) {
                 Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bust") -Fast

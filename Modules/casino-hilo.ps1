@@ -11,7 +11,7 @@ function hilo {
         $card = $deck[0]
         $multiplier = 1.0
         $streak = 0
-        $suitSymbol = @{ S = "?"; H = "?"; D = "?"; C = "?" }
+        $suitSymbol = @{ S = "♠"; H = "♥"; D = "♦"; C = "♣" }
         
         Reset-RenderBuffer
         
@@ -33,6 +33,7 @@ function hilo {
             # Controls
             Add-SceneText $s 4 10 "[H] Higher   [L] Lower   [C] Cash Out" 'White'
             Add-SceneText $s 4 11 "[Q] Quit" 'DarkGray'
+            Add-SceneText $s 4 12 "Tipp: Farbe zaehlt nicht." 'DarkGray'
             
             Show-Scene $s -Force
             

@@ -126,7 +126,7 @@ function Invoke-PetTutorial {
 
     # Skill point hint (adaptive)
     if (-not $flags.firstSkillPoint -and $pet.SkillPoints -gt 0) {
-        Write-Host "`n  Du hast einen Skill-Punkt! Tippe im Hub [S] Skill Tree, um ihn zu investieren." -ForegroundColor Cyan
+        Write-Host "`n  Du hast einen Skill-Punkt! Tippe im Hub [I] Skill Tree, um ihn zu investieren." -ForegroundColor Cyan
         $flags.firstSkillPoint = $true
         Save-PetState $pet
     }
@@ -170,6 +170,14 @@ function Invoke-TutorialSkip($cp) {
     Start-Sleep -Milliseconds 800
 }
 
+function Show-LockedFeatureMessage($cp) {
+    if (-not $cp) {
+        Write-Host "Dieses Feature ist noch nicht freigeschaltet." -ForegroundColor DarkGray
+        return
+    }
+    Show-CompanionDialog $cp (Get-CompanionLine $cp "feature_locked") -Fast
+}
+
 function pet {
     param([string]$Action)
     $pet = Get-PetState
@@ -187,33 +195,34 @@ function pet {
         return
     }
     if ($Action) {
+        $cp = $pet.Companion
         switch ($Action.ToLower()) {
-            "talk"    { if (Is-FeatureUnlocked "talk") { Invoke-CompanionTalk } }
-            "gift"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "gift" } }
-            "date"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "date" } }
-            "work"    { if (Is-FeatureUnlocked "work") { Invoke-CompanionAction "work" } }
-            "train"   { if (Is-FeatureUnlocked "train") { Invoke-CompanionAction "train" } }
-            "punish"  { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "punish" } }
-            "headpat" { if (Is-FeatureUnlocked "talk") { Invoke-CompanionAction "headpat" } }
-            "fight"   { if (Is-FeatureUnlocked "combat") { Start-PetFight } }
-            "pvp"     { if (Is-FeatureUnlocked "pvp") { Start-PetPvP } }
-            "raid"    { if (Is-FeatureUnlocked "raid") { Start-PetRaid } }
-            "shop"    { if (Is-FeatureUnlocked "shop") { Start-PetShop } }
-            "cook"    { if (Is-FeatureUnlocked "cooking") { Start-PetCook } }
-            "craft"   { if (Is-FeatureUnlocked "shop") { Start-PetCrafting } }
-            "breed"   { if (Is-FeatureUnlocked "breed") { Start-PetBreed } }
-            "rival"   { if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { Invoke-PetRivalBattle } }
-            "soul"    { if (Is-FeatureUnlocked "soul_link") { Invoke-SoulLink } }
+            "talk"    { if (Is-FeatureUnlocked "talk") { Invoke-CompanionTalk } else { Show-LockedFeatureMessage $cp } }
+            "gift"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "gift" } else { Show-LockedFeatureMessage $cp } }
+            "date"    { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "date" } else { Show-LockedFeatureMessage $cp } }
+            "work"    { if (Is-FeatureUnlocked "work") { Invoke-CompanionAction "work" } else { Show-LockedFeatureMessage $cp } }
+            "train"   { if (Is-FeatureUnlocked "train") { Invoke-CompanionAction "train" } else { Show-LockedFeatureMessage $cp } }
+            "punish"  { if (Is-FeatureUnlocked "gift") { Invoke-CompanionAction "punish" } else { Show-LockedFeatureMessage $cp } }
+            "headpat" { if (Is-FeatureUnlocked "talk") { Invoke-CompanionAction "headpat" } else { Show-LockedFeatureMessage $cp } }
+            "fight"   { if (Is-FeatureUnlocked "combat") { Start-PetFight } else { Show-LockedFeatureMessage $cp } }
+            "pvp"     { if (Is-FeatureUnlocked "pvp") { Start-PetPvP } else { Show-LockedFeatureMessage $cp } }
+            "raid"    { if (Is-FeatureUnlocked "raid") { Start-PetRaid } else { Show-LockedFeatureMessage $cp } }
+            "shop"    { if (Is-FeatureUnlocked "shop") { Start-PetShop } else { Show-LockedFeatureMessage $cp } }
+            "cook"    { if (Is-FeatureUnlocked "cooking") { Start-PetCook } else { Show-LockedFeatureMessage $cp } }
+            "craft"   { if (Is-FeatureUnlocked "shop") { Start-PetCrafting } else { Show-LockedFeatureMessage $cp } }
+            "breed"   { if (Is-FeatureUnlocked "breed") { Start-PetBreed } else { Show-LockedFeatureMessage $cp } }
+            "rival"   { if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { Invoke-PetRivalBattle } else { Show-LockedFeatureMessage $cp } }
+            "soul"    { if (Is-FeatureUnlocked "soul_link") { Invoke-SoulLink } else { Show-LockedFeatureMessage $cp } }
             "memories" { Show-PetMemories }
             "quests"  { Show-PetQuests }
             "claim"   { Claim-PetQuests }
             "status"  { Show-PetHubStatus }
-            "skilltree" { if (Is-FeatureUnlocked "skilltree") { Invoke-SkillTreeMenu } }
-            "theme"   { if ($pet.Meta.Level -ge 15) { Set-PetTheme } }
-            "architect"   { if (Is-FeatureUnlocked "architect") { Invoke-ArchitectTerminal } }
-            "awaken"      { if (Is-FeatureUnlocked "awakening") { Invoke-AwakeningTalk } }
-            "fourthwall"  { if (Is-FeatureUnlocked "fourth_wall") { Invoke-FourthWall } }
-            "glitch"      { if (Is-FeatureUnlocked "glitch") { Invoke-PetGlitch } }
+            "skilltree" { if (Is-FeatureUnlocked "skilltree") { Invoke-SkillTreeMenu } else { Show-LockedFeatureMessage $cp } }
+            "theme"   { if ($pet.Meta.Level -ge 15) { Set-PetTheme } else { Show-LockedFeatureMessage $cp } }
+            "architect"   { if (Is-FeatureUnlocked "architect") { Invoke-ArchitectTerminal } else { Show-LockedFeatureMessage $cp } }
+            "awaken"      { if (Is-FeatureUnlocked "awakening") { Invoke-AwakeningTalk } else { Show-LockedFeatureMessage $cp } }
+            "fourthwall"  { if (Is-FeatureUnlocked "fourth_wall") { Invoke-FourthWall } else { Show-LockedFeatureMessage $cp } }
+            "glitch"      { if (Is-FeatureUnlocked "glitch") { Invoke-PetGlitch } else { Show-LockedFeatureMessage $cp } }
             default   { Write-Host "Unbekannte Aktion: $Action" -ForegroundColor Red }
         }
         return
@@ -237,6 +246,9 @@ function pet {
         }
         if ($pet.Pet) { Write-Host "  [$($pet.Pet.Name)] Lv.$($pet.Pet.Level) | HP:$($pet.Pet.HP)/$((Get-EffectiveStats $pet.Pet).MaxHP) | Wins:$($pet.Pet.Wins)" -ForegroundColor Green }
         Write-Host "  Gold: $($pet.Economy.Gold) G | XP: $($pet.Meta.XP)" -ForegroundColor Yellow
+        if ($pet.SkillPoints -gt 0) {
+            Write-Host "  >> Du hast $($pet.SkillPoints) Skill-Punkt(e)! [I] Skill-Baum" -ForegroundColor Cyan
+        }
         Write-Host ""
         # ARG v3.0 beacon hints (subtle, rare)
         if ((Get-Random -Maximum 100) -lt 5) {
@@ -246,28 +258,28 @@ function pet {
         }
         # Dynamic menu based on unlocked features
         $opts = @(); $keys = @()
-        if (Is-FeatureUnlocked "talk") { $opts += "[1] Talk"; $keys += "1" }
-        if (Is-FeatureUnlocked "gift") { $opts += "[2] Gift"; $keys += "2" }
-        if (Is-FeatureUnlocked "combat") { $opts += "[3] Fight"; $keys += "3" }
-        if (Is-FeatureUnlocked "work") { $opts += "[4] Work"; $keys += "4" }
-        if (Is-FeatureUnlocked "train") { $opts += "[5] Train"; $keys += "5" }
+        if (Is-FeatureUnlocked "talk") { $opts += "[1] Reden"; $keys += "1" }
+        if (Is-FeatureUnlocked "gift") { $opts += "[2] Geschenk"; $keys += "2" }
+        if (Is-FeatureUnlocked "combat") { $opts += "[3] Kampf"; $keys += "3" }
+        if (Is-FeatureUnlocked "work") { $opts += "[4] Arbeit"; $keys += "4" }
+        if (Is-FeatureUnlocked "train") { $opts += "[5] Training"; $keys += "5" }
         if (Is-FeatureUnlocked "shop") { $opts += "[6] Shop"; $keys += "6" }
-        if (Is-FeatureUnlocked "cooking") { $opts += "[7] Cook"; $keys += "7" }
-        if (Is-FeatureUnlocked "skilltree") { $opts += "[I] Skill Tree"; $keys += "I" }
-        if (Is-FeatureUnlocked "shop") { $opts += "[K] Craft"; $keys += "K" }
+        if (Is-FeatureUnlocked "cooking") { $opts += "[7] Kochen"; $keys += "7" }
+        if (Is-FeatureUnlocked "skilltree") { $opts += "[I] Skill-Baum"; $keys += "I" }
+        if (Is-FeatureUnlocked "shop") { $opts += "[K] Handwerk"; $keys += "K" }
         if (Is-FeatureUnlocked "pvp") { $opts += "[8] PvP"; $keys += "8" }
         if (Is-FeatureUnlocked "raid") { $opts += "[9] Raid"; $keys += "9" }
-        if (Is-FeatureUnlocked "breed") { $opts += "[B] Breed"; $keys += "B" }
-        if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rival"; $keys += "R" }
+        if (Is-FeatureUnlocked "breed") { $opts += "[B] Zucht"; $keys += "B" }
+        if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rivale"; $keys += "R" }
         if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
         if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
         if (Is-FeatureUnlocked "architect") { $opts += "[A] Architect"; $keys += "A" }
-        if (Is-FeatureUnlocked "awakening") { $opts += "[W] Awaken"; $keys += "W" }
-        if (Is-FeatureUnlocked "fourth_wall") { $opts += "[F] Fourth Wall"; $keys += "F" }
+        if (Is-FeatureUnlocked "awakening") { $opts += "[W] Erwachen"; $keys += "W" }
+        if (Is-FeatureUnlocked "fourth_wall") { $opts += "[F] Vierte Wand"; $keys += "F" }
         if (Is-FeatureUnlocked "glitch") { $opts += "[X] Glitch"; $keys += "X" }
         if ($pet.Meta.Level -ge 2) { $opts += "[G] Spiele"; $keys += "G" }
         if ($pet.Meta.Level -ge 3) { $opts += "[S] Story"; $keys += "S" }
-        $opts += "[M] Memories"; $keys += "M"
+        $opts += "[M] Erinnerungen"; $keys += "M"
         $opts += "[C] Quests"; $keys += "C"
         $opts += "[Z] Status"; $keys += "Z"
         $opts += "[Q] Exit"; $keys += "Q"
@@ -423,6 +435,11 @@ function Show-PetHubStatus {
     }
     Write-Host "`n  Gold: $($pet.Economy.Gold) G | Level: $($pet.Meta.Level) | XP: $($pet.Meta.XP)" -ForegroundColor Yellow
     Write-Host "  Unlocked: $($pet.Meta.Unlocked -join ', ')" -ForegroundColor DarkGray
+    Write-Host ""
+    if ($pet.Companion) {
+        $statusComment = Get-CompanionLine $pet.Companion "status"
+        Show-CompanionDialog $pet.Companion $statusComment -Fast
+    }
     Write-Host ""
     if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) { Invoke-ArgActionTick }
     Wait-Enter

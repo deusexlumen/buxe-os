@@ -41,6 +41,15 @@ function Show-CasinoStats {
 }
 
 function casino {
+    Load-State
+    $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
+    $cp = if ($pet) { $pet.Companion } else { $null }
+    if ($cp -and (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue) -and (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) {
+        $greeting = Get-CompanionLine $cp "hub_greeting"
+        if ($greeting -and $greeting -ne "Ich bin nur ein Bug in der Matrix. Hallo.") {
+            Show-CompanionDialog $cp $greeting -Fast
+        }
+    }
     while ($true) {
         Clear-Screen "CASINO"
         Show-Bankroll

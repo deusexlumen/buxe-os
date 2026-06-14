@@ -211,6 +211,7 @@ function Claim-PetQuests {
         $pet.Economy.Gold += $totalGold
         if ($pet.Companion) { $pet.Companion.Bond = [math]::Min(100, $pet.Companion.Bond + $totalBond) }
         Save-PetState $pet
+        if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "quest_complete") -Fast }
         Write-Host "`n  $claimed Quest(s) abgeschlossen! +$totalGold G | +$totalBond Bond" -ForegroundColor Green
     } else {
         Write-Host "`n  Keine abgeschlossenen Quests zum Abholen." -ForegroundColor DarkGray

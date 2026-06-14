@@ -123,17 +123,7 @@ function Start-PetTutorialFight {
         
         # Companion combat commentary
         if ($cp -and $round -lt 3) {
-            $comment = switch ($cp.Name) {
-                "NEON" { @("Nicht schlecht. Fuer einen Anfaenger.","Mach weiter so. Oder nicht. Ist mir egal.") | Get-Random }
-                "RAVEN" { @("Schwach. Aber ausreichend.","Der Gegner ist Pathetisch.") | Get-Random }
-                "PIXEL" { @("D-du schaffst das!","Wow! So stark!") | Get-Random }
-                "LUNA" { @("Gut gemacht!","Pass auf dich auf!") | Get-Random }
-                "IVY" { @("... *nickt*","... *beobachtet*") | Get-Random }
-                "VERA" { @("Effizienz: 87%. Akzeptabel.","Taktische Analyse: Korrekt.") | Get-Random }
-                "JINX" { @("POW! BAM!","Das war fast so cool wie die Zahl 47!") | Get-Random }
-                default { "..." }
-            }
-            Show-CompanionDialog $cp $comment -Fast
+            Show-CompanionDialog $cp (Get-CompanionLine $cp "tutorial_fight") -Fast
         }
         
         Start-Sleep -Milliseconds 600
@@ -540,6 +530,7 @@ function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $player
     if ($isBoss -and $enemy.BossPattern) {
         $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
         if ($currentPhase -and $currentPhase.Tell -and $currentPhase.WarnTurns -gt 0) {
+            if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "boss_warning") -Fast }
             Write-Host "  ⚠️  $($currentPhase.Tell)" -ForegroundColor Magenta
             Write-Host "  [Naechste Runde: Stark-Attacke! Defend oder Switch empfohlen!]" -ForegroundColor DarkMagenta
             Write-Host ""
@@ -590,6 +581,8 @@ function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $player
 }
 
 function Select-PlayerAttack($playerPet) {
+    $pet = Get-PetState
+    if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "attack_select") -Fast }
     Write-Host "`n  Verfuegbare Attacken:" -ForegroundColor Cyan
     for ($i = 0; $i -lt $playerPet.Attacks.Count; $i++) {
         $atkName = $playerPet.Attacks[$i]
@@ -970,7 +963,7 @@ function Invoke-LimitBreak($playerPet, $enemy, $combatState, $playerStats, $comp
     }
     
     if ($companion) {
-        Show-CompanionDialog $companion "Das ist es! Unser finales Argument! NICHTS kann uns jetzt noch stoppen!" -NoWait
+        Show-CompanionDialog $companion (Get-CompanionLine $companion "limit_break") -NoWait
     }
     
     Write-Host "`n  $narrative" -ForegroundColor Magenta

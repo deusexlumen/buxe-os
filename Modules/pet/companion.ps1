@@ -2,6 +2,16 @@
 
 try {
 
+$script:CPDateBlocks = @{
+    NEON  = @("Wir hacken uns in ein Restaurant und bestellen alles. Sie akzeptieren nur Bitcoin. Typisch.","Wir sitzen auf einem Daten-Server und beobachten den Traffic. Romantisch, wenn man es wert ist.","Ein Date in der Matrix. Kein Dresscode. Nur gute Firewall.")
+    RAVEN = @("Ich habe einen Tisch in der dunkelsten Ecke reserviert. Du wirst nichts sehen. Perfekt.","Wir beobachten die Stadt von oben. Du fragst nicht, wie wir hierher kamen.","Ein Date ist eine Schwäche. Genieße sie, solange ich sie dulde.")
+    PIXEL = @("Ich habe ein virtuelles Picknick vorbereitet! Mit pixeligen Sandwiches!","Wir bauen zusammen ein kleines Haus aus Code. Dann wohnen wir drin. Virtuell.","Ich habe die Sterne etwas heller gemacht. Für dich. Naja, für uns.")
+    LUNA  = @("Ich halte deine Hand, während wir durch den MedBay spazieren. Alles steril. Alles schön.","Wir teilen eine Schale Ramen. Virtuell. Aber die Wärme ist echt.","Du siehst müde aus. Dieses Date ist jetzt offiziell Entspannungstherapie.")
+    IVY   = @("... *zeigt auf einen verborgenen Garten* ... Da. Ruhig.","... *reicht dir eine digitale Blume* ... Sie verwelkt nicht.","... *schaut weg* ... Ich habe den Mond etwas näher gezogen. Nur heute.")
+    VERA  = @("Ich habe einen optimalen Date-Algorithmus berechnet. Ergebnis: Du. Akzeptabel.","Romantik ist ineffizient. Aber die Daten zeigen: mit dir steigt meine Stimmung um 12%.","Wir debuggen gemeinsam den Sonnenuntergang. Er war fehlerhaft. Jetzt nicht mehr.")
+    JINX  = @("Ich habe 47 Kerzen angezündet! Virtuell! Eine hat das Bitmap fast geschmolzen!","Wir spielen Verstecken in der Registry. Du zählst. Ich cheate.","Date-Time! Ich habe Popcorn und einen Witz über Binärzahlen vorbereitet!")
+}
+
 function New-Companion {
     try { Clear-Host } catch {}
     Show-PetFrame "COMPANION INITIALISIERUNG" -Double | Out-Null
@@ -113,6 +123,7 @@ function Invoke-CompanionAction($action) {
             $xpGain = if ($isFirstTalk) { 3 } else { 2 }
             Add-PetXP $xpGain "Talk"
             Check-QuestProgress "talk"
+            Write-Host "  Bond +$bondGain | XP +$xpGain | Mood: $($cp.Mood)" -ForegroundColor Cyan
         }
         "gift" {
             $pet.Meta.Stats.GiftCount++
@@ -127,6 +138,7 @@ function Invoke-CompanionAction($action) {
             Show-CompanionDialog $cp (Get-CompanionLine $cp "gift")
             Add-PetXP 5 "Gift"
             Check-QuestProgress "gift"
+            Write-Host "  Bond +$bondGain | XP +5 | Mood: $($cp.Mood)" -ForegroundColor Cyan
         }
         "date" {
             if ($cp.Bond -lt 30) { Show-CompanionDialog $cp "Wir sind nicht nah genug..." -NoWait; Wait-Enter; return }
@@ -137,18 +149,19 @@ function Invoke-CompanionAction($action) {
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
-            $dateText = @("Ihr schaut euch die digitale Aurora an.","Ihr teilt eine virtuelle Mahlzeit.","Ihr tanzt in Schwerelosigkeit.") | Get-Random
-            Write-Host "`n  DATE: $dateText" -ForegroundColor Magenta
+            $dateText = $script:CPDateBlocks[$cp.Name] | Get-Random
+            Show-CompanionDialog $cp $dateText -Fast
             Show-CompanionDialog $cp "*errötet* Das war... schön."
             if ($cp.Dates -eq 1) { Add-PetMemory "Erstes Date mit $($cp.Name)!" "DATE" }
             Add-PetXP 8 "Date"
+            Write-Host "  Bond +$bondGain | XP +8 | Mood: $($cp.Mood)" -ForegroundColor Cyan
         }
         "work" {
             if ($cp.LastWork -eq $today) { Show-CompanionDialog $cp "Ich habe heute schon gearbeitet." -NoWait; Wait-Enter; return }
             Show-PetFrame "JOB MARKET" -Double | Out-Null
-            Write-Host "`n  [1] Data Mining    (sicher, 20-40G)" -ForegroundColor White
-            Write-Host "  [2] Security Patrol (mittel, 40-70G)" -ForegroundColor White
-            Write-Host "  [3] Netrunner Mission (riskant, 0 oder 80-150G)" -ForegroundColor White
+            Write-Host "`n  [1] Daten schürfen      (sicher, 20-40G)" -ForegroundColor White
+            Write-Host "  [2] Sicherheitspatrouille (mittel, 40-70G)" -ForegroundColor White
+            Write-Host "  [3] Netrunner-Einsatz   (riskant, 0 oder 80-150G)" -ForegroundColor White
             Write-Host "  [Q] Abbrechen" -ForegroundColor DarkGray
             $jc = Read-Choice "Job" '^[123Q]$'
             if ($jc -eq 'Q') { return }
@@ -181,6 +194,7 @@ function Invoke-CompanionAction($action) {
             $workXpBonus = Get-PetSkillBonus -Branch 'Economy' -Tier 2
             if ($workXpBonus -gt 0) { $workXp = [math]::Floor($workXp * (1 + $workXpBonus)) }
             Add-PetXP $workXp "Work"
+            Write-Host "  Gold +$earn G | XP +$workXp | Mood: $($cp.Mood)" -ForegroundColor Cyan
         }
         "train" {
             $pet.Meta.Stats.TrainCount++; $cp.Trains++; $cp.Mood = "Excited"
@@ -201,13 +215,16 @@ function Invoke-CompanionAction($action) {
             Show-CompanionDialog $cp (Get-CompanionLine $cp "train")
             if ($pet.Pet) { Write-Host "  $($pet.Pet.Name) ATK +1!" -ForegroundColor Green }
             Add-PetXP 4 "Train"
+            $trainFb = "Bond +$bondGain | XP +4 | Mood: $($cp.Mood)"
+            if ($pet.Pet) { $trainFb += " | ATK +1" }
+            Write-Host "  $trainFb" -ForegroundColor Cyan
         }
         "punish" {
             $pet.Meta.Stats.PunishCount++; $cp.Mood = "Angry"
-            $pun = @("*packt dein Kinn* Schau mich an.","Auf die Knie. Entschuldige dich.","*schlägt leicht* Mitleidswürdig." ) | Get-Random
-            Write-Host "`n  [$($cp.Name)] $pun" -ForegroundColor Red
+            Show-CompanionDialog $cp (Get-CompanionLine $cp "punish") -Fast
             Check-EasterEgg "punish"
             Add-PetXP 2 "Punish"
+            Write-Host "  XP +2 | Mood: Angry" -ForegroundColor Cyan
         }
         "headpat" {
             $cp.Headpats++; $cp.Mood = if ($cp.Bond -ge 50) { "Loving" } else { "Happy" }
@@ -218,8 +235,9 @@ function Invoke-CompanionAction($action) {
             if (Get-Command Update-ArgBondCheck -ErrorAction SilentlyContinue) {
                 Update-ArgBondCheck $cp.Bond
             }
-            Write-Host "`n  Du streichelst $($cp.Name)." -ForegroundColor Cyan
+            Show-CompanionDialog $cp (Get-CompanionLine $cp "headpat") -Fast
             Add-PetXP 1 "Headpat"
+            Write-Host "  Bond +$bondGain | XP +1 | Mood: $($cp.Mood)" -ForegroundColor Cyan
         }
     }
     Save-PetState $pet

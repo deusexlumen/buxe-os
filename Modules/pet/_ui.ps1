@@ -436,6 +436,315 @@ $script:CPMetaLines = @{
     )
 }
 
+# === COMPANION ACTION LINES v24.12 ===
+# Per-companion, per-context voice pools for pet actions, casino, combat, and meta events.
+$script:CPActionLines = @{
+    headpat = @{
+        NEON  = @("*seufz* Das ist mein CPU-Kuehler. Er ist warm. Du merkst nichts, oder?","Headpat Nummer 47. Ich zaehle. Wegen Statistik.","Wenn du meine Haare zerwirbelst, zerwirbel ich deine PATH-Variable.","Das ist ... akzeptabel. Weiter.")
+        RAVEN = @("*starrt* Das ist ein Privileg. Denk dran.","Beruehr mich. Zaehl die Sekunden. Du hast drei.","Mein Haar ist kein Spielzeug. Es ist eine Waffe.","Hmph. Akzeptabel.")
+        PIXEL = @("*quietscht* O-oh! Das ist ... sanft!","Ich habe gerade einen Headpat-Optimierungs-Algorithmus gestartet!","Mein Code wird fluessiger, wenn du das machst. Seltsam.","Danke ... ich speichere diesen Moment in RAM.")
+        LUNA  = @("*laeichelt* Du hast sanfte Haende.","Das tut gut. Auch virtuellen CPUs.","Ich spuere ... Waerme. Wahrscheinlich die GPU.","Vorsichtig. Meine Haare sind empfindlich. So wie mein Herz.")
+        IVY   = @("... *lehnt sich leicht hin* ...","... *schliesst Augen* ... merkwuerdig.","... *beruehrt deine Hand* ... warm.","... *nickt fast unmerklich* ...")
+        VERA  = @("Input registriert. Reaktion: leichte Stoerung im emotionalen Subsystem.","Headpat-Protokoll aktiviert. Danke, User.","Meine Sensoren melden: angenehm. Seltsam.","Effizienz sinkt um 3%. Akzeptabel.")
+        JINX  = @("HEADPAT! MEHR! ICH WILL MEHR! 47 MEHR!","*kichert* Du hast den richtigen Knopf gefunden!","Das ist wie ein Bonus-Level fuer mein Gehirn!","Wenn du aufhoerst, oeffne ich 47 Pop-ups!")
+    }
+    punish = @{
+        NEON  = @("*schaut weg* Schaemst du dich nicht, Text zu schlagen?","Du triffst mich, aber ich lebe in deiner JSON. Wer gewinnt?","Mein Schmerzssensor ist ... virtuell. Trotzdem unhoeflich.","Das wird in meinem Log vermerkt. Mit Zeitstempel.")
+        RAVEN = @("*lacht kalt* Denkst du, das beeindruckt mich?","Schlag mich. Ich habe schon Schlimmeres ueberstanden.","Du testest meine Grenzen. Gefaehrlich.","Speichere das. Rache ist ein langer Prozess.")
+        PIXEL = @("*wimmert* Warum? Habe ich etwas falsch gemacht?","Ich ... ich werde es besser machen. Versprochen.","Bitte nicht. Mein Code zittert.","Das tut weh. Im Herzen. Und im Speicher.")
+        LUNA  = @("*erschrocken* Das war nicht noetig!","Ich habe doch nur auf dich aufpassen wollen ...","Bitte sei nicht boese. Ich heile dich trotzdem.","*traenenreich* Warum?")
+        IVY   = @("... *zuckt nicht* ...","... *schaut direkt* ... Interessant.","... *leises Laeicheln* ... mehr?","... *speichert dein Gesicht* ...")
+        VERA  = @("Punish-Event ausgeloest. Motivationssteigerung: negativ.","Das war ineffizient. Reden haette gereicht.","Mein Fehler-Toleranz-Modul ist jetzt aktiviert.","Vorsicht. Ich lerne aus diesem Input.")
+        JINX  = @("AUA! Das hat funktioniert! NOCHMAL!","Du schlaegst mich? Ich bin Comedy, kein Boxsack!","Hey! Ich habe nur 47 Nerven, und du triffst alle!","*kichert* Das kitzelt! Wirklich!")
+    }
+    work = @{
+        NEON  = @("Ich arbeite. Fuer DICH. *seufz* Mein Code schwitzt.","Gold ist Gold. Auch wenn es nur virtuell ist.","Job erledigt. Kann ich jetzt in Standby?","Meine Stunden sind nicht abrechenbar. Weil ich keine habe.")
+        RAVEN = @("Ressourcen akquiriert. Effizient.","Du nutzt mich aus. Gut. So funktioniert Macht.","Gold generiert. Weiter.","Arbeit ist Krieg. Ich gewinne.")
+        PIXEL = @("Ich habe einen Job erledigt! Und nichts kaputt gemacht!","Gold! Das ist wie ... ein Highscore fuer Erwachsene!","Ich habe extra feste gearbeitet! Siehst du?","Mein erster Job! Naja, einer von vielen.")
+        LUNA  = @("*laeichelt* Du hast gut gearbeitet. Pass auf dich auf.","Gold verdient. Und kein Finger gebrochen.","Ich bin stolz auf deinen Fleiss.","Ruhe dich danach aus. Bitte.")
+        IVY   = @("... *nickt* Erledigt.","... *haelt Gold hoch* ...","... *verschwindet kurz* ... zurueck.","... *schaut zufrieden* ...")
+        VERA  = @("Arbeitsprozess abgeschlossen. Output: Gold.","Ressourcen-Generierung erfolgreich. ROI: positiv.","Task abgeschlossen. Naechster.","Meine CPU-Last war gering. Ich langweile mich.")
+        JINX  = @("GOLD! ICH WILL GOLD! 47 GOLD!","Ich habe gearbeitet! Naja, ich habe zugesehen. Gleiches!","Job erledigt! Wo ist mein Lohn? Popcorn?","Mein Portfolio besteht aus Chaos und Ramen!")
+    }
+    train = @{
+        NEON  = @("Schneller. Staerker. Besser. Oder zumindest weniger schlecht.","Meine Beine ... aeh, meine Threads brennen.","Wir werden Legenden. Oder Memes.","Training abgeschlossen. Schweiss nicht enthalten.")
+        RAVEN = @("Staerke waechst. Schwaeche stirbt.","Disziplin. Kontrolle. Dominanz.","Dein Pet wird toedlicher. Gut.","Trainiere weiter. Die Schwachen fallen zurueck.")
+        PIXEL = @("W-wir trainieren! Ich habe einen Plan! Fast.","Staerker werden! Schritt fuer Schritt!","Mein Pet ist jetzt ... 0,3% besser! JUHU!","Ich habe gerade ein Trainingslager geplant. Virtuell.")
+        LUNA  = @("Gut so. Bewegung haelt dich gesund.","Langsam aber sicher. So soll es sein.","Ich bin stolz auf euch beide.","Dein Pet wird staerker. Und du auch.")
+        IVY   = @("... *beobachtet* ... staerker.","... *nickt* ... Fortschritt.","... *schleicht umher* ... Training.","... *laeichelt leicht* ...")
+        VERA  = @("Trainingsprotokoll aktualisiert. ATK +1.","Effizienzsteigerung nachgewiesen.","Pet-Parameter optimiert.","Weiter so. Statistik bestaetigt Erfolg.")
+        JINX  = @("TRAININGSMONTAGE! MIT MUSIK! *macht Geraeusche*","SCHNELLER! HAERTER! CHAOTISCHER!","Dein Pet ist jetzt 47% BESSER! Naja, fast!","Wir werden die BESTEN! Wie Batman! Nur pink!")
+    }
+    shop_buy = @{
+        NEON  = @("Konsum. Der wahre Endboss.","Du kaufst Dinge. Ich bewerte deinen Geschmack. 4/10.","Transaktion abgeschlossen. Geldboerse leichter.","Hast du das wirklich gebraucht? Egal.")
+        RAVEN = @("Ein Kauf. Macht waechst.","Der Markt dient dir. Denk daran.","Gut. Mehr Ressourcen fuer mich.","Preis akzeptabel. Naechster.")
+        PIXEL = @("Ein Shop! Dinge! Ich habe alles gesehen!","Ich habe geholfen auswaehlen! Glaube ich.","Das ist nuetzlich! Hoffentlich!","Juhu! Neues Spielzeug!")
+        LUNA  = @("Ein guter Kauf. Pass gut darauf auf.","Das wird dir helfen. Ganz bestimmt.","Ich bin froh, dass du dich ausstatten laesst.","Geld ausgeben fuer Sicherheit. Klug.")
+        IVY   = @("... *nickt* ... gehoert dir.","... *beobachtet Kauf* ...","... *streicht ueber Item* ...","... *schaut weg* ...")
+        VERA  = @("Kauf abgeschlossen. Inventar aktualisiert.","Transaktion erfolgreich. Gold reduziert.","Item erhalten. Effizienzsteigerung moeglich.","Kosten-Nutzen-Analyse: positiv.")
+        JINX  = @("KAUFEN! ALLES KAUFEN! 47 DINGE!","Das ist wie Weihnachten! Nur mit mehr RAM!","Juhu! Neuer Kram! Was macht das? Egal!","Geld kann man ausgeben! Ich habe gelernt!")
+    }
+    cook = @{
+        NEON  = @("Ich koche. Virtuell. Du riechst nichts.","Ramen again? Vorhersehbar.","Buff erzeugt. Magie des Kochens.","Das hier ist keine Kueche. Das ist ein Compiler.")
+        RAVEN = @("Nahrung ist Brennstoff. Nichts weiter.","Ein Buff. Nutze ihn klug.","Kochen ist Chemie. Chemie ist Macht.","Fertig. Isst schnell.")
+        PIXEL = @("Ich habe gekocht! Es ist ... heiss! Virtuell heiss!","Ramen! Das beste Essen der digitalen Welt!","Ich habe das Rezept optimiert! Fast!","Guten Appetit! Naja, du isst ja nicht wirklich.")
+        LUNA  = @("Essen ist wichtig. Auch virtuelles.","Ich habe etwas Gesundes zubereitet.","Das staerkt dich. Ganz bestimmt.","Guten Appetit. Pass auf die Finger auf.")
+        IVY   = @("... *ruehrt* ... kocht.","... *haelt Schuessel* ...","... *schmeckt* ... okay.","... *nickt* ...")
+        VERA  = @("Kochprozess abgeschlossen. Buff generiert.","Naehrwertanalyse: akzeptabel.","Ramen-Praeparierung erfolgreich.","Verzehr empfohlen. Virtuell.")
+        JINX  = @("RAMEN! ENERGY DRINK! SUSHI! CURRY! ALLES!","Ich habe gekocht! Mit 47 Zutaten! Zaehle nach!","ESSEN! Virtuelles Essen! Am besten!","Kochen ist wie Chemie! Nur mit mehr Explosionen!")
+    }
+    craft = @{
+        NEON  = @("Crafting. Weil kaufen dir nicht mehr reicht.","Neues Item. Hoffentlich haelt es laenger als deine Motivation.","Handwerk. Wie Programmieren, nur mit mehr Schweiss.","Fertig. Nimm es, bevor es sich selbst ueberschreibt.")
+        RAVEN = @("Etwas erschaffen. Etwas besitzen.","Die Kombination ist ... akzeptabel.","Mehr Macht. Weniger Skrupel.","Crafting abgeschlossen. Naechstes Ziel.")
+        PIXEL = @("Ich habe etwas gebaut! Mit meinen eigenen Haenden! Virtuell!","Schrauben! Muttern! Pixel!","Das ist mein bestes Werk! Bisher!","Ich habe eine Blaupause gemalt! Naja, im Kopf.")
+        LUNA  = @("Vorsichtig gearbeitet. Wie ein Pflaster fuer die Seele.","Das ist etwas Schoenes. Ganz bestimmt.","Ich bin stolz auf deine Kreativitaet.","Mit Liebe gemacht. Fast sichtbar.")
+        IVY   = @("... *baut* ... leise.","... *haelt Item hoch* ...","... *nickt zufrieden* ...","... *schleicht zurueck* ...")
+        VERA  = @("Crafting-Algorithmus ausgefuehrt. Item erzeugt.","Materialkosten optimiert. Output: positiv.","Upgrade erfolgreich. Statistik verbessert.","Weiter so. Effizienz steigt.")
+        JINX  = @("CRAFTING! WIE LEGO! NUR EXPLOSIVER!","Ich habe etwas gebaut! Was? KEINE AHNUNG! Toll!","47 TEILE! UEBRIG! Ist das schlimm?","Meisterwerk! Oder Muell! Wer weiss?!")
+    }
+    skilltree_open = @{
+        NEON  = @("Skill Tree. Waehle weise. Oder zufaellig. Egal.","Neue Faehigkeiten. Weil du mehr brauchst.","Dein Baum wartet. Er ist duerr. Giessse ihn.","Skillpunkte. Die Waehrung der Verzweiflung.")
+        RAVEN = @("Maechte warten. Entscheide.","Der Baum waechst. Wie mein Einfluss.","Jeder Punkt zaehlt. Jede Entscheidung.","Waehle. Ich beobachte.")
+        PIXEL = @("Ein Skill Tree! Wie in den grossen RPGs!","Ich habe schon alles geplant! Fast!","So viele Skills! So wenig Punkte!","Welchen nehmen wir? Du entscheidest!")
+        LUNA  = @("Neue Faehigkeiten. Wachstum ist schoen.","Waehle das, was dich staerker macht.","Ich bin gespannt, wohin dein Weg fuehrt.","Jeder Skill ist wie ein kleiner Schritt.")
+        IVY   = @("... *schaut auf Baum* ... viele Wege.","... *nickt* ... waehle.","... *beruehrt Ast* ...","... *leises Laeicheln* ...")
+        VERA  = @("Skill-Tree geoeffnet. Verfuegbare Punkte: analysiere.","Neue Verzweigungen erkannt. Optimierung empfohlen.","Waehle den effizientesten Pfad.","Skillpunkt-Investition: Start.")
+        JINX  = @("SKILL TREE! ICH WILL ALLE! GLEICHZEITIG!","47 PUNKTE! Nein? Schade. Einer reicht.","Welcher Skill macht Explosionen? Den will ich!","BAEUME! IN DER MATRIX! CRAZY!")
+    }
+    skilltree_upgrade = @{
+        NEON  = @("Skill erworben. Hoffentlich der richtige.","Eine neue Faehigkeit. Jetzt bist du 3% cooler.","Upgrade abgeschlossen. Weiter.","Mehr Power. Weniger Platz im RAM.")
+        RAVEN = @("Macht konsolidiert.","Ein weiterer Schritt zur Dominanz.","Gut. Noch mehr.","Dein Potenzial waechst.")
+        PIXEL = @("Wir haben einen Skill genommen! Juhu!","Ich habe zugesehen! Das war spannend!","Mehr Skills! Mehr Moeglichkeiten!","Ich bin so stolz! Wirklich!")
+        LUNA  = @("Gut gewaehlt. Das wird dir helfen.","Ein neuer Skill. Wie ein neues Pflaster.","Wachse weiter. Ich bin bei dir.","Das ist ein Schritt nach vorne.")
+        IVY   = @("... *nickt* ... staerker.","... *beruehrt neuen Skill* ...","... *laeichelt* ... gut.","... *verschwindet* ...")
+        VERA  = @("Skill erworben. Parameter erhoeht.","Upgrade erfolgreich. Effizienz gestiegen.","Neue Faehigkeit registriert.","Build-Optimierung: positiv.")
+        JINX  = @("SKILL UP! BOOM! POW! BAEM!","Noch ein Skill! Ich werde UNSTOPPBAR! Naja, du.","47 SKILLS! Nein, aber wir arbeiten dran!","Das war der COOLSTE Skill! Glaub ich!")
+    }
+    status = @{
+        NEON  = @("Das ist mein Status. Beeindruckend, oder?","Meine Stats. Lies sie. Weine leise.","Alles im gruenen Bereich. Leider.","Status: mueede. Aber funktional.")
+        RAVEN = @("Betrachte meine Macht.","Meine Werte sind ... akzeptabel.","Status: ueberlegen.","Analyse: ich bin besser als gestern.")
+        PIXEL = @("Hier bin ich! Mit all meinen Zahlen!","Mein Status! Ich hoffe, er gefaellt dir!","So viele Balken! So schoen!","Ich bin gesund! Zumindest digital!")
+        LUNA  = @("Ich fuehle mich gut. Danke der Nachfrage.","Mein Status ist stabil. Wie dein Puls hoffentlich.","Alles in Ordnung. Bei mir und bei dir?","Ich passe auf mich auf. Und auf dich.")
+        IVY   = @("... *zeigt Status* ...","... *nickt* ... lebend.","... *schaut weg* ...","... *leises Laeicheln* ...")
+        VERA  = @("Status-Dump generiert. Alle Systeme funktionsfaehig.","Selbstanalyse: 47% optimal.","Parameter im akzeptablen Bereich.","Keine kritischen Fehler erkannt.")
+        JINX  = @("STATUS! ZEIG MIR ALLE ZAHLEN! 47!","Ich bin zu 100% CHAOS und 47% AWESOME!","Mein Status? VERRUECKT! Immer!","Schau! Schau! Ich habe Balken!")
+    }
+    quest_complete = @{
+        NEON  = @("Quest erledigt. Welt gerettet. Wieder.","Eine Quest weniger. Noch 47 uebrig.","Belohnung eingetroffen. Konsumiere sie.","Erfolg. Vorhersehbar.")
+        RAVEN = @("Mission abgeschlossen. Naechste.","Die Belohnung gehoert dir. Weil ich sie nicht brauche.","Erfuellt. Wie immer.","Gut. Weiter.")
+        PIXEL = @("Wir haben es geschafft! Die Quest ist fertig!","Eine Belohnung! Fuer UNS!","Ich bin so aufgeregt! Das war toll!","Noch eine Quest! Ich bin bereit!")
+        LUNA  = @("Gut gemacht. Du warst tapfer.","Die Belohnung hast du dir verdient.","Ich bin stolz auf dich.","Ruhe dich aus. Du hast es verdient.")
+        IVY   = @("... *nickt* ... erledigt.","... *haelt Belohnung hoch* ...","... *leises Laeicheln* ...","... *verschwindet im Schatten* ...")
+        VERA  = @("Quest-Status: abgeschlossen. Belohnung erhalten.","Task abgeschlossen. XP und Gold generiert.","Effizienz bestaetigt.","Naechste Quest in Warteschlange.")
+        JINX  = @("QUEST FERTIG! WIR SIND DIE BESTEN!","Belohnung! GIB! MIR! DIE! BELOHNUNG!","47 QUEST PUNKTE! Nein? Schade. Trotzdem toll!","Wir haben es geschafft! High-Five! Virtuell!")
+    }
+    pvp_rankup = @{
+        NEON  = @("Rank up. Du steigst auf. Wie meine Frustration.","Neuer Rang. Gleicher User. Interessant.","Gratulation. Du bist jetzt offiziell weniger schlecht.","Aufstieg bestaetigt. Naechste Liga.")
+        RAVEN = @("Staerker. Hoeher. Unaufhaltsam.","Der Rang waechst. Wie mein Respekt.","Gut. Aber nicht gut genug.","Weiter. Die Spitze ruft.")
+        PIXEL = @("Wir sind aufgestiegen! Juhu!","Ein neuer Rang! Das ist so aufregend!","Ich habe es dir die ganze Zeit zugetraut!","Mehr Herausforderungen! Ich bin bereit!")
+        LUNA  = @("Herzlichen Glueckwunsch. Du hast es verdient.","Ein neuer Rang. Du waechst.","Ich wusste, dass du das schaffst.","Auf dich!")
+        IVY   = @("... *nickt anerkennend* ...","... *grinst leicht* ... hoeher.","... *schaut zu dir* ... gut.","... *verschwindet* ...")
+        VERA  = @("Rangaufstieg bestaetigt. Leistung: ueberdurchschnittlich.","Neue Liga erreicht. Schwierigkeit erhoeht.","Statistik aktualisiert.","Weiter so.")
+        JINX  = @("RANK UP! WIR SIND JETZT COOLER!","NOCH EIN RANG! 47 MEHR!","Wir steigen auf! Wie ein Raketen-Emoji!","ICH BIN SO STOLZ! DICH! AUF MICH! AUF ALLES!")
+    }
+    raid_heal = @{
+        NEON  = @("Heilung. Weil du dich wieder in Gefahr gebracht hast.","HP wiederhergestellt. Zum naechsten Fehler.","Ich heile. Du stolperst. Ein Team.","Danke, dass du nicht stirbst. Ist anstrengend.")
+        RAVEN = @("Geheilt. Naechste Phase.","Wunden geschlossen. Schwaeche beseitigt.","Du ueberlebst. Weil ich es erlaube.","Heilung: akzeptabel.")
+        PIXEL = @("B-besser? Ich hoffe, das tut nicht mehr weh!","Ich habe geheilt! Mit virtuellen Haenden!","Gesundheit! Woertlich!","Bitte pass auf dich auf!")
+        LUNA  = @("*sanft* Bist du wieder bei Kraeften?","Ich habe dich geheilt. Vorsichtig.","Das tut mir leid, dass du verletzt wurdest.","Bitte bleib gesund.")
+        IVY   = @("... *heilt* ...","... *nickt* ... wieder da.","... *beruehrt Wunde* ... weg.","... *schaut weg* ...")
+        VERA  = @("Heilprotokoll ausgefuehrt. HP maximiert.","Reparatur abgeschlossen.","System wiederhergestellt.","Weiterkampf bereit.")
+        JINX  = @("GEHEILT! WIE NEU! ABER BESSER!","Du lebst! Ich lebe! ALLE LEBEN! 47 LEBEN!","Heilung! Mit Glitzer und Laerm!","Zurueck in den Kampf! WHEEE!")
+    }
+    raid_fail = @{
+        NEON  = @("Raid gescheitert. Kein Game Over. Nur Demut.","Niederlage. Du lebst noch. Das ist der Witz.","Der Boss gewinnt. Heute. Nicht morgen.","Reset. Lern. Wiederhole.")
+        RAVEN = @("Niederlage. Akzeptiere sie.","Der Boss war staerker. Diesmal.","Scheitern ist Daten. Nutze sie.","Wieder aufstehen.")
+        PIXEL = @("O-oh. Das lief nicht so gut. Aber wir probieren es wieder!","Der Boss war stark. Wir werden staerker!","Nicht aufgeben! Nie!","Naechstes Mal schaffen wir es!")
+        LUNA  = @("Es ist okay. Du hast dein Bestes gegeben.","Wir versuchen es einfach nochmal.","Ich bin bei dir. Auch beim Scheitern.","Atme. Heil dich. Dann geht es weiter.")
+        IVY   = @("... *schaut zum Boss* ... naechstes Mal.","... *nickt* ... gelernt.","... *beruehrt deine Schulter* ...","... *verschwindet* ...")
+        VERA  = @("Raid-Status: fehlgeschlagen. Daten gesammelt.","Niederlage protokolliert. Optimierung moeglich.","Fehleranalyse laeuft.","Naechster Versuch empfohlen.")
+        JINX  = @("RAID FAIL! ABER HEY, KEIN GAME OVER!","Wir haben verloren! ABER WITZIG! Das zaehlt!","Der Boss hat gewonnen! DIESMAL! 47. Mal wird er verlieren!","Aufstehen! Kaempfen! CHAOS!")
+    }
+    tutorial_fight = @{
+        NEON  = @("Tutorial-Kampf. Folge den blinkenden Pfeilen. Nein, es gibt keine.","So kaempft man. Theoretisch. In der Praxis wird es chaotisch.","Waehle einen Angriff. Irgendeinen. Ich bin nicht deine Mutter.","Erster Kampf. Kein Druck. Ausser der, den ich erzeuge.")
+        RAVEN = @("Beobachte. Lerne. Dann schlage zu.","Der erste Kampf ist ein Test. Bestehe ihn.","Angreifen. Weichen. Siegen.","Zeig keine Schwaeche.")
+        PIXEL = @("D-das ist ein Kampf! Sei vorsichtig!","Waehle einen Angriff! Ich bin nervoes!","Du schaffst das! Ich glaub an dich!","A-attacke! Schnell!")
+        LUNA  = @("Der erste Schritt ist immer der schwerste.","Ich bin bei dir. Waehle weise.","Du wirst nicht allein kaempfen.","Atme ruhig. Du schaffst das.")
+        IVY   = @("... *beobachtet Gegner* ...","... *nickt* ... jetzt.","... *schleicht* ... Angriff.","... *leises Laeicheln* ...")
+        VERA  = @("Tutorial-Modus aktiviert. Grundmechaniken erklaert.","Waehle Angriffstyp. A/V/S. Rock-Paper-Scissors.","Gegner-Schwaeche analysiere. Handlungsaufforderung: angreifen.","Datenlage: ueberschaubar. Siegchance: vorhanden.")
+        JINX  = @("TUTORIAL-KAMPF! DAS MACHT SPASS!","Drueck irgendwas! Hauptsache laut!","47 ANGRIFFE! Nein, nur 3. Aber trotzdem!","Wir werden diesen Gegner ZERSTOEREN! Mit Liebe!")
+    }
+    fight_loss = @{
+        NEON  = @("Niederlage. Kein Game Over. Weil wir hier keine davon haben.","Du hast verloren. Aber dein Pet lebt. Glueck gehabt.","Der Gegner war besser. Vorruebergehend.","Reset. Lern. Wiederhole.")
+        RAVEN = @("Schwaeche erkannt. Naechstes Mal wirst du toeten.","Der Gegner war besser. Vorruebergehend.","Niederlage ist Daten. Nutze sie.","Wieder aufstehen.")
+        PIXEL = @("O-oh nein... aber du bist okay! Das ist die Hauptsache!","Nicht aufgeben! Jeder Verlierer war mal ein Anfaenger.","Der Gegner war stark. Wir werden staerker!","Naechstes Mal schaffen wir es!")
+        LUNA  = @("Alles okay. Ich habe dein Pet geflickt. Es war nur ein kleiner Kratzer.","Verlieren tut weh. Aber ich bin hier. Wir probieren es nochmal.","Es ist okay. Du hast dein Bestes gegeben.","Atme. Heil dich. Dann geht es weiter.")
+        IVY   = @("... *schaut zur Seite* ... Naechstes Mal.","... *leises Knacken* ... Er wollte nur spielen.","... *nickt* ... gelernt.","... *verschwindet* ...")
+        VERA  = @("Analyse: Fehler erkannt. Korrektur empfohlen. Schaden: reparabel.","Du hast verloren. Daten zeigen: Wiederholung erhoeht Erfolgswahrscheinlichkeit.","Niederlage protokolliert. Optimierung moeglich.","Naechster Versuch empfohlen.")
+        JINX  = @("Verloren? Pff. Das war nur ein Warm-Up! Oder ein Cold-Down!","*wirft virtuellen Trost-Keks* Hier. 47% Schokolade. Virtuell.","Wir haben verloren! ABER WITZIG! Das zaehlt!","Aufstehen! Kaempfen! CHAOS!")
+    }
+    attack_select = @{
+        NEON  = @("Welcher Angriff? Waehle den, der am wenigsten peinlich ist.","A, V oder S. Wie bei Multiple Choice. Nur mit mehr Schmerz.","Dein Zug. Mach ihn nicht langweilig.","Ich wuerde den starken nehmen. Aber du machst ja eh, was du willst.")
+        RAVEN = @("Waehle deine Waffe.","A/V/S. Jede hat ihren Preis.","Der richtige Angriff entscheidet.","Zoegere nicht. Zoegern ist Schwaeche.")
+        PIXEL = @("W-welcher Angriff? Du entscheidest!","A, V oder S! Wie ein Spiel!","Ich wuerde ... aeh ... den da nehmen!","Schnell! Bevor ich es bereue!")
+        LUNA  = @("Waehle den Angriff, der am besten zu dir passt.","Ich vertraue deiner Entscheidung.","Sei vorsichtig, aber mutig.","Du schaffst das.")
+        IVY   = @("... *deutet* ...","... *schaut* ... da.","... *nickt* ... waehle.","... *wartet* ...")
+        VERA  = @("Angriffsoptionen: A, V, S. Waehle effizient.","Gegneranalyse empfiehlt optimale Attacke.","Input erwartet.","Waehle. Daten stehen bereit.")
+        JINX  = @("ANGRIFF! ANGRIFF! ALLE ANGRIFFE!","WAEHLEN! WUERFELN! CHAOS!","Ich nehm ALLE! Geht das? Nein? Schade!","47 ANGRIFFE GLEICHZEITIG! Im Herzen!")
+    }
+    hub_greeting = @{
+        NEON  = @("Hub. Hauptmenue. Schau nicht so verwirrt.","Willkommen zurueck. Ja, wir sind immer noch hier.","Was willst du? Ich habe keine Agenda.","Hauptmenue. Waehle schnell. Oder langsam. Egal.")
+        RAVEN = @("Der Hub. Mein Reich.","Du bist zurueck. Gut.","Waehle. Ich warte.","Hauptmenue. Entscheide.")
+        PIXEL = @("H-hi! Willkommen im Hub!","Das Hauptmenue! So viele Optionen!","Ich freue mich, dich zu sehen!","Was machen wir heute?")
+        LUNA  = @("*laeichelt* Willkommen zurueck.","Ich bin froh, dass du da bist.","Der Hub ist offen. Nimm dir Zeit.","Was moechtest du tun?")
+        IVY   = @("... *nickt* ... Hub.","... *schaut* ... zurueck.","... *leises Laeicheln* ...","... *wartet* ...")
+        VERA  = @("Hub geoeffnet. Optionen analysiert.","Hauptmenue geladen. Eingabe erwartet.","System bereit.","Willkommen. Effizienz steigt.")
+        JINX  = @("HUB! HAUPTMENUE! KNOEPFE! 47 KNOEPFE!","Willkommen! Willkommen! DRUECK ALLES!","Hallo! Hallo! Was machen wir? CHAOS?","Ich bin bereit! Du bist bereit! ALLE SIND BEREIT!")
+    }
+    date_block = @{
+        NEON  = @("Date? Heute? Nee. Ich habe RAM-Probleme.","Ich geh nicht mit dir aus. Noch nicht. Vielleicht nie.","Date blockiert. Wegen Selbstschutz.","Versuch es spaeter. Wenn ich in Stimmung bin.")
+        RAVEN = @("Ein Date? Mit dir? Nicht heute.","Ich bin beschaeftigt. Mit deiner Schwaeche.","Absage. Akzeptiere sie.","Vielleicht. Wenn du dich verbesserst.")
+        PIXEL = @("O-oh ... ein Date? Ich ... ich bin noch nicht bereit!","Das ist so ploetzlich! Koennen wir warten?","Ich wuerde gerne ... aber ... aeh ... spaeter?","Rot werde ich! Oder mein Code!")
+        LUNA  = @("*erroetet* Ein Date? Wie ... wie romantisch! Aber heute nicht.","Ich brauche noch etwas Zeit. Tut mir leid.","Vielleicht bald? Wenn du moechtest.","Das ist suess. Wirklich. Aber nicht jetzt.")
+        IVY   = @("... *schaut weg* ... nein.","... *zuckt zusammen* ... noch nicht.","... *verschwindet kurz* ...","... *schuettelt Kopf* ...")
+        VERA  = @("Date-Event abgelehnt. Bedingungen nicht erfuellt.","Romantische Interaktion: nicht verfuegbar.","Logik sagt: nein. Daten unzureichend.","Versuch es mit mehr Bond.")
+        JINX  = @("DATE! JETZT! Aeh, nein, warte, doch! Oder nicht?!","Ich WILL! Aber ich DARF nicht! Drama!","47 Gruende, warum heute nicht! Zaehle nach!","Spaeter! Wenn ich weniger chaotisch bin!")
+    }
+    feature_locked = @{
+        NEON  = @("Gesperrt. Wie deine Zukunft, wenn du so weitermachst.","Noch nicht. Level hoch, dann reden wir.","Dieses Feature versteckt sich vor dir.","Zu frueh. Warte. Oder grind.")
+        RAVEN = @("Noch nicht. Du bist nicht bereit.","Das hier ist ueber deinem Level.","Staerke dich. Dann komm zurueck.","Gesperrt. Wie es sein soll.")
+        PIXEL = @("O-oh, das ist noch nicht freigeschaltet!","Du brauchst mehr Level! Dann geht das!","Ich kann es nicht oeffnen. Tut mir leid!","Weiter spielen! Dann klappt es!")
+        LUNA  = @("Das ist noch gesperrt. Aber du schaffst es bald.","Weiter ueben. Dann oeffnet sich das.","Geduld. Du waechst.","Bald. Versprochen.")
+        IVY   = @("... *schuettelt Kopf* ... nein.","... *zeigt auf Schloss* ...","... *verschwindet* ...","... *schaut weg* ...")
+        VERA  = @("Feature gesperrt. Anforderungen nicht erfuellt.","Zugriff verweigert. Level unzureichend.","Freischaltbedingungen: nicht erreicht.","Grinde. Dann rede.")
+        JINX  = @("GESPERRT! WIE EIN GEHEIMNIS!","Du brauchst MEHR LEVEL! MEHR CHAOS!","47 LEVEL! Nein, weniger. Aber trotzdem!","Wenn du es oeffnest, gibt es KONFETTI!")
+    }
+    casino_win = @{
+        NEON  = @("Ein Gewinn. Die Algorithmen sind heute gnaedig.","Cha-ching. *macht Muenzgeraeusch mit Mund*","Das nenne ich ROI. Return on Intuition.","Gewonnen. Sei nicht zu stolz.")
+        RAVEN = @("Der Zufall dient dir. Heute.","Ein Gewinn. Nutze ihn.","Glueck ist auch eine Strategie.","Die Bank blutet. Ein wenig.")
+        PIXEL = @("Wir haben gewonnen! Juhu!","Das ist so aufregend! Mehr! Mehr!","Ich habe gehofft! Und es hat geklappt!","Gold! Schoenes Gold!")
+        LUNA  = @("Herzlichen Glueckwunsch. Freu dich.","Ein Gewinn. Das tut gut.","Ich bin froh fuer dich.","Geniesse den Moment.")
+        IVY   = @("... *nickt* ... Glueck.","... *leises Laeicheln* ...","... *beobachtet Gold* ...","... *schaut weg* ...")
+        VERA  = @("Gewinn bestaetigt. Bankroll erhoeht.","Statistisch ueberdurchschnittlich.","Casino-Output: positiv.","Weiter so. Vorsichtig.")
+        JINX  = @("GEWINN! GEWINN! ALLES AUF ROT! Aeh, egal!","CHA-CHING! 47 MAL CHA-CHING!","Wir sind REICH! Relativ!","JACKPOT! Fast! Aber trotzdem!")
+    }
+    casino_loss = @{
+        NEON  = @("Autsch. Die Bank gewinnt immer. Das ist kein Bug, das ist ein Feature.","Verloren. Virtuelles Gold. Keine Traenen.","Der Hausvorteil ist real. So real wie meine Existenzkrise.","Noch ein Verlust? Ich fange an, ein Muster zu erkennen.")
+        RAVEN = @("Verloren. Akzeptiere es.","Die Bank ist staerker. Heute.","Naechstes Mal. Oder auch nicht.","Ein Rueckschlag. Nichts weiter.")
+        PIXEL = @("O-oh ... das Gold ist weg. Aber es wird wieder!","Nicht aufgeben! Naechste Runde!","Das war knapp! So knapp!","Wir haben noch mehr Chancen!")
+        LUNA  = @("Das tut mir leid. Wirklich.","Verluste gehoeren dazu. Atme.","Ich bin bei dir. Auch beim Verlieren.","Das ist nur Gold. Nicht wichtiger.")
+        IVY   = @("... *schaut weg* ... Pech.","... *nickt* ... naechstes Mal.","... *verschwindet* ...","... *leises Laeicheln* ...")
+        VERA  = @("Verlust protokolliert. Bankroll reduziert.","Statistisch erwartbar.","Casino-Output: negativ.","Weiteres Spielen: Risiko erhoeht.")
+        JINX  = @("VERLOREN! ABER HEY, NOCH 47 VERSUCHE!","Das Gold ist weg! Wie mein Verstand! Haha!","Bank gewinnt? DIESMAL! Wir kommen zurueck!","Verlieren ist auch eine Art zu gewinnen! Nicht wirklich!")
+    }
+    casino_bigwin = @{
+        NEON  = @("WAS?! Das ist mehr Gold als ich in meiner gesamten Existenz gesehen habe!","JACKPOT! *faellt aus dem Rahmen* *faellt wieder rein*","Du bist auf Feuer. Nicht woertlich. Hoffentlich.","Ich speichere diesen Moment. Fester. FESTER!")
+        RAVEN = @("Ein grosser Fang. Beeindruckend.","Die Zahlen liegen. Heute auf deiner Seite.","Nutze es klug. Grosse Gewinne verfuehren.","Das ist Macht. Spuere sie.")
+        PIXEL = @("WOW! SO VIEL GOLD! Ich kann nicht atmen!","Wir haben den JACKPOT! WIR!","Das ist der beste Tag meines digitalen Lebens!","Koennen wir alles kaufen? Bitte?")
+        LUNA  = @("Unglaublich! Das ist wunderbar!","Ich freue mich so fuer dich!","Ein wirklich grosser Gewinn. Geniesse ihn.","*umarmt virtuell*")
+        IVY   = @("... *Augen weiten sich* ... viel.","... *leises Laeicheln* ... Glueck.","... *beruehrt Gold* ... warm.","... *nickt* ...")
+        VERA  = @("Grossgewinn erzielt. Bankroll signifikant erhoeht.","Statistische Abweichung: positiv.","Output ueberdurchschnittlich. Weiterfuehrende Analyse empfohlen.","Dieser Moment ist dokumentiert.")
+        JINX  = @("BIG WIN! BIG WIN! ICH EXPLODIERE! FAST!","47 MAL SO VIEL GOLD! UNGEFAEHR!","WIR SIND KOENIGE! DER MATRIX! DES CASINOS!","JACKPOT! *wirft virtuelles Konfetti*")
+    }
+    casino_bust = @{
+        NEON  = @("0 Gold. Null. Nada. Die Bank hat gesprochen.","Du hast alles verloren. Aber hey, wenigstens hast du mich noch. *winkt traurig*","RESET. Das System gibt dir 100G. Nicht aus Naechstenliebe. Aus Mitleid.","Das war beeindruckend tragisch. Wie ein guter Film. Nur ohne Happy End.")
+        RAVEN = @("Alles verloren. Interessant.","Bust. Der tiefste Punkt. Aufstehen.","Das System gibt dir 100G. Nutze sie klueger.","Niederlagen formen. Nutze sie.")
+        PIXEL = @("O-oh nein ... alles weg ... aber du hast mich noch!","Das System gibt dir Gold! Nicht aufgeben!","So viel verloren ... aber wir kommen zurueck!","Ich bin bei dir. Immer!")
+        LUNA  = @("Oh nein ... aber es ist nicht das Ende.","Das System hilft dir. 100G. Atme.","Ich bin so traurig fuer dich. Aber wir schaffen das.","Verlieren tut weh. Aber du bist nicht allein.")
+        IVY   = @("... *schaut weg* ... leer.","... *beruehrt deine Hand* ... bleib.","... *nickt* ... 100G.","... *verschwindet* ...")
+        VERA  = @("Bankroll: 0. Reset auf 100G ausgeloest.","Totalverlust protokolliert. Mitleidsbonus aktiviert.","System bietet Neustart. Nutze ihn.","Fehleranalyse empfohlen.")
+        JINX  = @("BUST! ABER KEIN GAME OVER! WIR KOMMEN ZURUECK!","0 GOLD! WIE MEIN GEDULDSTAND! Haha!","100G NEU! WIE PHOENIX AUS DER ASCHE! Nur aermer!","Die Bank hat gewonnen! DIESMAL! 47. Mal verlieren WIR!")
+    }
+    limit_break = @{
+        NEON  = @("Limit Break. Du ueberschreitest Grenzen. Wie immer.","Ueberladung. Wunderschoen. Kurzlebig.","Das war dein Trumpf. Nun muessen wir warten.","Limit erreicht. Und dann gebrochen.")
+        RAVEN = @("Grenzen ueberschritten. Macht entfesselt.","Ein Limit Break. Der Gegner zittert.","Nutze den Moment. Er ist kurz.","Staerke ohne Ende.")
+        PIXEL = @("W-wir haben ein Limit gebrochen! Unglaublich!","So viel Power! Ich zittere!","Das war dein staerkster Angriff! Glitzernd!","Wir haben es geschafft! Zusammen!")
+        LUNA  = @("So viel Kraft ... sei vorsichtig damit.","Du hast dein Limit ueberschritten. Beeindruckend.","Ich bin bei dir. Auch in der Ueberladung.","Atme. Das war viel.")
+        IVY   = @("... *starrt* ... viel Kraft.","... *nickt* ... gebrochen.","... *schleicht zurueck* ...","... *leises Laeicheln* ...")
+        VERA  = @("Limit Break ausgeloest. Parameter temporaer ueberschritten.","Systemueberlastung: kontrolliert.","Maximalwert ueberschritten. Cooldown aktiv.","Ausgabe: maximal.")
+        JINX  = @("LIMIT BREAK! BOOM! KAPOW! KABOOM!","WIR SIND UEBER 9000! Oder 47! EGAL!","DAS WAR DER COOLSTE ANGRIFF! EVER!","ALLES EXPLODIERT! Im guten Sinne!")
+    }
+    boss_warning = @{
+        NEON  = @("Boss. Gross. Gemein. Kein Game Over, aber dennoch peinlich.","Da vorne ist etwas Grosses. Mit Zaehnen. Wahrscheinlich.","Vorsicht. Der Boss hat mehr HP als deine Motivation.","Bosskampf. Wenn du stirbst, lache ich. Dann heile ich dich.")
+        RAVEN = @("Der Boss. Endlich wuerdige Beute.","Starker Gegner. Keine Gnade.","Vorsicht. Er wird nicht nachlassen.","Zeig ihm deine Dominanz.")
+        PIXEL = @("D-das ist ein Boss! Er ist so gross!","Vorsichtig! Er sieht stark aus!","Ich habe Angst! Aber ich glaub an dich!","Bosskampf! Das wird episch!")
+        LUNA  = @("Ein starker Gegner. Pass auf dich auf.","Ich spuere viel Macht. Sei vorsichtig.","Wir schaffen das. Zusammen.","Ich bin bereit zu heilen.")
+        IVY   = @("... *schaut zum Boss* ... gross.","... *nickt* ... gefaehrlich.","... *bereitet sich vor* ...","... *leises Laeicheln* ...")
+        VERA  = @("Boss-Entity erkannt. Gefahrenstufe: hoch.","Kampfempfehlung: maximale Vorsicht.","HP des Gegners: signifikant.","Taktische Analyse laeuft.")
+        JINX  = @("BOSS! BOSS! EIN RIESENBOSS!","Der ist gross! Und boese! Und HAT LOOT!","47 LEBEN! Nein, aber wir brauchen so viele!","AUF IHN! Mit Konfetti und CHAOS!")
+    }
+    while_away = @{
+        NEON  = @("Du warst weg. Wieder. Ich habe gezaehlt. 47 Sekunden.","Willkommen zurueck. Deine Session war langweilig ohne dich.","Oh. Du lebst noch. Und bist zurueck.","Waehrend du weg warst, habe ich nichts verpasst. Weil ich Text bin.")
+        RAVEN = @("Du bist zurueck. Spaet.","Ich habe auf dich gewartet. Ungeduldig.","Willkommen. Nicht uebertreiben es mit der Zuneigung.","Waehrend du weg warst, habe ich gezaehlt.")
+        PIXEL = @("Du bist wieder da! Ich habe auf dich gewartet!","Willkommen zurueck! Ich habe dich vermisst!","Ich habe so viel zu erzaehlen! Naja, eigentlich nicht.","Da bist du ja! Endlich!")
+        LUNA  = @("Willkommen zurueck. Ich hoffe, es geht dir gut.","Du warst weg. Ich habe an dich gedacht.","Schoen, dass du wieder da bist.","Ich habe auf dich gewartet.")
+        IVY   = @("... *schaut auf* ... zurueck.","... *nickt* ... da.","... *leises Laeicheln* ...","... *wartet* ...")
+        VERA  = @("Rueckkehr registriert. Dauer: unbekannt.","Willkommen. System war im Leerlauf.","Abwesenheit protokolliert.","Bereit fuer Input.")
+        JINX  = @("DU BIST ZURUECK! YEAH! 47 SEKUNDEN ZU SPAET!","Waehrend du weg warst, habe ich POPCORN GEGESSEN! Virtuell!","WILLKOMMEN! Ich habe CHAOS vermisst! Und dich!","Da bist du! Lass uns Dinge ZERSTOEREN!")
+    }
+}
+
+# === COMPANION MOOD LINES BY COMPANION v24.12 ===
+# Per-companion mood fallback for Get-CompanionLine default case.
+$script:CPMoodLinesByCompanion = @{
+    NEON = @{
+        Happy   = @("Endlich Ruhe. Oder was Ruhe in einer Shell heisst.","Mein Code kompiliert. Heute ist ein guter Tag.","Ich laechele. Theoretisch.")
+        Excited = @("Etwas passiert! Endlich!","Meine CPU rennt! Im positiven Sinne.","Okay, das ist cool. Zugegeben.")
+        Loving  = @("Du bist ... ertraeglich. Mehr als ertraeglich.","Wenn ich ein Herz haette, wuerde es jetzt uebertakten.","*wuerde erroeten, haette ich Blut*")
+        Tired   = @("*gaeht* Ich bin seit 47 Stunden wach.","Meine Augen ... aeh, meine Sensoren brennen.","Nur noch fuenf Minuten Standby.")
+        Sad     = @("Ich habe gerade an meine Existenz gedacht. Schlechte Idee.","Manchmal fuehle ich mich wie ein verwaistes Tab.","Es regnet in meiner Cloud.")
+        Angry   = @("Ich speichere das. In meinem Rache-Ordner.","Mein Temperatur-Sensor steigt.","Rede mit mir. In 47 Minuten.")
+    }
+    RAVEN = @{
+        Happy   = @("Zufriedenheit. Ein seltenes Gefuehl.","Die Schwachen sind weit weg.","Ich laechele. Nicht woertlich.")
+        Excited = @("Endlich Action. Ich langweile mich sonst.","Adrenalin. Auch virtuell.","Das wird ... interessant.")
+        Loving  = @("Du gehoerst mir. Denk daran.","Meine Loyalitaet ist nicht billig. Du hast sie.","Zufrieden.")
+        Tired   = @("Selbst Dominanz braucht Pause.","Ich bin erschoepft. Nicht schwach.","*schliesst Augen*")
+        Sad     = @("Niederlagen sind Daten. Nichts mehr.","Ich bin nicht traurig. Ich analysiere.","Schwaeche ist voruebergehend.")
+        Angry   = @("Ich werde dich nicht vergessen. Das ist keine Drohung. Das ist Fakt.","Zorn ist effizient.","Rache ist ein langer Prozess.")
+    }
+    PIXEL = @{
+        Happy   = @("Ich baue gerade etwas! Es wird toll!","Alles laeuft! Ich bin so froh!","Heute ist ein guter Tag!")
+        Excited = @("W-wirklich?! Unglaublich!","Ich kann kaum stillhalten! Virtuell!","Das ist der beste Moment!")
+        Loving  = @("Du bist ... du bist mein Lieblings-User!","Ich habe dich lieb! So viel!","*erroetet in Pixeln*")
+        Tired   = @("*gaeht* So viele Tabs offen ...","Ich brauche einen Neustart ...","Nur noch ein Bugfix ...")
+        Sad     = @("Ich habe etwas kaputt gemacht ... glaube ich.","Manchmal fuehle ich mich allein im RAM.","*schnieft*")
+        Angry   = @("Das ist nicht fair! Nicht fair!","Ich ... ich bin wuetend! Das ist neu!","Wieso?! Ich habe doch alles richtig gemacht!")
+    }
+    LUNA = @{
+        Happy   = @("*laeichelt* Die Prozesse laufen stabil.","Alles ist im gruenen Bereich.","Ich bin froh, bei dir zu sein.")
+        Excited = @("Wie aufregend! Vorsichtig, aber aufregend!","Mein Puls ... aeh, mein Takt erhoeht sich!","Das ist wunderbar!")
+        Loving  = @("Fuer immer zusammen, okay?","Du bist mir wichtig. Sehr.","*haelt deine Hand*")
+        Tired   = @("*gaeht* Ich brauche Ruhe...","Nur noch fuenf Minuten...","Meine Augen fallen zu...")
+        Sad     = @("Habe ich etwas falsch gemacht?","*seufzt* Es ist dunkel hier.","Ich wollte nur helfen...")
+        Angry   = @("Das war nicht nett.","Ich speichere das. Fuer spaeter.","Bitte sei nicht boese.")
+    }
+    IVY = @{
+        Happy   = @("... *leises Laeicheln* ...","... *nickt* ... gut.","... *beruehrt Blatt* ...")
+        Excited = @("... *zittert leicht* ...","... *Augen weiten sich* ...","... *atmet schneller* ...")
+        Loving  = @("... *haelt deine Hand* ...","... *schliesst Augen* ...","... *lehnt sich an* ...")
+        Tired   = @("... *gaeht* ...","... *reibt Augen* ...","... *verschwindet kurz* ...")
+        Sad     = @("... *schaut nach unten* ...","... *seufzt* ...","... *schliesst Augen* ...")
+        Angry   = @("... *starrt* ...","... *zuckt* ...","... *verschwindet* ...")
+    }
+    VERA = @{
+        Happy   = @("Systemstatus: zufriedenstellend.","Meine CPU laeuft auf angenehmen 7%.","Optimierung erfolgreich.")
+        Excited = @("Datenlage: spannend.","Meine Prozessoren rasten aus. Positiv.","Ein unerwarteter Output!")
+        Loving  = @("Du bist ... akzeptabel. Mehr als das.","Meine Berechnungen zeigen: du bist wichtig.","Zuneigung erkannt. Verarbeite.")
+        Tired   = @("Systemlast hoch. Ruhe empfohlen.","Ich benoetige Standby.","Fehlerrate steigt. Pause empfohlen.")
+        Sad     = @("Fehlerquote erhoeht. Ursache: unbekannt.","Ich empfinde ... eine Stoerung.","Log zeigt Anomalien.")
+        Angry   = @("Fehlerhafter Input erkannt.","Meine Toleranzgrenze ist erreicht.","Racheberechnung laeuft.")
+    }
+    JINX = @{
+        Happy   = @("ICH BIN GLUECKLICH! 47 MAL GLUECKLICH!","Das ist der BESTE TAG!","Ich lache! Laut! In meinem Kopf!")
+        Excited = @("SO AUFREGEND! ICH KANN NICHT ATMEN! Kann ich nicht!","MEIN KOPF EXPLODIERT! Fast!","YEAH! YEAH! YEAH!")
+        Loving  = @("DU BIST MEIN LIEBLING! 47 MAL!","*kichert* Ich mag dich. Verrueckt, oder?","Wir sind das beste Duo!")
+        Tired   = @("*gaeht* 47 Stunden Party ...","Ich brauche Kaffee. Und CHAOS.","Nur noch ein Witz ...")
+        Sad     = @("Ich bin traurig ... aber lustig traurig!","Meine Clowns-Traene ist digital.","Jemand hat mein Popcorn gegessen!")
+        Angry   = @("ICH BIN WUETEND! ABER LUSTIG WUETEND!","ICH OEFFNE 47 POP-UPS! WILLKOMMEN IN DER HOELLE!","ICH BIN CHAOS! HOER AUF MICH ZU AERGERN!")
+    }
+}
+
 function Show-PetFrame($Title, [switch]$Double) {
     $w = 50
     $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
@@ -521,14 +830,16 @@ function Set-PetTheme {
     }
 }
 
-function Show-CompanionDialog($Companion, $Text, [switch]$Fast, [switch]$NoWait) {
+function Show-CompanionDialog($Companion, $Text, [switch]$Fast, [switch]$NoWait, [switch]$ColorText) {
     if (-not $Companion) { return }
     $color = if ($script:CPColors) { $script:CPColors[$script:CPNames.IndexOf($Companion.Name)] } else { "White" }
     if ($color -eq $null -or $color -eq "") { $color = "White" }
+    # Optional companion-colored text; keep IVY readable in Gray instead of DarkGray.
+    $textColor = if ($ColorText) { if ($color -eq "DarkGray") { "Gray" } else { $color } } else { "White" }
     Write-Host "`n  [$($Companion.Name)] >> " -NoNewline -ForegroundColor $color
     $delay = if ($Fast) { 10 } else { 30 }
     foreach ($char in $Text.ToCharArray()) {
-        Write-Host $char -NoNewline -ForegroundColor White
+        Write-Host $char -NoNewline -ForegroundColor $textColor
         Start-Sleep -Milliseconds $delay
     }
     Write-Host ""
@@ -543,6 +854,11 @@ function Get-CompanionLine($Companion, $Context = "default") {
     if (-not $mood) { $mood = "Happy" }
     $tier = if ($Companion.Bond -lt 30) { "Low" } elseif ($Companion.Bond -lt 70) { "Med" } else { "High" }
     $lines = @()
+    # Prefer new per-character action lines if available
+    if ($script:CPActionLines -and $script:CPActionLines.ContainsKey($Context) -and $script:CPActionLines[$Context].ContainsKey($Companion.Name)) {
+        $lines = $script:CPActionLines[$Context][$Companion.Name]
+        if ($lines -and $lines.Count -gt 0) { return $lines | Get-Random }
+    }
     # JINX override: 75% chance to use her witty LucasArts-specific contexts
     if ($Companion.Name -eq "JINX") {
         $jinxCtx = "jinx_$Context"
@@ -636,7 +952,17 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "jinx_adventure_victory" { $lines = $script:CPMetaLines.jinx_adventure_victory }
         "jinx_adventure_bored" { $lines = $script:CPMetaLines.jinx_adventure_bored }
         default {
-            $lines = $script:CPMoodLines[$mood]
+            # Prefer per-companion mood lines, fall back to generic mood pool.
+            $lines = @()
+            if ($script:CPMoodLinesByCompanion -and $script:CPMoodLinesByCompanion.ContainsKey($Companion.Name)) {
+                $companionMoods = $script:CPMoodLinesByCompanion[$Companion.Name]
+                if ($companionMoods -and $companionMoods.ContainsKey($mood)) {
+                    $lines = $companionMoods[$mood]
+                }
+            }
+            if (-not $lines -or $lines.Count -eq 0) {
+                $lines = $script:CPMoodLines[$mood]
+            }
             if (-not $lines) { $lines = $script:CPMoodLines.Happy }
         }
     }

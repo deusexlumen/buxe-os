@@ -13,19 +13,20 @@ function wheel {
         if (-not $stats.Bankrupts) { $stats.Bankrupts = 0 }
         if (-not $stats.Jackpots) { $stats.Jackpots = 0 }
 
-        # Balanciert auf ~97% RTP: mehr Push-/Kleingewinne, grosse Treffer entfernt.
+        # Balanciert: weniger BANKRUPT, mehr humorvolle Segmente.
         $segments = @(
             "1x","1x","1x","1x","1x","1x","1x","1x","1x",
             "2x","2x","2x","2x","2x","2x","2x",
             "3x",
             "5x",
-            "BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT",
-            "BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT"
+            "0x","0x","0x","0x","0x","0x",
+            "BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT","BANKRUPT",
+            "47x"
         )
 
         $segmentColors = @{
             "1x" = "DarkGray"; "2x" = "White"; "3x" = "Cyan"; "5x" = "Yellow"
-            "BANKRUPT" = "Red"
+            "0x" = "DarkRed"; "BANKRUPT" = "Red"; "47x" = "Magenta"
         }
 
         $stats.Spins++
@@ -40,7 +41,7 @@ function wheel {
         Write-Host "    +--------------+" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "  Segmente:" -ForegroundColor White
-        Write-Host "  1x(9) | 2x(7) | 3x(1) | 5x(1) | BANKRUPT(14)" -ForegroundColor DarkGray
+        Write-Host "  1x(9) | 2x(7) | 3x(1) | 5x(1) | 0x(6) | BANKRUPT(8) | 47x(1)" -ForegroundColor DarkGray
         Write-Host ""
         Write-Host "  Bet: $bet G" -ForegroundColor Yellow
         Write-Host ""
@@ -96,6 +97,15 @@ function wheel {
                 $stats.Bankrupts++
                 Write-Host "  Result: BANKRUPT!" -ForegroundColor Red
                 Write-Host "  Das Rad hat gesprochen. Dein Einsatz ist Geschichte." -ForegroundColor Red
+            }
+            "0x" {
+                $loss = $bet
+                Write-Host "  Result: $result!" -ForegroundColor DarkRed
+                Write-Host "  Null Komma Null. Das Rad hat sich verschluckt." -ForegroundColor DarkRed
+            }
+            "47x" {
+                Write-Host "  Result: $result!" -ForegroundColor Magenta
+                Write-Host "  47! JINX waere stolz. Leider zaehlt das hier nicht." -ForegroundColor Magenta
             }
             "1x" {
                 Write-Host "  Result: $result!" -ForegroundColor DarkGray

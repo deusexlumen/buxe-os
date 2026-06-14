@@ -78,6 +78,7 @@ function Get-TotalPetSkillBonus {
 
 function Show-SkillTree {
     $state = Get-PetState
+    if ($state.Companion) { Show-CompanionDialog $state.Companion (Get-CompanionLine $state.Companion "skilltree_open") -NoWait -Fast }
     Show-PetFrame 'SKILL TREE'
     Write-Host "Verfuegbare Punkte: $($state.SkillPoints)" -ForegroundColor Yellow
     Write-Host "Investiere in Combat, Economy oder Social." -ForegroundColor Gray
@@ -101,6 +102,8 @@ function Invoke-SkillTreeMenu {
         switch ($choice.ToLower()) {
             'c' {
                 if (Add-PetSkillPoint -Branch 'Combat') {
+                    $state = Get-PetState
+                    if ($state.Companion) { Show-CompanionDialog $state.Companion (Get-CompanionLine $state.Companion "skilltree_upgrade") -Fast }
                     Write-Host "Combat verbessert!" -ForegroundColor Green
                 } else {
                     Write-Host "Kein Punkt verfuegbar oder Maximum erreicht." -ForegroundColor Red
@@ -109,6 +112,8 @@ function Invoke-SkillTreeMenu {
             }
             'e' {
                 if (Add-PetSkillPoint -Branch 'Economy') {
+                    $state = Get-PetState
+                    if ($state.Companion) { Show-CompanionDialog $state.Companion (Get-CompanionLine $state.Companion "skilltree_upgrade") -Fast }
                     Write-Host "Economy verbessert!" -ForegroundColor Green
                 } else {
                     Write-Host "Kein Punkt verfuegbar oder Maximum erreicht." -ForegroundColor Red
@@ -117,6 +122,8 @@ function Invoke-SkillTreeMenu {
             }
             's' {
                 if (Add-PetSkillPoint -Branch 'Social') {
+                    $state = Get-PetState
+                    if ($state.Companion) { Show-CompanionDialog $state.Companion (Get-CompanionLine $state.Companion "skilltree_upgrade") -Fast }
                     Write-Host "Social verbessert!" -ForegroundColor Green
                 } else {
                     Write-Host "Kein Punkt verfuegbar oder Maximum erreicht." -ForegroundColor Red

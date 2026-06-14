@@ -72,7 +72,7 @@ function blackjack {
                     Show-Scene $s -Force
                     Start-Sleep -Milliseconds 600
                     $stats.HandsPlayed++
-                    return @{ Win = $insBet * 2; Loss = $bet + $insBet; Stats = $stats }
+                    return @{ Win = $insBet * 2; Loss = $bet; Stats = $stats }
                 }
             }
             if ($dBJ) {

@@ -152,7 +152,7 @@ function slot {
 
         $act = Read-GameChoice "" "^[ SQ]$"
         if ($act -eq 'Q') {
-            return @{ Win = 0; Loss = $bet; Stats = $stats }
+            return @{ Win = 0; Loss = 0; Stats = $stats }
         }
 
         # Spin animation

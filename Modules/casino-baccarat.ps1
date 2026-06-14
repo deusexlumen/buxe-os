@@ -129,7 +129,8 @@ function baccarat {
         } elseif ($side -eq 'B' -and $result -eq "BANKER") {
             $stats.BankerWins++
             $win = [math]::Floor($bet * 0.95)
-            Add-SceneText $rs 4 14 "GEWONNEN! +$win G (5% Kommission)" 'Green'
+            $commission = $bet - $win
+            Add-SceneText $rs 4 14 "GEWONNEN! +$win G (Kommission: -$commission G)" 'Green'
             Show-Scene $rs -Force
             Start-Sleep -Milliseconds 600
             return @{ Win = $win; Loss = 0; Stats = $stats }

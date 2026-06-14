@@ -104,7 +104,8 @@ function Invoke-PetRaidBattle($pet, $p) {
             if ($cp -and $healsUsed -lt $healCount -and $p.HP -lt ($stats.MaxHP * 0.5)) {
                 $healAmt = [math]::Min([math]::Round($stats.MaxHP * 0.2), $stats.MaxHP - $p.HP)
                 $p.HP += $healAmt; $healsUsed++
-                Show-CompanionDialog $cp "Ich heile dich! +$healAmt HP!" -Fast
+                $healLine = (Get-CompanionLine $cp "raid_heal") -replace '\{HEAL\}', $healAmt
+                Show-CompanionDialog $cp $healLine -Fast
             }
             Write-Host "`n  [A]ngriff [V]erteidigung [S]pecial" -ForegroundColor White
             $pm = Read-Choice "Zug" '^[AVS]$'
@@ -129,6 +130,7 @@ function Invoke-PetRaidBattle($pet, $p) {
         }
         if ($p.HP -le 0) {
             Write-Host "`n  RAID GESCHEITERT bei Phase $phase!" -ForegroundColor Red
+            if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "raid_fail") -Fast }
             $p.HP = [math]::Round((Get-EffectiveStats $p).MaxHP * 0.3)
             break
         } else {
