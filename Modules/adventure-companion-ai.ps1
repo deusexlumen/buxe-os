@@ -51,6 +51,37 @@ function Set-CompanionAI($Key, $Value) {
     $script:AdvStateDirty = $true
 }
 
+$script:RunningGagLines = @(
+    "Drittes Mal. Selbe Aktion. Selbe Reaktion."
+    "Wiederholung ist auch nur ein Debugging-Schritt."
+    "Ich speichere das unter 'Nutzer-verzweifelt'."
+)
+$script:FindLines = @(
+    "Da ist etwas. Nimm es, bevor es despawned."
+    "Ein Fund! Vielleicht nützlich. Vielleicht nur Dekoration."
+    "Meine Scanner sagen: lootable."
+)
+$script:AtmoLines = @(
+    "Hier ist es... interessant."
+    "Die Stimmung liegt schwer in der Luft. Oder das ist Staub."
+    "Atmosphäre geladen. Wörtlich oder metaphorisch."
+)
+$script:WarnLines = @(
+    "Vorsicht. Das sieht nach einem Fehler aus."
+    "Ich würde das nicht tun. Aber ich bin nur eine Stimme."
+    "Warnung: Mögliche Konsequenzen."
+)
+$script:EggLines = @(
+    "Ein Easter Egg! Jemand hatte hier Spaß."
+    "Verstecktes Detail gefunden. Das gibt interne Punkte."
+    "Das ist entweder ein Gag oder ein Bug. Beides okay."
+)
+$script:HintLines = @(
+    "Vielleicht solltest du nochmal umsehen."
+    "Ein Hinweis: Nicht alles ist offensichtlich."
+    "Probiere etwas, das du noch nicht probiert hast."
+)
+
 $script:CPAdventureVoice = @{
     NEON = @{
         RunningGag = @(
@@ -319,35 +350,10 @@ function Test-RunningGag($Action, $Target) {
     Set-CompanionAI "RunningGags" $ai.RunningGags
 
     $count = $ai.RunningGags[$key]
-    $ctx = ""
-    $line = $null
-
-    switch ($Action) {
-        "examine" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Ja, es ist immer noch da. Ueberraschung." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "WIRKLICH? NOCHMAL? Das Objekt hat sich nicht veraendert. Physik." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "Ich speichere das. In meinem 'Nutzer-verzweifelt'-Ordner." }
-        }
-        "go" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Wir drehen uns im Kreis. Wie mein Code." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "Dieser Raum sieht aus wie der letzte. Oh. Es IST der letzte." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "Bist du verloren? Oder verlierst du mich absichtlich?" }
-        }
-        "use" {
-            if ($count -eq 2) { $ctx = "adventure_gag"; $line = "Probiere es nochmal. Vielleicht funktioniert es beim 47. Mal." }
-            if ($count -eq 4) { $ctx = "adventure_gag"; $line = "Definition von Wahnsinn: Das Gleiche tun und andere Ergebnisse erwarten." }
-            if ($count -ge 6) { $ctx = "adventure_gag"; $line = "Ich werde nicht mehr zuschauen. Okay, ich gucke. Aber ich bewerte es. 2/10." }
-        }
-        "talk" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Er hat nichts Neues zu sagen. Trust me. Ich habe alles gecached." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "Wir sind bei Dialog #5. Bald bekommen wir eine Trophaee fuer Ausdauer." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "NPC: 'Hilf mir.' Du: 'Erzaehl mir mehr.' NPC: 'Bitte.' Du: 'Erzaehl mir mehr.'" }
-        }
-    }
-
-    if ($line) {
+    if ($count -ge 3) {
+        Set-CompanionAI "RunningGags" (@{})
         Update-CompanionMood "gag_trigger"
-        return @{ Triggered = $true; Context = $ctx; Line = $line }
+        return @{ Triggered = $true; Context = "adventure_gag" }
     }
     return @{ Triggered = $false }
 }
@@ -366,51 +372,27 @@ function Invoke-CompanionEvent($Room) {
 
     # 10%: Companion findet etwas
     if ($roll -lt 10) {
-        $finds = @(
-            "Warte... da ist etwas unter dem Tisch. Ein Datenstick!",
-            "Ich habe einen Kratzer an der Wand entdeckt. Dahinter... ein Schalter?",
-            "*hust* Da liegt etwas. Sieht aus wie... ein altes Foto?",
-            "Meine Sensoren piepen. Hier ist etwas versteckt."
-        )
-        $found = $finds | Get-Random
-        $result = @{ Type = "find"; Context = "adventure_excited"; Line = $found; BondBonus = 1 }
+        $result = @{ Type = "find"; Context = "adventure_find"; BondBonus = 1 }
     }
     # 5%: Atmosphaere-Event
     elseif ($roll -lt 15) {
-        $atmos = @(
-            "*Kratzen an der Wand*",
-            "*Ein Schatten bewegt sich im Nebenraum*",
-            "*Das Licht flackert. Ein Sekunde lang ist alles dunkel.*",
-            "*Ein Geraeusch wie fallende Datensaetze.*"
-        )
-        $result = @{ Type = "atmo"; Context = "adventure_scared"; Line = ($atmos | Get-Random) }
+        $result = @{ Type = "atmo"; Context = "adventure_atmo" }
         Update-CompanionMood "enter_dark"
     }
     # 3%: Companion warnt
     elseif ($roll -lt 18) {
-        $warns = @(
-            "Ich habe ein schlechtes Gefuehl. Wir sollten zurueckgehen.",
-            "Meine Threat-Detection ist auf 87%. Das ist... hoch.",
-            "Hoerst du das? Nein? Gut. Denn es ist unheimlich.",
-            "Dieser Raum hat mehr Null-Pointer als mein Code. Vorsicht."
-        )
-        $result = @{ Type = "warn"; Context = "adventure_scared"; Line = ($warns | Get-Random) }
+        $result = @{ Type = "warn"; Context = "adventure_warn" }
         Update-CompanionMood "enter_dark"
     }
     # 2%: Easter Egg
     elseif ($roll -lt 20) {
         $hour = (Get-Date).Hour
+        $gold = 0
         if ($hour -ge 2 -and $hour -le 5) {
-            $result = @{ Type = "egg"; Context = "adventure_excited"; Line = "Es ist 3 Uhr morgens. Warum sind wir wach? Warum sind WIR wach?" }
+            $result = @{ Type = "egg"; Context = "adventure_egg" }
         } else {
-            $eggs = @(
-                "Ich habe eine versteckte Nachricht gefunden: 'SIE SIEHT UNS.' Ja, wieder.",
-                "Ein kleiner Bot laeuft vorbei und wirft uns 3 Gold zu. +3 Gold!",
-                "*ERROR 418* Ich bin eine Teekanne. Und du bist in einem Adventure."
-            )
-            $egg = $eggs | Get-Random
-            $bonus = if ($egg -match "3 Gold") { 3 } else { 0 }
-            $result = @{ Type = "egg"; Context = "adventure_excited"; Line = $egg; GoldBonus = $bonus }
+            if ((Get-Random -Maximum 3) -eq 0) { $gold = 3 }
+            $result = @{ Type = "egg"; Context = "adventure_egg"; GoldBonus = $gold }
         }
     }
 
@@ -475,14 +457,15 @@ function Get-CompanionHint($Room) {
 
     $hint = $hints | Get-Random
 
-    # Qualitaet basiert auf Bond
-    if ($bond -lt 30) {
-        $hint = "Stuck? I'm shocked. Really. *seufz* " + $hint
-    } elseif ($bond -lt 70) {
-        $hint = "Vielleicht hilft das: " + $hint
-    } else {
-        $hint = "Ich habe eine Idee! " + $hint
+    # Per-Companion-Stimme als Einleitung zum Hinweis
+    $intro = ""
+    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($cp.Name) -and $script:CPAdventureVoice[$cp.Name].ContainsKey("Hint")) {
+        $intro = ($script:CPAdventureVoice[$cp.Name].Hint | Get-Random)
     }
+    if (-not $intro -and $script:HintLines.Count -gt 0) {
+        $intro = ($script:HintLines | Get-Random)
+    }
+    if ($intro) { $hint = "$intro $hint" }
 
     Update-CompanionMood "progress"
     return @{ Context = "adventure_hint"; Line = $hint }
@@ -574,40 +557,43 @@ function Test-AbsurdCombo($Item, $Target) {
 
 function Get-AdventureCompanionCategory($Context) {
     switch -Regex ($Context) {
-        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find)$" { return "Find" }
+        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find|adventure_excited)$" { return "Find" }
         "^(adventure_blocked|adventure_confused|adventure_warn)$" { return "Warn" }
         "^(adventure_absurd|adventure_egg)$" { return "Egg" }
-        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_death_.*)$" { return "Atmo" }
+        "^(adventure_gag)$" { return "RunningGag" }
+        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_bored|adventure_annoyed|adventure_curios|adventure_death_.*)$" { return "Atmo" }
         "^(adventure_hint)$" { return "Hint" }
         default { return "Atmo" }
     }
 }
 
-function Show-AdventureCompanionDialog($Companion, $Context, $Fast = $false) {
+function Show-AdventureCompanionDialog($Companion, $Context, $CustomLine = $null, $Fast = $false) {
     if (-not $Companion) { return }
-    $category = Get-AdventureCompanionCategory $Context
-    $voice = $null
-    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
-        $voice = $script:CPAdventureVoice[$Companion.Name]
-    }
-    $lines = $null
-    if ($voice -and $voice.ContainsKey($category)) {
-        $lines = $voice[$category]
-    }
-    # Fallback zu alten generischen Arrays
-    if (-not $lines -or $lines.Count -eq 0) {
-        $lines = switch ($category) {
-            "RunningGag" { $script:RunningGagLines }
-            "Find" { $script:FindLines }
-            "Atmo" { $script:AtmoLines }
-            "Warn" { $script:WarnLines }
-            "Egg" { $script:EggLines }
-            "Hint" { $script:HintLines }
-            default { $script:AtmoLines }
+    $line = $CustomLine
+    if (-not $line) {
+        $category = Get-AdventureCompanionCategory $Context
+        $voice = $null
+        if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
+            $voice = $script:CPAdventureVoice[$Companion.Name]
         }
+        $lines = $null
+        if ($voice -and $voice.ContainsKey($category)) {
+            $lines = $voice[$category]
+        }
+        if (-not $lines -or $lines.Count -eq 0) {
+            $lines = switch ($category) {
+                "RunningGag" { $script:RunningGagLines }
+                "Find" { $script:FindLines }
+                "Atmo" { $script:AtmoLines }
+                "Warn" { $script:WarnLines }
+                "Egg" { $script:EggLines }
+                "Hint" { $script:HintLines }
+                default { $script:AtmoLines }
+            }
+        }
+        if (-not $lines -or $lines.Count -eq 0) { return }
+        $line = $lines | Get-Random
     }
-    if (-not $lines -or $lines.Count -eq 0) { return }
-    $line = $lines | Get-Random
     Show-CompanionDialog $Companion $line -Fast:$Fast
 }
 
@@ -629,13 +615,13 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
         return
     }
 
-    # 3. Absurde Kombinationen wurden bereits von Process-AdventureCommand geprueft
+    # 3. Absurde Kombinationen
     if ($Action -eq "use" -and $Target -and $Result.IsAbsurd) {
-        Show-AdventureCompanionDialog $cp $Result.Context
+        Show-AdventureCompanionDialog $cp $Result.Context -CustomLine $Result.Line
         return
     }
 
-    # 4. Random Event (nur bei 'go' in neuen Raeumen)
+    # 4. Random Event
     if ($Action -eq "go" -and $Result.RoomChanged) {
         $evt = Invoke-CompanionEvent $Room
         if ($evt) {
@@ -644,11 +630,11 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
         }
     }
 
-    # 5. Companion Initiative (Hinweis bei Steckenbleiben)
+    # 5. Companion Initiative (Hinweis)
     if ($Action -eq "look" -or $Action -eq "go") {
         $hint = Get-CompanionHint $Room
         if ($hint) {
-            Show-AdventureCompanionDialog $cp $hint.Context
+            Show-AdventureCompanionDialog $cp $hint.Context -CustomLine $hint.Line
             return
         }
     }
