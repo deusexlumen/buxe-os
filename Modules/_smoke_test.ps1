@@ -370,6 +370,10 @@ Test-Assert "Adventure default room" ($script:AdvState.CurrentRoom -eq "hangar")
 Test-Assert "Get-AdventureMessage exists" ((Get-Command Get-AdventureMessage -ErrorAction SilentlyContinue) -ne $null)
 Test-Assert "Get-AdventureMessage returns string" ((Get-AdventureMessage "cannot_go") -is [string])
 
+$hangar = $script:AdvRooms["hangar"]
+Test-Assert "Hangar description is not generic" ($hangar.Description -notmatch "grosser Hangar mit einem alten Shuttle")
+Test-Assert "Hangar description uses message lookup" ($hangar.Description -notlike "*Ein grosser Hangar*")
+
 $room = Get-Room "hangar"
 Test-Assert "Hangar room exists" ($room -ne $null)
 Test-Assert "Hangar has name" ($room.Name -eq "HANGAR BAY 7")
