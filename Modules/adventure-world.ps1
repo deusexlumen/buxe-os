@@ -22,10 +22,10 @@ $script:AdventureWorldMessages = @{
     quarters_desc      = "Die Crew-Unterkünfte. Kleine Kabinen, ein Gemeinschaftsraum. Jemand hat hier gelebt, geliebt, gefürchtet. Ein Tagebuch liegt auf einem Bett und flüstert 'lies mich'. Im Westen zur Waffenkammer, nach unten zurück in den Korridor. Captain Vance' Bett ist gemacht. Verdächtig."
     observatory_desc   = "Das Observatorium. Ein großes Teleskop starrt auf den Nebelsektor 7. Auf einem Monitor blinkt 'NEBELSEKTOR 7 -- ANOMALIE DETEKTIERT'. Im Süden geht es zurück zur Brücke. Draußen pulsiert etwas, das keinem Cronjob ähnelt."
     cafeteria_desc     = "Die Kantine. Tische, Stühle, ein Automat, der leise vor sich hin summt. Vergessene Tassen stehen herum wie verwaiste Prozesse. Ein Schild wirbt für 'Weltraum-Hähnchen'. Im Norden geht es zurück zum Hangar."
-    vent_desc          = "Ein Lüftungsschacht. Hier riecht es nach Staub, Schweiß und den Träumen des Leveldesigners. Eng, aber geheimnisvoll."
-    secret_desc        = "Ein geheimer Raum. Wie du ihn gefunden hast, sagst du mir nicht? Gut. Das ist zwischen dir, mir und dem Debug-Log."
-    lab_desc           = "Das Labor. Reagenzgläser, Monitore und ein Whiteboard voller Gleichungen, die jemand absichtlich unleserlich geschrieben hat."
-    storage_desc       = "Der Lagerraum. Regale voller Kisten, Werkzeuge und Ersatzteile. Hier lagert alles, das niemand braucht, aber niemand wegwirft. Ein echter Speicher für emotionalen Ballast und alte Backups."
+    vent_desc          = "Ein Lüftungsschacht. Hier riecht es nach Staub, Schweiß und den Träumen des Leveldesigners. Nach unten geht es in den Lagerraum, im Osten liegt ein geheimer Raum. Eng, aber geheimnisvoll."
+    secret_desc        = "Ein geheimer Raum. Wie du ihn gefunden hast, sagst du mir nicht? Gut. Das ist zwischen dir, mir und dem Debug-Log. Im Westen geht es zurück in den Lüftungsschacht."
+    lab_desc           = "Das Labor. Reagenzgläser, Monitore und ein Whiteboard voller Gleichungen, die jemand absichtlich unleserlich geschrieben hat. Im Osten geht es zurück in den Korridor."
+    storage_desc       = "Der Lagerraum. Regale voller Kisten, Werkzeuge und Ersatzteile. Hier lagert alles, das niemand braucht, aber niemand wegwirft. Im Westen geht es zum Hangar, nach oben in den Lüftungsschacht."
 
     # Objects / examine
     terminal_examine   = "Ein Terminal mit einer Tastatur, die so alt ist, dass sie mechanisch klackt. Das Display zeigt 'login: root'. Jemand war faul."
