@@ -64,7 +64,7 @@ try {
 
 # === ROOM 1: HANGAR ===
 Register-Room "hangar" "HANGAR BAY 7" `
-"Du stehst in einem riesigen Hangar. Die Luke zur Station ist offen, aber das Shuttle hinter dir ist nicht mehr startklar. Rostige Gerüste und defekte Droiden liegen herum. Ein rotes Notlicht blinkt an der Decke." `
+(Get-AdventureWorldMessage "hangar_desc") `
 @{ north = "corridor"; east = "storage" } `
 (@{
     card = @{ Name = "Zugangskarte"; Description = "Eine magnetische ID-Karte mit dem Logo der Polaris-Station. Sie sieht wichtig aus."; Takeable = $true; UseWith = "lock" }
@@ -83,7 +83,7 @@ Register-Room "hangar" "HANGAR BAY 7" `
 
 # === ROOM 2: CORRIDOR ===
 Register-Room "corridor" "HAUPTKORRIDOR" `
-"Ein langer, schwach beleuchteter Korridor. An den Wänden hängen zerrissene Poster der Polaris-Crew. Ein Terminal an der Wand zeigt einen Fehlercode. Im Norden ist eine verschlossene Tür mit einem Kartenleser. Im Westen hört man leises Summen." `
+(Get-AdventureWorldMessage "corridor_desc") `
 @{ south = "hangar"; west = "lab" } `
 (@{
     poster = @{ Name = "Crew-Poster"; Description = "Das Poster zeigt die Crew der Polaris. Alle haben ein 'X' über dem Gesicht. Gruselig."; Takeable = $false; UseWith = $null }
@@ -172,7 +172,7 @@ Register-Room "secret" "GEHEIMER RAUM" `
 
 # === ROOM 7: BRIDGE (LOCKED) ===
 Register-Room "bridge" "KOMMANDOBRÜCKE" `
-"Die Kommandobrücke der Polaris. Große Fenster zeigen den ewigen Nebel des Alls. Die Kapitänsliege ist leer, aber noch warm. Auf dem Hauptbildschirm blinkt ein Signal: 'HILFE. KOORDINATEN: 7-7-7.' Ein Schrank steht an der Wand." `
+(Get-AdventureWorldMessage "bridge_desc") `
 @{ south = "corridor" } `
 (@{
     screen = @{ Name = "Bildschirm"; Description = "Das Signal wiederholt sich: 'HILFE. KOORDINATEN: 7-7-7. WIR WARTEN.' Wer wartet?"; Takeable = $false; UseWith = $null }
