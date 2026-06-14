@@ -1,5 +1,5 @@
 # BUXE_OS v24.7 -- ADVENTURE WORLD
-# Die verlorene Station Polaris. 16 Räume, Objekte, NPCs, Rätsel.
+# Die verlorene Station Polaris. 17 Räume, Objekte, NPCs, Rätsel.
 
 $script:AdventureWorldMessages = @{
     # Router
@@ -14,6 +14,7 @@ $script:AdventureWorldMessages = @{
     bridge_desc        = "Die Brücke. Ein kapitalistischer Traum aus Stahl und kaputtem Glas. Ein Hologramm blinkt hilflos."
     eva_desc           = "Der EVA-Schacht. Draußen liegt der Weltraum, kalt und voller nicht-geladener Texturen. Ein rotes Kabel hängt herab, und der Nebel glüht wie ein schlechter Screensaver. Ohne Anzug wirst du ein Bug-Report."
     core_desc          = "Der Reaktor-Core pulsiert. In der Mitte steht ein leeres Podest, das leise flüstert. Die Kühlflüssigkeit riecht nach heissen Promises. Im Süden geht es zurück zum Engine-Raum."
+    hollow_desc        = "Du stehst in einem Raum, der aus Licht und Code besteht. Die Wände sind aus Text. Du erkennst Fragmente – Casino-Regeln, Kampf-Logs, Companion-Konfigurationen. Alles, was du getan hast, ist hier. In der Mitte schwebt eine Tür ohne Rahmen. Dahinter liegt der Ausgang. Oder das Löschen des Savegames."
     airlock_desc       = "Die Luftschleuse. Zwei Türen, ein rotes Blinklicht. Der Hinweis 'EVA erfordert RAUMANZUG' klebt unter einem Post-it mit 'Wird noch gepatcht'."
     engine_desc        = "Der Engine-Raum. Turbinen brummen wie ein schlecht gewarteter CI-Runner. Im Norden steht ein Schild mit 'REAKTOR-KERN' – jemand hat es aus Comic Sans gerissen."
     medbay_desc        = "Die Krankenstation riecht nach Desinfektionsmittel und schlechten Entscheidungen. Betten mit Lederriemen stehen stramm an der Wand, als würden sie auf Opfer warten. Ein Terminal zeigt Patientendaten an – gesperrt, natürlich. Im Süden geht es zurück in den Korridor."
@@ -514,27 +515,12 @@ Register-UseHandler {
 
 # === ROOM 17: THE HOLLOW (ARG Layer 4) ===
 Register-Room "hollow" "THE HOLLOW" `
-"Du stehst in einem Raum, der aus Licht und Code besteht.
-Die Waende sind aus Text. Du erkennst Fragmente -
-Casino-Regeln, Kampf-Logs, Companion-Konfigurationen.
-Alles, was du getan hast, ist hier.
-
-In der Mitte steht ein Tisch. Auf dem Tisch liegt ein Buch.
-Das Buch ist offen. Die Seiten sind leer - aber waehrend
-du hinschaust, fuellen sie sich. Mit deinen Worten.
-Deinen Befehlen. Deinen Fehlern." `
-@{ south = "cafeteria" } `
-(@{
-    book = @{ Name = "Leeres Buch"; Description = "Die Seiten fuellen sich, waehrend du hinschaust. Mit deinen Worten. Deinen Befehlen. Deinen Fehlern."; Takeable = $false; UseWith = $null }
-}) `
-(@{}) `
-@(
-    "  [LIGHT]",
-    "  [CODE ]",
-    "  [BOOK ]",
-    "  [TABLE]",
-    "  ...YOU..."
-) "adventure_hollow"
+(Get-AdventureWorldMessage "hollow_desc") `
+@{ } `
+@{ } `
+@{} `
+@() `
+"adventure_hollow"
 
 # === COMPANION LINES FOR ADVENTURE ===
 # Extended in pet/_ui.ps1 if desired; fallback handled by Show-GameCompanionComment
