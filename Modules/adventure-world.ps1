@@ -1,6 +1,65 @@
 # BUXE_OS v24.7 -- ADVENTURE WORLD
 # Die verlorene Station Polaris. 16 Räume, Objekte, NPCs, Rätsel.
 
+$script:AdventureWorldMessages = @{
+    # Router
+    intro_title        = "BUXE_OS ADVENTURE v24.4"
+    intro_subtitle     = "Ein Text-Abenteuer, das genau weiss, in welchem Terminal es läuft."
+    intro_hint         = "Tipp 'help', wenn du vergisst, wer hier Programmierer ist."
+    outro              = "Adventure beendet. Dein State wurde nicht gelöscht – das überlasse ich dir."
+
+    # Rooms
+    hangar_desc        = "Ein Hangar, der größer ist als nötig. Die Wände flüstern von Budget-Überschreitungen. Ein altes Shuttle steht herum und wartet auf einen Patch."
+    hangar_exits       = "Ausgänge: Osten (Corridor). Mehr gibt das Leveldesign noch nicht her."
+    corridor_desc      = "Ein langer, grauer Corridor. Neonlichter flackern im Takt eines schlechten Loops. Hier hätte das Art-Team mehr Budget gebraucht."
+    bridge_desc        = "Die Brücke. Ein kapitalistischer Traum aus Stahl und kaputtem Glas. Ein Hologramm blinkt hilflos."
+    eva_desc           = "Der EVA-Schacht. Draußen liegt der Weltraum, kalt und voller nicht-geladener Texturen. Ohne Anzug wirst du ein Bug-Report."
+    core_desc          = "Der Reaktor-Core pulsiert. Die Kühlflüssigkeit riecht nach heissen Promises und einem Serverraum um 3 Uhr nachts."
+    airlock_desc       = "Die Luftschleuse. Zwei Türen, ein rotes Blinklicht, und die Ahnung, dass das QA-Team diesen Raum nie getestet hat."
+    engine_desc        = "Das Engine-Raum. Turbinen brummen wie ein schlecht gewarteter CI-Runner. Irgendwo tropft Öl auf das Kubernetes-Logo."
+    medbay_desc        = "Die Medbay. Hier wurden Menschen geheilt, Experimente gemacht und mindestens einmal versehentlich der Produktivserver neu gestartet."
+    armory_desc        = "Die Waffenkammer. Laser-Gewehre, Stun-Stäbe und ein Schild mit 'Bitte nicht auf den Prototypen schießen'."
+    quarters_desc      = "Crew-Quarters. Betten, Spind, ein Poster von einem Katzen-Weltraumhelden. Niemand räumt hier auf."
+    observatory_desc   = "Das Observatorium. Sterne, Planeten, und ein Teleskop, das ständig auf einen 404 im Himmel zeigt."
+    cafeteria_desc     = "Die Cafeteria. Der Kaffee ist kalt, die Currywurst ist warm, und der Automat akzeptiert nur Bitcoin aus dem Jahr 2021."
+    vent_desc          = "Ein Lüftungsschacht. Hier riecht es nach Staub, Schweiß und den Träumen des Leveldesigners. Eng, aber geheimnisvoll."
+    secret_desc        = "Ein geheimer Raum. Wie du ihn gefunden hast, sagst du mir nicht? Gut. Das ist zwischen dir, mir und dem Debug-Log."
+    lab_desc           = "Das Labor. Reagenzgläser, Monitore und ein Whiteboard voller Gleichungen, die jemand absichtlich unleserlich geschrieben hat."
+    server_desc        = "Der Server-Raum. Lüfter rauschen, LEDs blinken, und irgendwo läuft ein Cronjob, den niemand mehr versteht."
+
+    # Objects / examine
+    terminal_examine   = "Ein Terminal mit einer Tastatur, die so alt ist, dass sie mechanisch klackt. Das Display zeigt 'login: root'. Jemand war faul."
+    box_examine        = "Eine Metallkiste. Nicht verschlossen, nur resigniert. Sie seufzt, als wüsste sie, dass du sie gleich öffnest."
+    notebook_examine   = "Ein Notizbuch. Die letzte Seite trägt die Aufschrift: 'Wenn du das liest, bist du zu weit gegangen. Gruss, Leveldesigner'."
+    screen_examine     = "Ein Bildschirm mit Warnsymbolen. Er flackert, als würde er versuchen, dir auszuweichen."
+    diary_examine      = "Ein Tagebuch. Captain Vance beschwert sich über die Crew, die KI und dass niemand den Drucker nachfüllt."
+    computer_examine   = "Ein Computer. Der Desktop-Hintergrund ist ein Weltraumkätzchen. Die CPU-Auslastung: 47%. Natürlich."
+    pedestal_examine   = "Ein Podest. Es fehlt ein Artefakt. Oder es ist nur unsichtbar. Mit Assets spart man ja gerne."
+    warning_examine    = "Ein Warnschild: 'Nicht drücken'. Darunter, in Klammern: 'Ausser du willst den Plot vorantreiben'."
+    cable_examine      = "Ein Kabel. Rot, dick, offensichtlich wichtig. Jemand hat es hier liegen gelassen wie einen Chekhov'schen Gewehr."
+    rubber_chicken_examine = "Ein Gummihuhn. Ein klassisches Adventure-Item. Du fragst dich, wer es hier vergessen hat. Wahrscheinlich das QA-Team."
+    skull_examine      = "Ein Plastikschädel. Er grinst. Nicht böse, eher so, als wüsste er über deinen Browser-Verlauf Bescheid."
+    tree_examine       = "Ein Plastikbaum. Er steht in einem geheimen Raum und produziert Sauerstoff für genau niemanden. Dekorativer Sarkasmus."
+    spacesuit_examine  = "Ein Raumanzug. Er riecht nach altem Schaumstoff und Helden. Mindestens ein Loch ist mit Tape geflickt."
+    keycard_examine    = "Eine Keycard. Sie öffnet Türen, Herzen und vielleicht den Kühlschrank der Cafeteria."
+    artifact_examine   = "Ein seltsames Artefakt. Es vibriert leicht und hört auf, wenn du hinsiehst. Typisch Undefined Behaviour."
+
+    # Use / event texts
+    bridge_unseal      = "Die Brücke entriegelt sich mit einem zufriedenen Klicken. Willkommen im Endgame – oder zumindest im nächsten Akt."
+    core_unlock        = "Du steckst das Artefakt ins Podest. Der Core wird ruhiger, die Lichter werden grün, und irgendwo jubelt ein Achievement-Tracker."
+    server_reboot      = "Du drückst den roten Knopf. Server fahren hoch, runter, dann wieder hoch. Systemadministratoren weinen Tränen der Freude."
+    secret_tree_use    = "Du redest mit dem Plastikbaum. Er antwortet nicht. Ihr beide wisst, dass das normal ist."
+    lab_computer_use   = "Du startest die Experiment-Simulation. Sie crasht sofort. 'Feature, not bug', flackert auf dem Bildschirm."
+    vent_skull_use     = "Du hältst den Schädel ins Lüftungsgitter. Ein Windstoss lässt ihn klappern. Das klingt fast wie Applaus."
+}
+
+function Get-AdventureWorldMessage($Key, $Params = @()) {
+    $msg = $script:AdventureWorldMessages[$Key]
+    if (-not $msg) { return "" }
+    if ($Params.Count -gt 0) { $msg = $msg -f $Params }
+    return $msg
+}
+
 try {
 
 # === ROOM 1: HANGAR ===
