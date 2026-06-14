@@ -457,14 +457,15 @@ function Get-CompanionHint($Room) {
 
     $hint = $hints | Get-Random
 
-    # Qualitaet basiert auf Bond
-    if ($bond -lt 30) {
-        $hint = "Stuck? I'm shocked. Really. *seufz* " + $hint
-    } elseif ($bond -lt 70) {
-        $hint = "Vielleicht hilft das: " + $hint
-    } else {
-        $hint = "Ich habe eine Idee! " + $hint
+    # Per-Companion-Stimme als Einleitung zum Hinweis
+    $intro = ""
+    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($cp.Name) -and $script:CPAdventureVoice[$cp.Name].ContainsKey("Hint")) {
+        $intro = ($script:CPAdventureVoice[$cp.Name].Hint | Get-Random)
     }
+    if (-not $intro -and $script:HintLines.Count -gt 0) {
+        $intro = ($script:HintLines | Get-Random)
+    }
+    if ($intro) { $hint = "$intro $hint" }
 
     Update-CompanionMood "progress"
     return @{ Context = "adventure_hint"; Line = $hint }
