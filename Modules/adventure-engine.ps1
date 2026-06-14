@@ -126,17 +126,16 @@ function Has-Item($ItemId) { return $script:AdvState.Inventory -contains $ItemId
 
 function Show-Inventory {
     $inv = $script:AdvState.Inventory
-    if ($inv.Count -eq 0) { return "Dein Inventar ist leer." }
+    if ($inv.Count -eq 0) { return Get-AdventureMessage "empty_inventory" }
     $items = @()
     foreach ($id in $inv) {
-        # Find item name across all rooms
         $name = $id
         foreach ($room in $script:AdvRooms.Values) {
             if ($room.Objects[$id]) { $name = $room.Objects[$id].Name; break }
         }
         $items += $name
     }
-    return "Inventar: " + ($items -join ", ")
+    return (Get-AdventureMessage "inventory_prefix" @(($items -join ", ")))
 }
 
 function Get-AdventureMessage($Key, $Params = @()) {
