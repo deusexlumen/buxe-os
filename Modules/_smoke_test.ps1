@@ -367,6 +367,8 @@ Write-Host "`n  Testing Adventure Engine..." -ForegroundColor Yellow
 $script:AdvState = Get-AdventureDefaults
 Test-Assert "Adventure defaults exist" ($script:AdvState.Version -eq 1)
 Test-Assert "Adventure default room" ($script:AdvState.CurrentRoom -eq "hangar")
+Test-Assert "Get-AdventureMessage exists" ((Get-Command Get-AdventureMessage -ErrorAction SilentlyContinue) -ne $null)
+Test-Assert "Get-AdventureMessage returns string" ((Get-AdventureMessage "cannot_go") -is [string])
 
 $room = Get-Room "hangar"
 Test-Assert "Hangar room exists" ($room -ne $null)

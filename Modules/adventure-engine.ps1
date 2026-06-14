@@ -139,6 +139,44 @@ function Show-Inventory {
     return "Inventar: " + ($items -join ", ")
 }
 
+function Get-AdventureMessage($Key, $Params = @()) {
+    $messages = @{
+        empty_inventory    = "Deine Taschen sind so leer wie mein Entwickler-Testverzeichnis. Sogar der Staub hat sich verzogen."
+        inventory_prefix   = "Aktueller Speicherbelegung: {0}"
+        cannot_go          = "Dorthin geht nur die Wand. Und meine Geduld, wenn du es nochmal probierst."
+        not_here           = "Nicht in diesem Raum. Nicht in diesem Universum. Nicht in meiner JSON."
+        not_here_examine   = "Meine Render-Pipeline findet hier kein Objekt mit diesem Namen."
+        not_takeable       = "Dieser Gegenstand ist an den Boden gepinnt. Wortwörtlich."
+        take               = "+1 {0} in den 8-Bit-Inventarslot gepackt."
+        already_have       = "Doppelter Eintrag. Selbst mein Array würde das ablehnen."
+        not_in_inventory   = "Nicht gefunden. Weder im Inventar noch im Cache."
+        drop               = "Du dropst {0}. Hoffentlich bleibt es im Savegame."
+        talk_no_target     = "Mit wem willst du reden? Der Spiegel ist in einem anderen Raum."
+        save               = "State committed – wie ein git push vor dem Wochenende."
+        load               = "State restored. Alle Fehler stehen wieder zur Verfügung."
+        unknown_command    = "Parser-Fehler 0xBADC0DE. Probier mal 'help'. Oder bete."
+        use_fail           = "Diese Kombination ist so illegal wie ein goto in 2026."
+        hack_what          = "Was willst du hacken? Ein Gefühl? Probier 'help'."
+        hack_not_hackable  = "Das kannst du nicht hacken. Nicht alles ist ein Terminal."
+        hack_terminal_locked  = "Du hackst das Terminal. Die Kartenleser-Sicherheit ist lächerlich. Die Brücke ist jetzt zugänglich."
+        hack_medbay_terminal  = "Du hackst das Med-Terminal. Patientendaten entschlüsselt. Jemand hat Experimente an der Crew durchgeführt. Und du hast den Schlüssel gefunden: 7-7-7."
+        hack_terminal_done = "Das Terminal ist bereits entsperrt oder nicht hackbar."
+        jump_useless       = "Das bringt hier nichts. Schwerkraft ist auch nur eine Convention."
+        die_not_here       = "Nicht hier. Nicht jetzt. Speichere erst, wenn du unbedingt willst."
+        void_not_here      = "Void ist kein Ort. Noch nicht. Du brauchst dafür mehr Absurdes."
+        oxygen_low         = "O₂-Buffer läuft voll. Bald bootest du als Weltraum-Eiswürfel neu."
+        death_eva          = "Oh. Du hast die Luftschleuse ohne Anzug geöffnet. Das ist wie Remove-Item ohne -WhatIf.`n`n*Ladegeräusch*`n`nDrück 'load', dann reden wir über Risikomanagement."
+        death_oxygen       = "Sauerstoff = 0. Du bist jetzt ein kleiner, gefriergetrockneter Satellit. Kein Drama – dein Savegame ist noch warm.`n`nDrück 'load' für Take 2."
+        death_hollow_jump  = "Du springst in die Leere. Der Fall ist endlos, aber unten steht schon ein Respawn-Punkt. Typisches LucasArts-Debugging.`n`nDrück 'load'."
+        death_hollow_die   = "Du gibst auf. Die Dunkelheit umarmt dich. Sie ist warm. Fast wie ein Windows-Update-Reboot.`n`nDrück 'load'."
+        death_hollow_void  = "Du wirst eins mit der Leere. Kein Licht. Nur... Code. Und ein Compilier-Fehler, der dich zurückholt.`n`nDrück 'load'."
+    }
+    $msg = $messages[$Key]
+    if (-not $msg) { return "" }
+    if ($Params.Count -gt 0) { $msg = $msg -f $Params }
+    return $msg
+}
+
 # === PARSER ===
 # Normalisiert Eingabe zu (Verb, Noun, Target)
 
