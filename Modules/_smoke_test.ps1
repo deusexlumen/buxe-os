@@ -461,7 +461,7 @@ $script:AdvState.Inventory = @()
 $script:AdvState.Oxygen = 10
 $cmd = Parse-AdventureCommand "go west"
 $result = Process-AdventureCommand $cmd
-Test-Assert "EVA without suit = death" ($result.Message -match "GAME OVER")
+Test-Assert "EVA without suit = death" ($result.Death -eq $true)
 
 # Test EVA with suit = ok
 $script:AdvState.CurrentRoom = "airlock"

@@ -342,7 +342,7 @@ Test-Assert "Hack parser works" ($cmd.Verb -eq "hack" -and $cmd.Noun -eq "termin
 $script:AdvState.CurrentRoom = "airlock"
 $script:AdvState.Inventory = @()
 $result = Process-AdventureCommand (Parse-AdventureCommand "go west")
-Test-Assert "EVA without suit = death" ($result.Message -match "GAME OVER")
+Test-Assert "EVA without suit = death" ($result.Death -eq $true)
 
 # Test 28: True ending flag
 Test-Assert "True ending flag exists" ($script:AdvState.Flags -is [hashtable] -or $script:AdvState.Flags -is [System.Management.Automation.PSCustomObject])
