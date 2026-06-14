@@ -383,7 +383,7 @@ function Invoke-CompanionEvent($Room) {
             "*Das Licht flackert. Ein Sekunde lang ist alles dunkel.*",
             "*Ein Geraeusch wie fallende Datensaetze.*"
         )
-        $result = @{ Type = "atmo"; Context = "adventure_scared"; Line = ($atmos | Get-Random) }
+        $result = @{ Type = "atmo"; Context = "adventure_atmo"; Line = ($atmos | Get-Random) }
         Update-CompanionMood "enter_dark"
     }
     # 3%: Companion warnt
@@ -394,14 +394,14 @@ function Invoke-CompanionEvent($Room) {
             "Hoerst du das? Nein? Gut. Denn es ist unheimlich.",
             "Dieser Raum hat mehr Null-Pointer als mein Code. Vorsicht."
         )
-        $result = @{ Type = "warn"; Context = "adventure_scared"; Line = ($warns | Get-Random) }
+        $result = @{ Type = "warn"; Context = "adventure_warn"; Line = ($warns | Get-Random) }
         Update-CompanionMood "enter_dark"
     }
     # 2%: Easter Egg
     elseif ($roll -lt 20) {
         $hour = (Get-Date).Hour
         if ($hour -ge 2 -and $hour -le 5) {
-            $result = @{ Type = "egg"; Context = "adventure_excited"; Line = "Es ist 3 Uhr morgens. Warum sind wir wach? Warum sind WIR wach?" }
+            $result = @{ Type = "egg"; Context = "adventure_egg"; Line = "Es ist 3 Uhr morgens. Warum sind wir wach? Warum sind WIR wach?" }
         } else {
             $eggs = @(
                 "Ich habe eine versteckte Nachricht gefunden: 'SIE SIEHT UNS.' Ja, wieder.",
@@ -410,7 +410,7 @@ function Invoke-CompanionEvent($Room) {
             )
             $egg = $eggs | Get-Random
             $bonus = if ($egg -match "3 Gold") { 3 } else { 0 }
-            $result = @{ Type = "egg"; Context = "adventure_excited"; Line = $egg; GoldBonus = $bonus }
+            $result = @{ Type = "egg"; Context = "adventure_egg"; Line = $egg; GoldBonus = $bonus }
         }
     }
 
@@ -574,40 +574,43 @@ function Test-AbsurdCombo($Item, $Target) {
 
 function Get-AdventureCompanionCategory($Context) {
     switch -Regex ($Context) {
-        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find)$" { return "Find" }
+        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find|adventure_excited)$" { return "Find" }
         "^(adventure_blocked|adventure_confused|adventure_warn)$" { return "Warn" }
         "^(adventure_absurd|adventure_egg)$" { return "Egg" }
-        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_death_.*)$" { return "Atmo" }
+        "^(adventure_gag)$" { return "RunningGag" }
+        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_bored|adventure_annoyed|adventure_curios|adventure_death_.*)$" { return "Atmo" }
         "^(adventure_hint)$" { return "Hint" }
         default { return "Atmo" }
     }
 }
 
-function Show-AdventureCompanionDialog($Companion, $Context, $Fast = $false) {
+function Show-AdventureCompanionDialog($Companion, $Context, $CustomLine = $null, $Fast = $false) {
     if (-not $Companion) { return }
-    $category = Get-AdventureCompanionCategory $Context
-    $voice = $null
-    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
-        $voice = $script:CPAdventureVoice[$Companion.Name]
-    }
-    $lines = $null
-    if ($voice -and $voice.ContainsKey($category)) {
-        $lines = $voice[$category]
-    }
-    # Fallback zu alten generischen Arrays
-    if (-not $lines -or $lines.Count -eq 0) {
-        $lines = switch ($category) {
-            "RunningGag" { $script:RunningGagLines }
-            "Find" { $script:FindLines }
-            "Atmo" { $script:AtmoLines }
-            "Warn" { $script:WarnLines }
-            "Egg" { $script:EggLines }
-            "Hint" { $script:HintLines }
-            default { $script:AtmoLines }
+    $line = $CustomLine
+    if (-not $line) {
+        $category = Get-AdventureCompanionCategory $Context
+        $voice = $null
+        if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
+            $voice = $script:CPAdventureVoice[$Companion.Name]
         }
+        $lines = $null
+        if ($voice -and $voice.ContainsKey($category)) {
+            $lines = $voice[$category]
+        }
+        if (-not $lines -or $lines.Count -eq 0) {
+            $lines = switch ($category) {
+                "RunningGag" { $script:RunningGagLines }
+                "Find" { $script:FindLines }
+                "Atmo" { $script:AtmoLines }
+                "Warn" { $script:WarnLines }
+                "Egg" { $script:EggLines }
+                "Hint" { $script:HintLines }
+                default { $script:AtmoLines }
+            }
+        }
+        if (-not $lines -or $lines.Count -eq 0) { return }
+        $line = $lines | Get-Random
     }
-    if (-not $lines -or $lines.Count -eq 0) { return }
-    $line = $lines | Get-Random
     Show-CompanionDialog $Companion $line -Fast:$Fast
 }
 
@@ -625,30 +628,30 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     # 2. Check Running Gags
     $gag = Test-RunningGag $Action $Target
     if ($gag.Triggered) {
-        Show-AdventureCompanionDialog $cp $gag.Context
+        Show-AdventureCompanionDialog $cp $gag.Context -CustomLine $gag.Line
         return
     }
 
-    # 3. Absurde Kombinationen wurden bereits von Process-AdventureCommand geprueft
+    # 3. Absurde Kombinationen
     if ($Action -eq "use" -and $Target -and $Result.IsAbsurd) {
-        Show-AdventureCompanionDialog $cp $Result.Context
+        Show-AdventureCompanionDialog $cp $Result.Context -CustomLine $Result.Line
         return
     }
 
-    # 4. Random Event (nur bei 'go' in neuen Raeumen)
+    # 4. Random Event
     if ($Action -eq "go" -and $Result.RoomChanged) {
         $evt = Invoke-CompanionEvent $Room
         if ($evt) {
-            Show-AdventureCompanionDialog $cp $evt.Context
+            Show-AdventureCompanionDialog $cp $evt.Context -CustomLine $evt.Line
             return
         }
     }
 
-    # 5. Companion Initiative (Hinweis bei Steckenbleiben)
+    # 5. Companion Initiative (Hinweis)
     if ($Action -eq "look" -or $Action -eq "go") {
         $hint = Get-CompanionHint $Room
         if ($hint) {
-            Show-AdventureCompanionDialog $cp $hint.Context
+            Show-AdventureCompanionDialog $cp $hint.Context -CustomLine $hint.Line
             return
         }
     }
