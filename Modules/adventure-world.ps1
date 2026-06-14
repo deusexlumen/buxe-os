@@ -67,7 +67,7 @@ Register-Room "hangar" "HANGAR BAY 7" `
 (Get-AdventureWorldMessage "hangar_desc") `
 @{ north = "corridor"; east = "storage" } `
 (@{
-    card = @{ Name = "Zugangskarte"; Description = "Eine magnetische ID-Karte mit dem Logo der Polaris-Station. Sie sieht wichtig aus."; Takeable = $true; UseWith = "lock" }
+    card = @{ Name = "Zugangskarte"; Description = "Eine magnetische ID-Karte mit dem Logo der Polaris-Station. Sie sieht wichtig aus."; Takeable = $true; UseWith = "lock"; Examine = (Get-AdventureWorldMessage "keycard_examine") }
     scrap = @{ Name = "Metallschrott"; Description = "Rostige Metallteile von einem alten Droiden. Nutzlos. Oder doch nicht?"; Takeable = $true; UseWith = $null }
 }) `
 (@{
@@ -87,7 +87,7 @@ Register-Room "corridor" "HAUPTKORRIDOR" `
 @{ south = "hangar"; west = "lab" } `
 (@{
     poster = @{ Name = "Crew-Poster"; Description = "Das Poster zeigt die Crew der Polaris. Alle haben ein 'X' über dem Gesicht. Gruselig."; Takeable = $false; UseWith = $null }
-    terminal = @{ Name = "Terminal"; Description = "Ein altes Terminal mit einem blinkenden Cursor. Es zeigt: 'ZUGANG VERWEIGERT. KARTE ERFORDERLICH.'"; Takeable = $false; UseWith = "card" }
+    terminal = @{ Name = "Terminal"; Description = "Ein altes Terminal mit einem blinkenden Cursor. Es zeigt: 'ZUGANG VERWEIGERT. KARTE ERFORDERLICH.'"; Takeable = $false; UseWith = "card"; Examine = (Get-AdventureWorldMessage "terminal_examine") }
 }) `
 (@{}) `
 @(
@@ -104,7 +104,7 @@ Register-Room "storage" "LAGERRAUM" `
 @{ west = "hangar"; up = "vent" } `
 (@{
     battery = @{ Name = "Plasma-Batterie"; Description = "Eine hochenergetische Plasma-Batterie. Sie summt leise in deiner Hand."; Takeable = $true; UseWith = "generator" }
-    box = @{ Name = "Kiste"; Description = "Eine verschlossene Kiste. Du brauchst etwas, um sie zu öffnen."; Takeable = $false; UseWith = "crowbar" }
+    box = @{ Name = "Kiste"; Description = "Eine verschlossene Kiste. Du brauchst etwas, um sie zu öffnen."; Takeable = $false; UseWith = "crowbar"; Examine = (Get-AdventureWorldMessage "box_examine") }
 }) `
 (@{}) `
 @(
@@ -120,7 +120,7 @@ Register-Room "lab" "FORSCHUNGSLABOR" `
 (Get-AdventureWorldMessage "lab_desc") `
 @{ east = "corridor" } `
 (@{
-    notebook = @{ Name = "Notizbuch"; Description = "Dr. Vance' Notizbuch: 'Das Signal kommt aus dem Nebel. Es... spricht. Wir sollten nicht zuhören.' Die letzte Seite ist mit Blut befleckt."; Takeable = $true; UseWith = $null }
+    notebook = @{ Name = "Notizbuch"; Description = "Dr. Vance' Notizbuch: 'Das Signal kommt aus dem Nebel. Es... spricht. Wir sollten nicht zuhören.' Die letzte Seite ist mit Blut befleckt."; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "notebook_examine") }
     formula = @{ Name = "Formel"; Description = "E = mc²... und darunter etwas Unleserliches in einer Sprache, die du nicht kennst."; Takeable = $false; UseWith = $null }
     crowbar = @{ Name = "Brecheisen"; Description = "Ein schweres Brecheisen. Gut für Kisten und Köpfe."; Takeable = $true; UseWith = "box" }
 }) `
@@ -141,12 +141,12 @@ Register-Room "vent" "LÜFTUNGSSCHACHT" `
 @{ down = "storage"; east = "secret" } `
 (@{
     dust = @{ Name = "Staub"; Description = "Nur Staub. Warum schaust du dir Staub an?"; Takeable = $false; UseWith = $null }
-    skull = @{ Name = "Schädel"; Description = "Ein polierter Schädel mit einem Grinsen. Auf der Stirn steht: 'Manny Calavera war hier.'"; Takeable = $true; UseWith = $null }
+    skull = @{ Name = "Schädel"; Description = "Ein polierter Schädel mit einem Grinsen. Auf der Stirn steht: 'Manny Calavera war hier.'"; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "skull_examine") }
 }) `
 (@{}) `
 @(
-    "  /     \\",
-    " /       \\",
+    "  /     \",
+    " /       \",
     " |   o    |",
     " |        |",
     "  \\______/"
@@ -159,7 +159,7 @@ Register-Room "secret" "GEHEIMER RAUM" `
 (@{
     notes = @{ Name = "Notizen"; Description = "Jede Notiz sagt 'SIE SIEHT UNS.' Die Handschrift wird immer wilder. Die letzte ist in... Blut?"; Takeable = $false; UseWith = $null }
     key = @{ Name = "Goldener Schlüssel"; Description = "Ein schwerer goldener Schlüssel mit seltsamen Symbolen. Er fühlt sich warm an."; Takeable = $true; UseWith = "chest" }
-    tree = @{ Name = "Kleiner Baum"; Description = "Ein kleiner Plastikbaum. Jemand hat ihn hier versteckt. Darauf steht: 'Ich bin ein Pirat, ich mag Baumkaetzchen.'"; Takeable = $true; UseWith = $null }
+    tree = @{ Name = "Kleiner Baum"; Description = "Ein kleiner Plastikbaum. Jemand hat ihn hier versteckt. Darauf steht: 'Ich bin ein Pirat, ich mag Baumkaetzchen.'"; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "tree_examine") }
 }) `
 (@{}) `
 @(
@@ -175,7 +175,7 @@ Register-Room "bridge" "KOMMANDOBRÜCKE" `
 (Get-AdventureWorldMessage "bridge_desc") `
 @{ south = "corridor" } `
 (@{
-    screen = @{ Name = "Bildschirm"; Description = "Das Signal wiederholt sich: 'HILFE. KOORDINATEN: 7-7-7. WIR WARTEN.' Wer wartet?"; Takeable = $false; UseWith = $null }
+    screen = @{ Name = "Bildschirm"; Description = "Das Signal wiederholt sich: 'HILFE. KOORDINATEN: 7-7-7. WIR WARTEN.' Wer wartet?"; Takeable = $false; UseWith = $null; Examine = (Get-AdventureWorldMessage "screen_examine") }
     chest = @{ Name = "Schrank"; Description = "Ein verschlossener Metallschrank. Er braucht einen speziellen Schlüssel."; Takeable = $false; UseWith = "key" }
     uniform = @{ Name = "Kapitäns-Uniform"; Description = "Die Uniform von Kapitän Vance. Sie riecht nach Weltraum und Verrat."; Takeable = $true; UseWith = $null }
 }) `
@@ -197,7 +197,7 @@ Register-Room "cafeteria" "KANTINE" `
 (@{
     cup = @{ Name = "Tasse"; Description = "Eine halbvolle Tasse kalten Kaffees. Wer auch immer das war, er ist nie zurückgekommen."; Takeable = $true; UseWith = $null }
     sign = @{ Name = "Speiseplan"; Description = "Montag: Nudeln. Dienstag: Nudeln. Mittwoch: Weltraum-Hähnchen. Donnerstag: Nudeln. Die Routine war realer als das Monster."; Takeable = $false; UseWith = $null }
-    rubber_chicken = @{ Name = "Gummihuhn"; Description = "Ein altes Gummihuhn mit einem Seil. Jemand hat damit an einer Schaltklinke gezogen. Wie absurd."; Takeable = $true; UseWith = $null }
+    rubber_chicken = @{ Name = "Gummihuhn"; Description = "Ein altes Gummihuhn mit einem Seil. Jemand hat damit an einer Schaltklinke gezogen. Wie absurd."; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "rubber_chicken_examine") }
     tentacle = @{ Name = "Lila Tentakel-Streifen"; Description = "Ein kleines Stueck lila Tentakel. Es zuckt noch. Jemand hat hier Experimente gemacht."; Takeable = $true; UseWith = $null }
 }) `
 (@{}) `
@@ -219,8 +219,8 @@ Register-Room "airlock" "LUFTSCHLEUSE" `
 (Get-AdventureWorldMessage "airlock_desc") `
 @{ up = "hangar"; west = "eva" } `
 (@{
-    suit = @{ Name = "Raumanzug"; Description = "Ein schwerer EVA-Raumanzug mit Sauerstofftank. Er riecht nach Schweiß und Weltraum."; Takeable = $true; UseWith = $null }
-    warning = @{ Name = "Warnschild"; Description = "WARNUNG: EVA ohne Raumanzug = sofortiger Tod. Nicht metaphorisch."; Takeable = $false; UseWith = $null }
+    suit = @{ Name = "Raumanzug"; Description = "Ein schwerer EVA-Raumanzug mit Sauerstofftank. Er riecht nach Schweiß und Weltraum."; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "spacesuit_examine") }
+    warning = @{ Name = "Warnschild"; Description = "WARNUNG: EVA ohne Raumanzug = sofortiger Tod. Nicht metaphorisch."; Takeable = $false; UseWith = $null; Examine = (Get-AdventureWorldMessage "warning_examine") }
 }) `
 (@{}) `
 @(
@@ -239,7 +239,7 @@ Register-Room "eva" "AUSSENBEREICH" `
 (Get-AdventureWorldMessage "eva_desc") `
 @{ east = "airlock" } `
 (@{
-    cable = @{ Name = "Sicherheitskabel"; Description = "Ein dickes Stahlseil, das dich mit der Station verbindet. Dein einziger Weg zurueck."; Takeable = $false; UseWith = $null }
+    cable = @{ Name = "Sicherheitskabel"; Description = "Ein dickes Stahlseil, das dich mit der Station verbindet. Dein einziger Weg zurueck."; Takeable = $false; UseWith = $null; Examine = (Get-AdventureWorldMessage "cable_examine") }
     debris = @{ Name = "Truemmer"; Description = "Metallplatten und Kabel, die von der Station abgebrochen sind. Darunter... ein Datenkern?"; Takeable = $false; UseWith = "suit" }
 }) `
 (@{}) `
@@ -278,7 +278,7 @@ Register-Room "medbay" "KRANKENSTATION" `
 (Get-AdventureWorldMessage "medbay_desc") `
 @{ south = "corridor" } `
 (@{
-    terminal = @{ Name = "Med-Terminal"; Description = "Ein medizinisches Terminal mit Patientendaten. Es ist mit einem Code gesperrt."; Takeable = $false; UseWith = $null }
+    terminal = @{ Name = "Med-Terminal"; Description = "Ein medizinisches Terminal mit Patientendaten. Es ist mit einem Code gesperrt."; Takeable = $false; UseWith = $null; Examine = (Get-AdventureWorldMessage "terminal_examine") }
     bed = @{ Name = "Bett"; Description = "Ein Krankenbett mit Lederriemen. Jemand wurde hier festgehalten. Oder behandelt."; Takeable = $false; UseWith = $null }
     cabinet = @{ Name = "Medizinschrank"; Description = "Ein verschlossener Schrank mit einem roten Kreuz. Er braucht einen Schluessel."; Takeable = $false; UseWith = "medkey" }
 }) `
@@ -320,7 +320,7 @@ Register-Room "quarters" "CREW-UNTERKÜNFTE" `
 (Get-AdventureWorldMessage "quarters_desc") `
 @{ west = "armory"; down = "corridor" } `
 (@{
-    diary = @{ Name = "Tagebuch"; Description = "Kapitän Vance' Tagebuch: 'Tag 47. Das Signal wird staerker. Dr. Yarrow hat etwas im Nebel gesehen. Sie nennt es SIE.' Die letzten Seiten sind zerrissen."; Takeable = $true; UseWith = $null }
+    diary = @{ Name = "Tagebuch"; Description = "Kapitän Vance' Tagebuch: 'Tag 47. Das Signal wird staerker. Dr. Yarrow hat etwas im Nebel gesehen. Sie nennt es SIE.' Die letzten Seiten sind zerrissen."; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "diary_examine") }
     photo = @{ Name = "Foto"; Description = "Ein Foto der Crew. Alle laecheln. Jemand hat rote Kreuze ueber die Gesichter gemalt. Alle ausser Vance."; Takeable = $true; UseWith = $null }
     medkey = @{ Name = "Medizin-Schluessel"; Description = "Ein kleiner roter Schluessel mit einem Kreuz. Er oeffnet den Medizinschrank."; Takeable = $true; UseWith = "cabinet" }
 }) `
@@ -342,7 +342,7 @@ Register-Room "observatory" "OBSERVATORIUM" `
 @{ south = "bridge" } `
 (@{
     telescope = @{ Name = "Teleskop"; Description = "Ein riesiges Teleskop, das auf den Nebel gerichtet ist. Du siehst... etwas. Eine Gestalt? Nein. Ein Schatten."; Takeable = $false; UseWith = $null }
-    computer = @{ Name = "Navigationscomputer"; Description = "Koordinaten: 7-7-7. Entfernung: unbekannt. Groesse: unbekannt. Absicht: ...SIE WARTET."; Takeable = $false; UseWith = $null }
+    computer = @{ Name = "Navigationscomputer"; Description = "Koordinaten: 7-7-7. Entfernung: unbekannt. Groesse: unbekannt. Absicht: ...SIE WARTET."; Takeable = $false; UseWith = $null; Examine = (Get-AdventureWorldMessage "computer_examine") }
 }) `
 (@{}) `
 @(
@@ -361,7 +361,7 @@ Register-Room "core" "REAKTOR-KERN" `
 (Get-AdventureWorldMessage "core_desc") `
 @{ south = "engine" } `
 (@{
-    pedestal = @{ Name = "Podest"; Description = "Ein Podest mit einem kreisfoermigen Ausschnitt. Es passt perfekt zum Artefakt."; Takeable = $false; UseWith = "artifact" }
+    pedestal = @{ Name = "Podest"; Description = "Ein Podest mit einem kreisfoermigen Ausschnitt. Es passt perfekt zum Artefakt."; Takeable = $false; UseWith = "artifact"; Examine = (Get-AdventureWorldMessage "pedestal_examine") }
     core = @{ Name = "Reaktor-Kern"; Description = "Der Kern pulsiert. Er ist lebendig. Oder er wird kontrolliert."; Takeable = $false; UseWith = $null }
 }) `
 (@{
@@ -412,7 +412,7 @@ Register-UseHandler {
         if (Has-Item "key") {
             $script:AdvState.Flags["chest_opened"] = $true
             $script:AdvState.Score += 25
-            $script:AdvRooms["bridge"].Objects["artifact"] = @{ Name = "Polaris-Artefakt"; Description = "Ein schwebender Kristall, der ein sanftes blaues Licht ausstrahlt. Das Signal... kommt von HIER."; Takeable = $true; UseWith = $null }
+            $script:AdvRooms["bridge"].Objects["artifact"] = @{ Name = "Polaris-Artefakt"; Description = "Ein schwebender Kristall, der ein sanftes blaues Licht ausstrahlt. Das Signal... kommt von HIER."; Takeable = $true; UseWith = $null; Examine = (Get-AdventureWorldMessage "artifact_examine") }
             $script:AdvStateDirty = $true
             return @{ Success = $true; Message = "Der Schlüssel dreht sich mit einem Klicken. Der Schrank öffnet sich. Ein Artefakt schwebt darin!"; CompanionContext = "adventure_bigwin" }
         }
@@ -452,7 +452,7 @@ Register-UseHandler {
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 100
             $script:AdvStateDirty = $true
-            return @{ Success = $true; Message = "Du legst das Artefakt auf das Podest. Der Kern pulsiert wild. Die Gestalt aus Licht tritt vor. 'Du hast verstanden. Die Station war ein Gefaengnis. Und ich war die Waerterin. Du hast mich befreit.'`n`nDas Licht verschlingt dich. Aber es tut nicht weh. Es fuehlt sich an wie... Zuhause.`n`n=== DAS WAHRE ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDu hast die Wahrheit gefunden."; CompanionContext = "adventure_victory" }
+            return @{ Success = $true; Message = "Du legst das Artefakt auf das Podest. Der Kern pulsiert wild. Die Gestalt aus Licht tritt vor. 'Du hast verstanden. Die Station war ein Gefängnis. Und ich war die Wärterin. Du hast mich befreit.'`n`nDas Licht verschlingt dich. Aber es tut nicht weh. Es fühlt sich an wie... Zuhause.`n`n=== DAS WAHRE ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDu hast die Wahrheit gefunden."; CompanionContext = "adventure_victory" }
         }
     }
 
@@ -544,4 +544,3 @@ Deinen Befehlen. Deinen Fehlern." `
 } catch {
     Write-Host "[ADVENTURE WORLD] Fehler: $_" -ForegroundColor Red
 }
-
