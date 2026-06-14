@@ -25,7 +25,7 @@ $script:AdventureWorldMessages = @{
     vent_desc          = "Ein Lüftungsschacht. Hier riecht es nach Staub, Schweiß und den Träumen des Leveldesigners. Eng, aber geheimnisvoll."
     secret_desc        = "Ein geheimer Raum. Wie du ihn gefunden hast, sagst du mir nicht? Gut. Das ist zwischen dir, mir und dem Debug-Log."
     lab_desc           = "Das Labor. Reagenzgläser, Monitore und ein Whiteboard voller Gleichungen, die jemand absichtlich unleserlich geschrieben hat."
-    server_desc        = "Der Server-Raum. Lüfter rauschen, LEDs blinken, und irgendwo läuft ein Cronjob, den niemand mehr versteht."
+    storage_desc       = "Der Lagerraum. Regale voller Kisten, Werkzeuge und Ersatzteile. Hier lagert alles, das niemand braucht, aber niemand wegwirft. Ein echter Speicher für emotionalen Ballast und alte Backups."
 
     # Objects / examine
     terminal_examine   = "Ein Terminal mit einer Tastatur, die so alt ist, dass sie mechanisch klackt. Das Display zeigt 'login: root'. Jemand war faul."
@@ -100,7 +100,7 @@ Register-Room "corridor" "HAUPTKORRIDOR" `
 
 # === ROOM 3: STORAGE ===
 Register-Room "storage" "LAGERRAUM" `
-"Ein chaotischer Lagerraum voller Kisten und Vorräte. Die meisten Behälter sind geöffnet und leer. Auf einem Tisch liegt ein komischer Gegenstand, der aussieht wie eine Batterie. Eine Leiter führt nach oben in einen Schacht." `
+(Get-AdventureWorldMessage "storage_desc") `
 @{ west = "hangar"; up = "vent" } `
 (@{
     battery = @{ Name = "Plasma-Batterie"; Description = "Eine hochenergetische Plasma-Batterie. Sie summt leise in deiner Hand."; Takeable = $true; UseWith = "generator" }
