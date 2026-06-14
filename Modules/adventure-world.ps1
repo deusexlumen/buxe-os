@@ -46,7 +46,7 @@ $script:AdventureWorldMessages = @{
 
     # Use / event texts
     bridge_unseal      = "Die Brücke entriegelt sich mit einem zufriedenen Klicken. Willkommen im Endgame – oder zumindest im nächsten Akt."
-    core_unlock        = "Du steckst das Artefakt ins Podest. Der Core wird ruhiger, die Lichter werden grün, und irgendwo jubelt ein Achievement-Tracker."
+    core_unlock        = "Du berührst das Artefakt. Die Welt verschwimmt... und du verstehst. Die Station war nie verloren. Sie wartete. Auf DICH.`n`n=== DAS ENDE ===`nPunkte: {0} / {1}`nZüge: {2}`nDanke fürs Spielen!"
     secret_tree_use    = "Du redest mit dem Plastikbaum. Er antwortet nicht. Ihr beide wisst, dass das normal ist."
     vent_skull_use     = "Du hältst den Schädel ins Lüftungsgitter. Ein Windstoss lässt ihn klappern. Das klingt fast wie Applaus."
 
@@ -451,7 +451,7 @@ Register-UseHandler {
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 100
             $script:AdvStateDirty = $true
-            return @{ Success = $true; Message = (Get-AdventureWorldMessage "core_unlock"); CompanionContext = "adventure_victory" }
+            return @{ Success = $true; Message = (Get-AdventureWorldMessage "core_unlock" @($script:AdvState.Score, $script:AdvState.MaxScore, $script:AdvState.Moves)); CompanionContext = "adventure_victory" }
         }
     }
 
