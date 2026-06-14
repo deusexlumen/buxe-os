@@ -192,7 +192,7 @@ Register-Room "bridge" "KOMMANDOBRÜCKE" `
 
 # === ROOM 8: CAFETERIA ===
 Register-Room "cafeteria" "KANTINE" `
-"Die Kantine ist verlassen. Tassen stehen noch auf den Tischen, als hätte jeder einfach aufgehört zu existieren. Ein Kaffeeautomat summt noch. An der Tür ein Schild: 'Heute: Weltraum-Hähnchen.'" `
+(Get-AdventureWorldMessage "cafeteria_desc") `
 @{ north = "hangar" } `
 (@{
     cup = @{ Name = "Tasse"; Description = "Eine halbvolle Tasse kalten Kaffees. Wer auch immer das war, er ist nie zurückgekommen."; Takeable = $true; UseWith = $null }
@@ -275,7 +275,7 @@ $script:AdvRooms["corridor"].Exits["down"] = "engine"
 
 # === ROOM 12: MEDBAY ===
 Register-Room "medbay" "KRANKENSTATION" `
-"Die Krankenstation riecht nach Desinfektionsmittel. Betten mit Lederriemen stehen an den Waenden. Ein medizinisches Terminal ist eingeschaltet, aber gesperrt. Schraenke mit Medikamenten sind leer. Im Sueden geht es zurueck in den Korridor." `
+(Get-AdventureWorldMessage "medbay_desc") `
 @{ south = "corridor" } `
 (@{
     terminal = @{ Name = "Med-Terminal"; Description = "Ein medizinisches Terminal mit Patientendaten. Es ist mit einem Code gesperrt."; Takeable = $false; UseWith = $null }
@@ -297,7 +297,7 @@ Register-Room "medbay" "KRANKENSTATION" `
 
 # === ROOM 13: ARMORY ===
 Register-Room "armory" "WAFFENKAMMER" `
-"Die Waffenkammer ist leer. Regale, die einmal Gewehre und Munition hielten, sind staubig und leer. An der Wand haengt ein Notiz mit einem Code. Eine verschlossene Tuer fuehrt zu einem Nebenraum. Im Westen geht es zurueck in den Korridor." `
+(Get-AdventureWorldMessage "armory_desc") `
 @{ west = "corridor"; east = "quarters" } `
 (@{
     note = @{ Name = "Code-Notiz"; Description = "Ein Zettel: 'SICHERHEITSCODE: 7-7-7. Wie originell.'"; Takeable = $true; UseWith = $null }
@@ -317,7 +317,7 @@ $script:AdvRooms["corridor"].Exits["east"] = "armory"
 
 # === ROOM 14: QUARTERS ===
 Register-Room "quarters" "CREW-UNTERKÜNFTE" `
-"Kleine Kabinen, eine neben der anderen. Jede hat ein Bett, einen Schreibtisch und ein Foto an der Wand. Jemand hat hier gelebt. Geliebt. Gefuerchtet. Ein Tagebuch liegt auf einem der Betten. Im Westen geht es zurueck in die Waffenkammer." `
+(Get-AdventureWorldMessage "quarters_desc") `
 @{ west = "armory"; down = "corridor" } `
 (@{
     diary = @{ Name = "Tagebuch"; Description = "Kapitän Vance' Tagebuch: 'Tag 47. Das Signal wird staerker. Dr. Yarrow hat etwas im Nebel gesehen. Sie nennt es SIE.' Die letzten Seiten sind zerrissen."; Takeable = $true; UseWith = $null }
@@ -338,7 +338,7 @@ $script:AdvRooms["corridor"].Exits["up"] = "quarters"
 
 # === ROOM 15: OBSERVATORY ===
 Register-Room "observatory" "OBSERVATORIUM" `
-"Ein kuppelfoermiger Raum mit einem riesigen Teleskop. Die Kuppel ist offen und zeigt den Nebel in all seiner Pracht. Ein Computer zeigt Koordinaten an. Auf einem Bildschirm: 'NEBELSEKTOR 7 — ANOMALIE DETEKTIERT.' Im Sueden geht es zurueck zur Bruecke." `
+(Get-AdventureWorldMessage "observatory_desc") `
 @{ south = "bridge" } `
 (@{
     telescope = @{ Name = "Teleskop"; Description = "Ein riesiges Teleskop, das auf den Nebel gerichtet ist. Du siehst... etwas. Eine Gestalt? Nein. Ein Schatten."; Takeable = $false; UseWith = $null }
