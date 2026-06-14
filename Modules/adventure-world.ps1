@@ -216,7 +216,7 @@ $script:AdvRooms["hangar"].Exits["west"] = "cafeteria"
 
 # === ROOM 9: AIRLOCK ===
 Register-Room "airlock" "LUFTSCHLEUSE" `
-"Eine massive Luftschleuse mit dicken Stahltueren. Durch das Sichtfenster siehst du den schwarzen Weltraum und die verbeulte Aussenhuelle der Station. Ein Warnschild leuchtet rot: 'EVA erfordert RAUMANZUG.' Eine Tuer fuehrt nach draussen." `
+(Get-AdventureWorldMessage "airlock_desc") `
 @{ up = "hangar"; west = "eva" } `
 (@{
     suit = @{ Name = "Raumanzug"; Description = "Ein schwerer EVA-Raumanzug mit Sauerstofftank. Er riecht nach Schweiß und Weltraum."; Takeable = $true; UseWith = $null }
@@ -236,7 +236,7 @@ $script:AdvRooms["hangar"].Exits["down"] = "airlock"
 
 # === ROOM 10: EVA ===
 Register-Room "eva" "AUSSENBEREICH" `
-"Du schwebst im Nichts. Die Polaris erstreckt sich ueber dir wie ein riesiges Metallgebirge. Sterne umgeben dich. In der Ferne siehst du ein seltsames Leuchten im Nebel. Ein Kabel fuehrt zurueck zur Luftschleuse." `
+(Get-AdventureWorldMessage "eva_desc") `
 @{ east = "airlock" } `
 (@{
     cable = @{ Name = "Sicherheitskabel"; Description = "Ein dickes Stahlseil, das dich mit der Station verbindet. Dein einziger Weg zurueck."; Takeable = $false; UseWith = $null }
@@ -253,7 +253,7 @@ Register-Room "eva" "AUSSENBEREICH" `
 
 # === ROOM 11: ENGINE ===
 Register-Room "engine" "MASCHINENRAUM" `
-"Der Maschinenraum droehnt. Ein riesiger Reaktor pulsiert in der Mitte des Raums, aber sein Licht flackert unregelmaessig. Konsole blinken rot. Der Boden ist heiss. Im Norden ist eine schwere Tuere mit dem Schild 'REAKTOR-KERN'." `
+(Get-AdventureWorldMessage "engine_desc") `
 @{ up = "corridor"; north = "core" } `
 (@{
     reactor = @{ Name = "Reaktor"; Description = "Der Hauptreaktor der Polaris. Er flackert. Die Stabilitaetsanzeige zeigt 47%."; Takeable = $false; UseWith = "battery" }
@@ -358,7 +358,7 @@ $script:AdvRooms["bridge"].Exits["up"] = "observatory"
 
 # === ROOM 16: CORE ===
 Register-Room "core" "REAKTOR-KERN" `
-"Das Herz der Station. Der Reaktor-Kern pulsiert in einem hypnotischen Blau. In der Mitte des Raums steht ein Podest. Auf dem Podest liegt ein Symbol — es passt perfekt zum Polaris-Artefakt. Die Waende vibrieren. Du hoerst ein Fluestern. 'Benutze mich.' Im Sueden geht es zurueck in den Maschinenraum." `
+(Get-AdventureWorldMessage "core_desc") `
 @{ south = "engine" } `
 (@{
     pedestal = @{ Name = "Podest"; Description = "Ein Podest mit einem kreisfoermigen Ausschnitt. Es passt perfekt zum Artefakt."; Takeable = $false; UseWith = "artifact" }
