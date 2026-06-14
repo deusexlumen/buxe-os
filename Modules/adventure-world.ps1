@@ -117,7 +117,7 @@ Register-Room "storage" "LAGERRAUM" `
 
 # === ROOM 4: LAB ===
 Register-Room "lab" "FORSCHUNGSLABOR" `
-"Das Labor riecht nach Chemikalien. Zerbrochene Reagenzgläser liegen auf dem Boden. An der Wand ein Whiteboard mit einer halb gelöschten Formel. In der Ecke steht ein Notizbuch. Im Osten geht es zurück in den Korridor." `
+(Get-AdventureWorldMessage "lab_desc") `
 @{ east = "corridor" } `
 (@{
     notebook = @{ Name = "Notizbuch"; Description = "Dr. Vance' Notizbuch: 'Das Signal kommt aus dem Nebel. Es... spricht. Wir sollten nicht zuhören.' Die letzte Seite ist mit Blut befleckt."; Takeable = $true; UseWith = $null }
@@ -137,7 +137,7 @@ Register-Room "lab" "FORSCHUNGSLABOR" `
 
 # === ROOM 5: VENT ===
 Register-Room "vent" "LÜFTUNGSSCHACHT" `
-"Ein enger, staubiger Lüftungsschacht. Du hörst seltsame Geräusche aus der Tiefe. Das Metall gibt unter deinem Gewicht nach. Unten siehst du den Lagerraum. Im Osten wird der Schacht heller." `
+(Get-AdventureWorldMessage "vent_desc") `
 @{ down = "storage"; east = "secret" } `
 (@{
     dust = @{ Name = "Staub"; Description = "Nur Staub. Warum schaust du dir Staub an?"; Takeable = $false; UseWith = $null }
@@ -154,7 +154,7 @@ Register-Room "vent" "LÜFTUNGSSCHACHT" `
 
 # === ROOM 6: SECRET ===
 Register-Room "secret" "GEHEIMER RAUM" `
-"Ein kleiner, versteckter Raum hinter einem lockereren Gitter. Hier hat jemand gelebt. Eine Schlafmatte, leere Dosen, und an der Wand... Hunderte von Notizen. Alle sagen dasselbe: 'SIE SIEHT UNS.' Im Westen geht es zurück in den Schacht." `
+(Get-AdventureWorldMessage "secret_desc") `
 @{ west = "vent" } `
 (@{
     notes = @{ Name = "Notizen"; Description = "Jede Notiz sagt 'SIE SIEHT UNS.' Die Handschrift wird immer wilder. Die letzte ist in... Blut?"; Takeable = $false; UseWith = $null }
