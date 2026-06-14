@@ -232,6 +232,54 @@ Test-Assert "CombatState Round starts at 1" ($cs.Round -eq 1)
 Test-Assert "CombatState Stance starts Balanced" ($cs.PlayerStance -eq "Balanced")
 Test-Assert "CombatState StatusEffects empty" ($cs.StatusEffects.Count -eq 0)
 Test-Assert "CombatState LimitBreak not used" ($cs.LimitBreakUsed -eq $false)
+Test-Assert "CombatState ComboHistory empty" ($cs.ComboHistory.Count -eq 0)
+
+# Test Stance System
+$stance = Get-StanceModifier "Aggressiv"
+Test-Assert "Stance Aggressiv boosts ATK" ($stance.ATK -gt 1.0)
+Test-Assert "Stance Defensiv boosts DEF" ((Get-StanceModifier "Defensiv").DEF -gt 1.0)
+Test-Assert "Get-StanceDescription returns string" ((Get-StanceDescription "Speed").Length -gt 0)
+
+# Test Element Combo System
+$comboState = New-CombatState $pet.Pet $pet.Companion
+Add-ComboElement $comboState "FIRE"
+Add-ComboElement $comboState "FIRE"
+Add-ComboElement $comboState "FIRE"
+$triad = Test-ElementCombo $comboState
+Test-Assert "Triad Surge combo recognized" ($triad -and $triad.Name -eq "Triad Surge")
+$comboState2 = New-CombatState $pet.Pet $pet.Companion
+Add-ComboElement $comboState2 "FIRE"
+Add-ComboElement $comboState2 "ICE"
+Add-ComboElement $comboState2 "ELEC"
+$prism = Test-ElementCombo $comboState2
+Test-Assert "Prism Burst combo recognized" ($prism -and $prism.Name -eq "Prism Burst")
+
+# Test Enemy Scaling
+$template = $script:BPEnemies[0]
+$scaled = Get-ScaledEnemyStats -Template $template -PetLevel 5
+Test-Assert "Scaled enemy HP higher at level 5" ($scaled.HP -gt $template.HP)
+$elite = Get-ScaledEnemyStats -Template $template -PetLevel 5 -IsElite
+Test-Assert "Elite enemy flagged" ($elite.IsElite -eq $true)
+Test-Assert "Elite enemy stronger" ($elite.HP -gt $scaled.HP)
+
+# Test Status Effect Tick
+$seState = New-CombatState $pet.Pet $pet.Companion
+$enemy = @{ HP = 100; MaxHP = 100 }
+$seState.StatusEffects += @{ Target = "enemy"; Type = "Poison"; Turns = 2; Value = 0.05 }
+Apply-StatusEffects $seState $pet.Pet $enemy @{ MaxHP = 100 } @{ MaxHP = 100 } | Out-Null
+Test-Assert "Poison tick reduces enemy HP" ($enemy.HP -lt 100)
+
+# Test Talents
+$testPet = Get-PetState
+$testPet.Pet.Talents = @()
+Add-PetTalent $testPet.Pet "crit5" | Out-Null
+$eff = Get-EffectiveStats $testPet.Pet
+Test-Assert "Talent increases Crit" ($eff.Crit -gt 0)
+
+# Test Level-Up
+$lvlPet = @{ Level = 4; XP = 100; NextXP = 50; MaxHP = 100; HP = 100; ATK = 10; DEF = 5; SPD = 8; Attacks = @(); LimitBreakUnlocked = $false; Talents = @() }
+Invoke-PetLevelUpCheck $lvlPet
+Test-Assert "Level-Up increases level" ($lvlPet.Level -eq 5)
 
 # === STORY ENGINE TESTS ===
 Write-Host "`n  Testing Story Engine..." -ForegroundColor Yellow

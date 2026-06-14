@@ -45,6 +45,115 @@ $script:BossPatterns = @{
     }
 }
 
+$script:CombatStances = @{
+    "Balanced"  = @{ ATK = 1.0; DEF = 1.0; SPD = 1.0; Crit = 5;  Block = 5;  Label = "BAL" }
+    "Aggressiv" = @{ ATK = 1.5; DEF = 0.7; SPD = 1.0; Crit = 15; Block = 0;  Label = "AGGR" }
+    "Defensiv"  = @{ ATK = 0.7; DEF = 1.5; SPD = 1.0; Crit = 0;  Block = 20; Label = "DEF" }
+    "Speed"     = @{ ATK = 1.0; DEF = 0.85; SPD = 1.4; Crit = 10; Block = 5;  Label = "SPD" }
+}
+
+$script:PetTalents = @(
+    @{ ID = "crit5";  Name = "Sharp Bits";        Description = "Crit +5%";                    Effect = "Crit";  Value = 5 }
+    @{ ID = "hp5";    Name = "Overclocked Core";  Description = "MaxHP +5%";                   Effect = "MaxHP"; Value = 0.05 }
+    @{ ID = "atk3";   Name = "Razor Code";        Description = "ATK +3";                      Effect = "ATK";   Value = 3 }
+    @{ ID = "spd2";   Name = "Fast Compiler";     Description = "SPD +2";                      Effect = "SPD";   Value = 2 }
+    @{ ID = "def2";   Name = "Firewall Patch";    Description = "DEF +2";                      Effect = "DEF";   Value = 2 }
+    @{ ID = "regen1"; Name = "Self-Repair";       Description = "Regen 1% HP pro Runde";       Effect = "Regen"; Value = 0.01 }
+)
+
+function Get-StanceModifier($Stance) {
+    if ($script:CombatStances.ContainsKey($Stance)) { return $script:CombatStances[$Stance] }
+    return $script:CombatStances["Balanced"]
+}
+
+function Get-StanceDescription($Stance) {
+    $m = Get-StanceModifier $Stance
+    $parts = @()
+    if ($m.ATK -ne 1.0) { $parts += "ATK x$($m.ATK)" }
+    if ($m.DEF -ne 1.0) { $parts += "DEF x$($m.DEF)" }
+    if ($m.SPD -ne 1.0) { $parts += "SPD x$($m.SPD)" }
+    if ($m.Crit -gt 0) { $parts += "Crit +$($m.Crit)%" }
+    if ($m.Block -gt 0) { $parts += "Block +$($m.Block)%" }
+    if ($parts.Count -eq 0) { return "Ausgewogen. Keine Boni, keine Nachteile." }
+    return ($parts -join " | ")
+}
+
+function Get-AvailableTalents($Pet) {
+    $owned = @($Pet.Talents)
+    $all = $script:PetTalents | Where-Object { $owned -notcontains $_.ID }
+    return $all | Get-Random -Count ([math]::Min(3, $all.Count))
+}
+
+function Add-PetTalent($Pet, $TalentId) {
+    $talent = $script:PetTalents | Where-Object { $_.ID -eq $TalentId } | Select-Object -First 1
+    if (-not $talent) { return $false }
+    if (-not $Pet.Talents) { $Pet.Talents = @() }
+    if ($Pet.Talents -contains $TalentId) { return $false }
+    $Pet.Talents += $TalentId
+    return $true
+}
+
+function Invoke-PetTalentMenu($Pet) {
+    try { Clear-Host } catch {}
+    Show-PetFrame "TALENT FREIGESCHALTET — Lv.$($Pet.Level)" -Double | Out-Null
+    Write-Host ""
+    $choices = Get-AvailableTalents $Pet
+    if ($choices.Count -eq 0) {
+        Write-Host "  Keine neuen Talente verfuegbar." -ForegroundColor DarkGray
+        Wait-Enter
+        return
+    }
+    for ($i = 0; $i -lt $choices.Count; $i++) {
+        Write-Host "  [$($i+1)] $($choices[$i].Name): $($choices[$i].Description)" -ForegroundColor Cyan
+    }
+    Write-Host ""
+    $valid = "^[1-$($choices.Count)]$"
+    $c = Read-Choice "Talent" $valid
+    $selected = $choices[[int]$c - 1]
+    if (Add-PetTalent $Pet $selected.ID) {
+        Write-Host "  Talent erlernt: $($selected.Name)!" -ForegroundColor Green
+    } else {
+        Write-Host "  Talent bereits bekannt oder ungueltig." -ForegroundColor Red
+    }
+    Wait-Enter
+}
+
+function Add-ComboElement($CombatState, $Element) {
+    $CombatState.ComboHistory += $Element
+    if ($CombatState.ComboHistory.Count -gt 3) {
+        $CombatState.ComboHistory = $CombatState.ComboHistory | Select-Object -Last 3
+    }
+}
+
+function Test-ElementCombo($CombatState) {
+    $h = $CombatState.ComboHistory
+    if ($h.Count -lt 3) { return $null }
+    $last3 = @($h[-3]; $h[-2]; $h[-1])
+    $unique = @($last3 | Sort-Object -Unique)
+    if ($unique.Count -eq 1) {
+        return @{ Name = "Triad Surge"; Multiplier = 1.5; Color = "Magenta" }
+    }
+    if ($unique.Count -eq 3) {
+        return @{ Name = "Prism Burst"; Multiplier = 1.3; Color = "Cyan" }
+    }
+    return $null
+}
+
+function Get-ScaledEnemyStats($Template, $PetLevel, [switch]$IsElite, [switch]$IsBoss) {
+    $sc = 1 + ($PetLevel - 1) * 0.25
+    if ($IsBoss) { $sc += 0.5 }
+    if ($IsElite) { $sc *= 1.2 }
+    $name = $Template.Name
+    if ($IsElite) { $name = "ELITE $name" }
+    return @{
+        Name = $name; Type = $Template.Type
+        HP = [math]::Round($Template.HP * $sc); MaxHP = [math]::Round($Template.HP * $sc)
+        ATK = [math]::Round($Template.ATK * $sc); DEF = [math]::Round($Template.DEF * $sc); SPD = [math]::Round($Template.SPD * $sc)
+        IsElite = [bool]$IsElite; IsBoss = [bool]$IsBoss
+        BossPattern = if ($IsBoss) { $script:BossPatterns[$name] } else { $null }
+    }
+}
+
 function New-Pet {
     try { Clear-Host } catch {}
     Show-PetFrame "BATTLEPET INITIALISIERUNG" -Double | Out-Null
@@ -64,6 +173,7 @@ function New-Pet {
         Wins = 0; Losses = 0; Evolved = $false; Personality = "Balanced"
         Equipment = @{ Chip = $null; Armor = $null; Accessory = $null }
         FoodBuffs = @()
+        Talents = @()
     }
     Save-PetState $pet
     Write-Host "`n  $($st.Name) initialisiert." -ForegroundColor $st.Color
@@ -187,7 +297,7 @@ function Get-EffectiveStats($p, $companion = $null) {
     if ($combatBonus -gt 0) {
         $atk += [math]::Round($p.ATK * $combatBonus)
     }
-    $fMaxHP = $p.MaxHP + $hp; $fATK = $p.ATK + $atk; $fDEF = $p.DEF + $def; $fSPD = $p.SPD + $spd
+    $fMaxHP = $p.MaxHP + $hp; $fATK = $p.ATK + $atk; $fDEF = $p.DEF + $def; $fSPD = $p.SPD + $spd; $fCrit = 0
     foreach ($buff in $p.FoodBuffs) {
         if ($buff.Stat -eq "MaxHP") { $fMaxHP += [math]::Round($fMaxHP * $buff.Value) }
         if ($buff.Stat -eq "ATK")   { $fATK += [math]::Round($fATK * $buff.Value) }
@@ -195,7 +305,21 @@ function Get-EffectiveStats($p, $companion = $null) {
         if ($buff.Stat -eq "SPD")   { $fSPD += [math]::Round($fSPD * $buff.Value) }
         if ($buff.Stat -eq "ALL")   { $fMaxHP += [math]::Round($fMaxHP * $buff.Value); $fATK += [math]::Round($fATK * $buff.Value); $fDEF += [math]::Round($fDEF * $buff.Value); $fSPD += [math]::Round($fSPD * $buff.Value) }
     }
-    return @{ MaxHP = $fMaxHP; ATK = $fATK; DEF = $fDEF; SPD = $fSPD }
+    # Talente anwenden
+    if ($p.Talents) {
+        foreach ($tid in $p.Talents) {
+            $t = $script:PetTalents | Where-Object { $_.ID -eq $tid } | Select-Object -First 1
+            if (-not $t) { continue }
+            switch ($t.Effect) {
+                "MaxHP" { $fMaxHP += [math]::Round($fMaxHP * $t.Value) }
+                "ATK"   { $fATK += $t.Value }
+                "DEF"   { $fDEF += $t.Value }
+                "SPD"   { $fSPD += $t.Value }
+                "Crit"  { $fCrit += $t.Value }
+            }
+        }
+    }
+    return @{ MaxHP = $fMaxHP; ATK = $fATK; DEF = $fDEF; SPD = $fSPD; Crit = $fCrit }
 }
 
 function Use-CompanionCombatAbility($cp, $p, $stats, $enemy) {
@@ -256,6 +380,7 @@ function New-CombatState($playerPet, $companion) {
         Round = 1
         PlayerStance = "Balanced"
         StatusEffects = @()
+        ComboHistory = @()
         CompanionCooldowns = @{}
         LimitBreakUsed = $false
         BattleLog = @()
@@ -269,22 +394,13 @@ function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
     $stats = Get-EffectiveStats $playerPet $companion
     $playerPet.HP = [math]::Min($playerPet.HP, $stats.MaxHP)
     
-    $sc = 1 + ($playerPet.Level - 1) * 0.2
+    $isElite = (-not $isBoss) -and ($playerPet.Level -ge 5) -and ((Get-Random -Maximum 100) -lt 30)
     if ($isBoss) {
         $et = @{ Name = "BOSS_OMEGA"; Type = "VIRUS"; HP = 150; MaxHP = 150; ATK = 20; DEF = 15; SPD = 10 }
-        $enemy = @{
-            Name = $et.Name; Type = $et.Type; HP = $et.HP; MaxHP = $et.MaxHP
-            ATK = $et.ATK; DEF = $et.DEF; SPD = $et.SPD
-            BossPattern = $script:BossPatterns[$et.Name]
-        }
+        $enemy = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsBoss
     } else {
         $et = ($script:BPEnemies | Get-Random)
-        $enemy = @{
-            Name = $et.Name; Type = $et.Type
-            HP = [math]::Round($et.HP * $sc); MaxHP = [math]::Round($et.HP * $sc)
-            ATK = [math]::Round($et.ATK * $sc); DEF = [math]::Round($et.DEF * $sc); SPD = [math]::Round($et.SPD * $sc)
-            BossPattern = $null
-        }
+        $enemy = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsElite:$isElite
     }
     
     $enemyStats = @{ MaxHP = $enemy.MaxHP; ATK = $enemy.ATK; DEF = $enemy.DEF; SPD = $enemy.SPD }
@@ -476,12 +592,13 @@ function Start-PetFight {
 }
 
 function Invoke-PetLevelUpCheck($p) {
-    if ($p.XP -ge $p.NextXP) {
+    $learn = @{ 2 = "Debug Patch"; 3 = "Plasma Lance"; 4 = "Ice Spike"; 5 = "System Purge"; 6 = "Water Cannon"; 7 = "Overclock"; 8 = "Shadow Claw"; 9 = "Firewall"; 10 = "Zero-Day" }
+    while ($p.XP -ge $p.NextXP) {
+        $oldLevel = $p.Level
         $p.Level++; $p.XP -= $p.NextXP; $p.NextXP = [math]::Round($p.NextXP * 1.5)
         $p.MaxHP += 10; $p.ATK += 2; $p.DEF += 1; $p.SPD += 1
         $p.HP = $p.MaxHP
         Write-Host "`n  LEVEL UP! Lv.$($p.Level)! Stats +1!" -ForegroundColor Magenta
-        $learn = @{ 2 = "Debug Patch"; 3 = "Plasma Lance"; 4 = "Ice Spike"; 5 = "System Purge"; 6 = "Water Cannon"; 7 = "Overclock"; 8 = "Shadow Claw"; 9 = "Firewall"; 10 = "Zero-Day" }
         if ($learn.ContainsKey($p.Level)) {
             $p.Attacks += $learn[$p.Level]
             Write-Host "  Neue Attacke gelernt: $($learn[$p.Level])!" -ForegroundColor Yellow
@@ -489,6 +606,9 @@ function Invoke-PetLevelUpCheck($p) {
         if ($p.Level -eq 5 -and -not $p.LimitBreakUnlocked) {
             $p.LimitBreakUnlocked = $true
             Write-Host "  LIMIT BREAK freigeschaltet!" -ForegroundColor Magenta
+        }
+        if ($p.Level % 3 -eq 0) {
+            Invoke-PetTalentMenu $p
         }
     }
 }
@@ -507,79 +627,23 @@ function Get-CompanionCommandName($cpName) {
 }
 
 function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats, $isBoss) {
-    try { Clear-Host } catch {}
-    $title = if ($isBoss) { "BOSS-KAMPF — Runde $($combatState.Round)" } else { "KAMPF — Runde $($combatState.Round)" }
-    Show-PetFrame $title -Double | Out-Null
-    Write-Host ""
-    
-    $pBar = Show-HPBar $playerPet.HP $playerStats.MaxHP
-    $eBar = Show-HPBar $enemy.HP $enemy.MaxHP
-    Write-Host "  [$($playerPet.Name)] $($pBar.Bar) $($playerPet.HP)/$($playerStats.MaxHP) HP ($($pBar.Percent)%)" -ForegroundColor $pBar.Color
-    Write-Host "  [$($enemy.Name)]     $($eBar.Bar) $($enemy.HP)/$($enemy.MaxHP) HP ($($eBar.Percent)%)" -ForegroundColor $eBar.Color
-    Write-Host ""
-    
-    $stanceEmoji = switch ($combatState.PlayerStance) {
-        "Aggressiv" { "[AGGR]" }
-        "Defensiv"  { "[DEF]" }
-        "Speed"     { "[SPD]" }
-        default     { "[BAL]" }
-    }
-    Write-Host "  Stance: $stanceEmoji $($combatState.PlayerStance)" -ForegroundColor Cyan
-    Write-Host ""
-    
+    try { [Console]::CursorVisible = $false } catch {}
+    Show-CombatScene $playerPet $enemy $companion $combatState $playerStats $enemyStats $isBoss
     if ($isBoss -and $enemy.BossPattern) {
         $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
-        if ($currentPhase -and $currentPhase.Tell -and $currentPhase.WarnTurns -gt 0) {
-            if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "boss_warning") -Fast }
-            Write-Host "  ⚠️  $($currentPhase.Tell)" -ForegroundColor Magenta
-            Write-Host "  [Naechste Runde: Stark-Attacke! Defend oder Switch empfohlen!]" -ForegroundColor DarkMagenta
-            Write-Host ""
+        if ($currentPhase -and $currentPhase.Tell -and $currentPhase.WarnTurns -gt 0 -and $companion) {
+            Show-CompanionDialog $companion (Get-CompanionLine $companion "boss_warning") -Fast
         }
     }
-    
-    if ($combatState.StatusEffects.Count -gt 0) {
-        Write-Host "  Status Effects:" -ForegroundColor Yellow
-        foreach ($se in $combatState.StatusEffects) {
-            $seText = switch ($se.Type) {
-                "Burn"     { "[BURN] ($($se.Turns) Runden)" }
-                "Freeze"   { "[FREEZE] ($($se.Turns) Runden)" }
-                "Poison"   { "[POISON] ($($se.Turns) Runden)" }
-                "Paralyze" { "[PARALYZE] ($($se.Turns) Runden)" }
-                "DEF-Down" { "[DEF-DOWN] ($($se.Turns) Runden)" }
-                "DEF-Up"   { "[DEF-UP] ($($se.Turns) Runden)" }
-                "ATK-Up"   { "[ATK-UP] ($($se.Turns) Runden)" }
-                "Silence"  { "[SILENCE] ($($se.Turns) Runden)" }
-                default    { "[$($se.Type)] ($($se.Turns) Runden)" }
-            }
-            $targetText = if ($se.Target -eq "player") { "[$($playerPet.Name)]" } else { "[$($enemy.Name)]" }
-            Write-Host "    $targetText $seText" -ForegroundColor DarkYellow
-        }
-        Write-Host ""
-    }
-    
-    if ($combatState.BattleLog.Count -gt 0) {
-        Show-CombatLog $combatState.BattleLog
-        Write-Host ""
-    }
-    
-    Write-Host "  [1] Attack — Waehle Attacke" -ForegroundColor White
-    Write-Host "  [2] Defend — Schaden -50% diese Runde" -ForegroundColor White
-    Write-Host "  [3] Switch — Wechsle Pet" -ForegroundColor White
     if ($companion) {
         $cd = if ($combatState.CompanionCooldowns.ContainsKey($companion.Name)) { $combatState.CompanionCooldowns[$companion.Name] } else { 0 }
         $cdText = if ($cd -gt 0) { " [CD: $cd]" } else { "" }
-        Write-Host "  [4] Companion — $($companion.Name): $(Get-CompanionCommandName $companion.Name)$cdText" -ForegroundColor White
-    } else {
-        Write-Host "  [4] Companion — Kein Companion" -ForegroundColor DarkGray
+        Write-Host "  Companion: $($companion.Name): $(Get-CompanionCommandName $companion.Name)$cdText" -ForegroundColor DarkGray
     }
-    Write-Host "  [5] Item — Nutze Item" -ForegroundColor White
     $fleeChance = [math]::Min(95, [math]::Round(($playerStats.SPD / ($playerStats.SPD + $enemyStats.SPD)) * 100))
-    Write-Host "  [6] Flee — Chance: $fleeChance%" -ForegroundColor White
-    Write-Host ""
-    Write-Host "  [F1] Aggressiv  [F2] Defensiv  [F3] Speed  [F4] Balanced" -ForegroundColor DarkGray
+    Write-Host "  Flee-Chance: $fleeChance%" -ForegroundColor DarkGray
     Write-Host ""
 }
-
 function Select-PlayerAttack($playerPet) {
     $pet = Get-PetState
     if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "attack_select") -Fast }
@@ -634,6 +698,9 @@ function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatSt
             
             $accRoll = Get-Random -Minimum 1 -Maximum 101
             if ($accRoll -le $attack.Accuracy) {
+                Add-ComboElement $combatState $attack.Type
+                $combo = Test-ElementCombo $combatState
+
                 $playerMod = Get-ElementModifier $attack.Type $enemy.Type
 
                 # Status-Effekte in Schadensberechnung einfliessen lassen
@@ -646,12 +713,25 @@ function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatSt
                 if ($defDown) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 - $defDown.Value))) }
 
                 $baseDmg = $attack.Power + $effectiveAtk
-                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod) * (100 / (100 + $effectiveDef))))
+                $skillCritBonus = (Get-TotalPetSkillBonus -Branch 'Combat') * 20
+                $critUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "Crit-Up" } | Select-Object -First 1
+                $critChance = $stanceMod.Crit + $skillCritBonus + $playerStats.Crit
+                if ($critUp) { $critChance += [math]::Round($critUp.Value * 100) }
+                $critRoll = Get-Random -Minimum 1 -Maximum 101
+                $crit = ($critRoll -le [math]::Max(0, [math]::Round($critChance)))
+                $critMod = if ($crit) { 1.5 } else { 1.0 }
+                $comboMod = 1.0
+                if ($combo) {
+                    $comboMod = $combo.Multiplier
+                    $narrative += " [$($combo.Name)]!"
+                }
+                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod * $critMod * $comboMod) * (100 / (100 + $effectiveDef))))
                 $damageDealt = $dmg
                 $enemy.HP -= $dmg
 
                 if ($playerMod -gt 1.0) { $narrative += " Typ-Vorteil!" }
                 if ($playerMod -lt 1.0) { $narrative += " Typ-Nachteil..." }
+                if ($crit) { $narrative += " KRITISCH!" }
                 $narrative += " Treffer! -$dmg HP!"
 
                 if ($attack.Effect -and (Get-Random -Minimum 1 -Maximum 101) -le $attack.EffectChance) {
@@ -739,6 +819,12 @@ function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $en
         return @{ DamageDealt = 0; Narrative = $narrative }
     }
     
+    $stunEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Stun" } | Select-Object -First 1
+    if ($stunEffect) {
+        $narrative = "$($enemy.Name) ist gestuned und kann nicht angreifen!"
+        return @{ DamageDealt = 0; Narrative = $narrative }
+    }
+    
     $actions = @("A","V","S")
     $weights = switch ($behavior) {
         "Aggressive"   { @(60, 20, 20) }
@@ -779,10 +865,19 @@ function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $en
         $defUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "DEF-Up" } | Select-Object -First 1
         if ($defUp) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 + $defUp.Value))) }
 
-        $dmg = [math]::Max(1, [math]::Round(($baseDmg * $enemyMod * $defendMod) * (100 / (100 + $effectiveDef))))
+        $stance = Get-StanceModifier $combatState.PlayerStance
+        $blockRoll = Get-Random -Minimum 1 -Maximum 101
+        $blocked = ($blockRoll -le $stance.Block)
+        $blockMod = if ($blocked) { 0.0 } else { 1.0 }
+
+        $dmg = [math]::Max(0, [math]::Round(($baseDmg * $enemyMod * $defendMod * $blockMod) * (100 / (100 + $effectiveDef))))
         $damageDealt = $dmg
         $playerPet.HP -= $dmg
-        $narrative += " Treffer! -$dmg HP!"
+        if ($blocked) {
+            $narrative += " BLOCKIERT! Kein Schaden!"
+        } else {
+            $narrative += " Treffer! -$dmg HP!"
+        }
     } else {
         $narrative += " Der Gegner nimmt Defensive-Stance ein!"
     }
@@ -918,10 +1013,23 @@ function Apply-StatusEffects($combatState, $playerPet, $enemy, $playerStats, $en
                     $messages += "$($playerPet.Name) erleidet POISON! -$dmg HP!"
                 }
             }
+            "Regen" {
+                if ($se.Target -eq "player") {
+                    $heal = [math]::Max(1, [math]::Round($playerStats.MaxHP * $se.Value))
+                    $playerPet.HP = [math]::Min($playerStats.MaxHP, $playerPet.HP + $heal)
+                    $messages += "$($playerPet.Name) regeneriert! +$heal HP!"
+                } else {
+                    $heal = [math]::Max(1, [math]::Round($enemyStats.MaxHP * $se.Value))
+                    $enemy.HP = [math]::Min($enemyStats.MaxHP, $enemy.HP + $heal)
+                    $messages += "$($enemy.Name) regeneriert! +$heal HP!"
+                }
+            }
+            "Stun"     { }
             "DEF-Down" { }
             "DEF-Up"   { }
             "ATK-Up"   { }
             "Silence"  { }
+            "Crit-Up"  { }
         }
     }
     

@@ -179,6 +179,7 @@ function Get-PetState {
             foreach ($durKey in @("Dur_chip","Dur_armor","Dur_accessory")) {
                 if (-not $p.$durKey) { $p.$durKey = 10 }
             }
+            if (-not $p.Talents) { $p.Talents = @() }
             Save-State
         }
         # Lazy migration: Skill Tree & Adaptive Tutorial Flags (Progress Overhaul v24.12)
