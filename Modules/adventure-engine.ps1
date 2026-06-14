@@ -126,17 +126,55 @@ function Has-Item($ItemId) { return $script:AdvState.Inventory -contains $ItemId
 
 function Show-Inventory {
     $inv = $script:AdvState.Inventory
-    if ($inv.Count -eq 0) { return "Dein Inventar ist leer." }
+    if ($inv.Count -eq 0) { return Get-AdventureMessage "empty_inventory" }
     $items = @()
     foreach ($id in $inv) {
-        # Find item name across all rooms
         $name = $id
         foreach ($room in $script:AdvRooms.Values) {
             if ($room.Objects[$id]) { $name = $room.Objects[$id].Name; break }
         }
         $items += $name
     }
-    return "Inventar: " + ($items -join ", ")
+    return (Get-AdventureMessage "inventory_prefix" @(($items -join ", ")))
+}
+
+function Get-AdventureMessage($Key, $Params = @()) {
+    $messages = @{
+        empty_inventory    = "Deine Taschen sind so leer wie mein Entwickler-Testverzeichnis. Sogar der Staub hat sich verzogen."
+        inventory_prefix   = "Aktueller Speicherbelegung: {0}"
+        cannot_go          = "Dorthin geht nur die Wand. Und meine Geduld, wenn du es nochmal probierst."
+        not_here           = "Nicht in diesem Raum. Nicht in diesem Universum. Nicht in meiner JSON."
+        not_here_examine   = "Meine Render-Pipeline findet hier kein Objekt mit diesem Namen."
+        not_takeable       = "Dieser Gegenstand ist an den Boden gepinnt. Wortwörtlich."
+        take               = "+1 {0} in den 8-Bit-Inventarslot gepackt."
+        already_have       = "Doppelter Eintrag. Selbst mein Array würde das ablehnen."
+        not_in_inventory   = "Nicht gefunden. Weder im Inventar noch im Cache."
+        drop               = "Du dropst {0}. Hoffentlich bleibt es im Savegame."
+        talk_no_target     = "Mit wem willst du reden? Der Spiegel ist in einem anderen Raum."
+        save               = "State committed – wie ein git push vor dem Wochenende."
+        load               = "State restored. Alle Fehler stehen wieder zur Verfügung."
+        unknown_command    = "Parser-Fehler 0xBADC0DE. Probier mal 'help'. Oder bete."
+        use_fail           = "Diese Kombination ist so illegal wie ein goto in 2026."
+        hack_what          = "Was willst du hacken? Ein Gefühl? Probier 'help'."
+        hack_not_hackable  = "Das kannst du nicht hacken. Nicht alles ist ein Terminal."
+        hack_terminal_locked  = "Du hackst das Terminal. Die Kartenleser-Sicherheit ist lächerlich. Die Brücke ist jetzt zugänglich."
+        hack_medbay_terminal  = "Du hackst das Med-Terminal. Patientendaten entschlüsselt. Jemand hat Experimente an der Crew durchgeführt. Und du hast den Schlüssel gefunden: 7-7-7."
+        hack_terminal_done = "Das Terminal ist bereits entsperrt oder nicht hackbar."
+        jump_useless       = "Das bringt hier nichts. Schwerkraft ist auch nur eine Convention."
+        die_not_here       = "Nicht hier. Nicht jetzt. Speichere erst, wenn du unbedingt willst."
+        void_not_here      = "Void ist kein Ort. Noch nicht. Du brauchst dafür mehr Absurdes."
+        oxygen_status      = "Sauerstoff: {0}/10"
+        oxygen_low         = "O₂-Buffer läuft voll. Bald bootest du als Weltraum-Eiswürfel neu."
+        death_eva          = "Oh. Du hast die Luftschleuse ohne Anzug geöffnet. Das ist wie Remove-Item ohne -WhatIf.`n`n*Ladegeräusch*`n`nDrück 'load', dann reden wir über Risikomanagement."
+        death_oxygen       = "Sauerstoff = 0. Du bist jetzt ein kleiner, gefriergetrockneter Satellit. Kein Drama – dein Savegame ist noch warm.`n`nDrück 'load' für Take 2."
+        death_hollow_jump  = "Du springst in die Leere. Der Fall ist endlos, aber unten steht schon ein Respawn-Punkt. Typisches LucasArts-Debugging.`n`nDrück 'load'."
+        death_hollow_die   = "Du gibst auf. Die Dunkelheit umarmt dich. Sie ist warm. Fast wie ein Windows-Update-Reboot.`n`nDrück 'load'."
+        death_hollow_void  = "Du wirst eins mit der Leere. Kein Licht. Nur... Code. Und ein Compilier-Fehler, der dich zurückholt.`n`nDrück 'load'."
+    }
+    $msg = $messages[$Key]
+    if (-not $msg) { return "" }
+    if ($Params.Count -gt 0) { $msg = $msg -f $Params }
+    return $msg
 }
 
 # === PARSER ===
@@ -251,7 +289,7 @@ function Process-AdventureCommand($Cmd) {
             }
 
             if (-not $room.Exits[$Cmd.Noun]) {
-                $result = @{ Success = $false; Message = "Du kannst nicht nach $($Cmd.Noun) gehen."; CompanionContext = "adventure_blocked" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "cannot_go"); CompanionContext = "adventure_blocked" }
                 break
             }
             $targetRoomId = $room.Exits[$Cmd.Noun]
@@ -259,7 +297,7 @@ function Process-AdventureCommand($Cmd) {
             # EVA Suit Check
             if ($targetRoomId -eq "eva") {
                 if (-not (Has-Item "suit")) {
-                    $result = @{ Success = $false; Message = "Du oeffnest die Luftschleuse. Der Sog des Vakuums reisst dich hinaus. Ohne Raumanzug ueberlebst du 3 Sekunden.`n`n=== GAME OVER ===`nDu bist erfroren im Weltraum.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                    $result = @{ Success = $false; Message = (Get-AdventureMessage "death_eva"); Death = $true; CompanionContext = "adventure_death_eva" }
                     break
                 }
                 # Reset oxygen when entering EVA
@@ -270,7 +308,7 @@ function Process-AdventureCommand($Cmd) {
             if ($room.Id -eq "eva" -and $targetRoomId -ne "airlock") {
                 $script:AdvState.Oxygen--
                 if ($script:AdvState.Oxygen -le 0) {
-                    $result = @{ Success = $false; Message = "Dein Sauerstoff ist aufgebraucht. Die Dunkelheit umschlingt dich.`n`n=== GAME OVER ===`nDu bist erstickt im Weltraum.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                    $result = @{ Success = $false; Message = (Get-AdventureMessage "death_oxygen"); Death = $true; CompanionContext = "adventure_death_oxygen" }
                     break
                 }
             }
@@ -288,7 +326,7 @@ function Process-AdventureCommand($Cmd) {
             $script:AdvStateDirty = $true
             $newRoom = Get-Room $script:AdvState.CurrentRoom
             $oxMsg = ""
-            if ($newRoom.Id -eq "eva") { $oxMsg = " Sauerstoff: $($script:AdvState.Oxygen)/10" }
+            if ($newRoom.Id -eq "eva") { $oxMsg = " " + (Get-AdventureMessage "oxygen_status" @($script:AdvState.Oxygen)) }
             $result = @{ Success = $true; Message = $oxMsg; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
             break
         }
@@ -329,33 +367,33 @@ function Process-AdventureCommand($Cmd) {
                 if ($foundDesc) {
                     $result = @{ Success = $true; Message = $foundDesc; CompanionContext = "adventure_examine" }
                 } else {
-                    $result = @{ Success = $false; Message = "Das siehst du hier nicht."; CompanionContext = "adventure_confused" }
+                    $result = @{ Success = $false; Message = (Get-AdventureMessage "not_here_examine"); CompanionContext = "adventure_confused" }
                 }
             } else {
-                $result = @{ Success = $false; Message = "Das siehst du hier nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "not_here_examine"); CompanionContext = "adventure_confused" }
             }
             break
         }
         "take" {
             if (-not $room.Objects[$Cmd.Noun]) {
-                $result = @{ Success = $false; Message = "Das gibt es hier nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "not_here"); CompanionContext = "adventure_confused" }
             } else {
                 $obj = $room.Objects[$Cmd.Noun]
                 if (-not $obj.Takeable) {
-                    $result = @{ Success = $false; Message = "Das kannst du nicht mitnehmen."; CompanionContext = "adventure_blocked" }
+                    $result = @{ Success = $false; Message = (Get-AdventureMessage "not_takeable"); CompanionContext = "adventure_blocked" }
                 } elseif (Add-ToInventory $Cmd.Noun $obj.Name) {
                     $room.Objects.Remove($Cmd.Noun)
                     $script:AdvStateDirty = $true
-                    $result = @{ Success = $true; Message = "Du nimmst $($obj.Name)."; CompanionContext = "adventure_take" }
+                    $result = @{ Success = $true; Message = (Get-AdventureMessage "take" @($obj.Name)); CompanionContext = "adventure_take" }
                 } else {
-                    $result = @{ Success = $false; Message = "Du hast das schon."; CompanionContext = "adventure_confused" }
+                    $result = @{ Success = $false; Message = (Get-AdventureMessage "already_have"); CompanionContext = "adventure_confused" }
                 }
             }
             break
         }
         "drop" {
             if (-not (Has-Item $Cmd.Noun)) {
-                $result = @{ Success = $false; Message = "Das hast du nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "not_in_inventory"); CompanionContext = "adventure_confused" }
             } else {
                 $objDef = $null
                 foreach ($r in $script:AdvRooms.Values) {
@@ -366,7 +404,7 @@ function Process-AdventureCommand($Cmd) {
                 }
                 $room.Objects[$Cmd.Noun] = $objDef
                 Remove-FromInventory $Cmd.Noun
-                $result = @{ Success = $true; Message = "Du legst $($objDef.Name) hin."; CompanionContext = "adventure_drop" }
+                $result = @{ Success = $true; Message = (Get-AdventureMessage "drop" @($objDef.Name)); CompanionContext = "adventure_drop" }
             }
             break
         }
@@ -376,7 +414,7 @@ function Process-AdventureCommand($Cmd) {
         }
         "talk" {
             if (-not $room.NPCs[$Cmd.Noun]) {
-                $result = @{ Success = $false; Message = "Mit wem willst du reden?"; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "talk_no_target"); CompanionContext = "adventure_confused" }
             } else {
                 $npc = $room.NPCs[$Cmd.Noun]
                 $dialog = $npc.Dialog | Get-Random
@@ -394,12 +432,12 @@ function Process-AdventureCommand($Cmd) {
         }
         "save" {
             $script:AdvStateDirty = $true
-            $result = @{ Success = $true; Message = "Spiel gespeichert."; CompanionContext = "adventure_save" }
+            $result = @{ Success = $true; Message = (Get-AdventureMessage "save"); CompanionContext = "adventure_save" }
             break
         }
         "load" {
             Load-AdventureState
-            $result = @{ Success = $true; Message = "Spiel geladen."; CompanionContext = "adventure_load" }
+            $result = @{ Success = $true; Message = (Get-AdventureMessage "load"); CompanionContext = "adventure_load" }
             break
         }
         "score" {
@@ -410,22 +448,22 @@ function Process-AdventureCommand($Cmd) {
         }
         "hack" {
             if (-not $room.Objects[$Cmd.Noun]) {
-                $result = @{ Success = $false; Message = "Was willst du hacken?"; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "hack_what"); CompanionContext = "adventure_confused" }
             } elseif ($room.Objects[$Cmd.Noun].Name -notmatch "Terminal|Konsole|Computer|Bildschirm") {
-                $result = @{ Success = $false; Message = "Das kannst du nicht hacken."; CompanionContext = "adventure_blocked" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "hack_not_hackable"); CompanionContext = "adventure_blocked" }
             } elseif ($Cmd.Noun -eq "terminal" -and $room.Id -eq "corridor" -and -not $script:AdvState.Flags["bridge_unlocked"]) {
-                $result = @{ Success = $true; Message = "Du hackst das Terminal. Die Kartenleser-Sicherheit ist laecherlich. Die Bruecke ist jetzt zugaenglich."; CompanionContext = "adventure_unlock" }
+                $result = @{ Success = $true; Message = (Get-AdventureMessage "hack_terminal_locked"); CompanionContext = "adventure_unlock" }
                 $script:AdvState.Flags["bridge_unlocked"] = $true
                 $script:AdvRooms["corridor"].Exits["north"] = "bridge"
                 $script:AdvState.Score += 15
                 $script:AdvStateDirty = $true
             } elseif ($Cmd.Noun -eq "terminal" -and $room.Id -eq "medbay" -and -not $script:AdvState.Flags["medbay_unlocked"]) {
-                $result = @{ Success = $true; Message = "Du hackst das Med-Terminal. Patientendaten entschluesselt. Jemand hat Experimente an der Crew durchgefuehrt. Und du hast den Schluessel gefunden: 7-7-7."; CompanionContext = "adventure_unlock" }
+                $result = @{ Success = $true; Message = (Get-AdventureMessage "hack_medbay_terminal"); CompanionContext = "adventure_unlock" }
                 $script:AdvState.Flags["medbay_unlocked"] = $true
                 $script:AdvState.Score += 10
                 $script:AdvStateDirty = $true
             } else {
-                $result = @{ Success = $false; Message = "Das Terminal ist bereits entsperrt oder nicht hackbar."; CompanionContext = "adventure_blocked" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "hack_terminal_done"); CompanionContext = "adventure_blocked" }
             }
             break
         }
@@ -434,9 +472,9 @@ function Process-AdventureCommand($Cmd) {
                 if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
                     Invoke-ArgRoom17Death
                 }
-                $result = @{ Success = $false; Message = "Du springst in die Leere. Der Fall ist endlos. Aber irgendwo im Sturz... hoerst du ein Lachen.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "death_hollow_jump"); Death = $true; CompanionContext = "adventure_death_hollow" }
             } else {
-                $result = @{ Success = $false; Message = "Das bringt hier nichts."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "jump_useless"); CompanionContext = "adventure_confused" }
             }
             break
         }
@@ -445,9 +483,9 @@ function Process-AdventureCommand($Cmd) {
                 if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
                     Invoke-ArgRoom17Death
                 }
-                $result = @{ Success = $false; Message = "Du gibst auf. Die Dunkelheit umarmt dich. Aber sie ist warm. Fast wie... Zuhause.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "death_hollow_die"); Death = $true; CompanionContext = "adventure_death_hollow" }
             } else {
-                $result = @{ Success = $false; Message = "Nicht hier. Nicht jetzt."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "die_not_here"); CompanionContext = "adventure_confused" }
             }
             break
         }
@@ -456,9 +494,9 @@ function Process-AdventureCommand($Cmd) {
                 if (Get-Command Invoke-ArgRoom17Death -ErrorAction SilentlyContinue) {
                     Invoke-ArgRoom17Death
                 }
-                $result = @{ Success = $false; Message = "Du wirst eins mit der Leere. Kein Schmerz. Kein Licht. Nur... Code.`n`n=== GAME OVER ===`nDu bist im Nichts verschwunden.`nTippe 'load' um fortzufahren."; CompanionContext = "adventure_scared" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "death_hollow_void"); Death = $true; CompanionContext = "adventure_death_hollow" }
             } else {
-                $result = @{ Success = $false; Message = "Void ist kein Ort. Noch nicht."; CompanionContext = "adventure_confused" }
+                $result = @{ Success = $false; Message = (Get-AdventureMessage "void_not_here"); CompanionContext = "adventure_confused" }
             }
             break
         }
@@ -467,7 +505,7 @@ function Process-AdventureCommand($Cmd) {
             break
         }
         default {
-            $result = @{ Success = $false; Message = "Das verstehe ich nicht. Tippe 'help' für Hilfe."; CompanionContext = "adventure_confused" }
+            $result = @{ Success = $false; Message = (Get-AdventureMessage "unknown_command"); CompanionContext = "adventure_confused" }
         }
     }
 
@@ -501,7 +539,7 @@ function Invoke-UseHandler($Item, $Target, $Room) {
         $result = & $handler $Item $Target $Room
         if ($result) { return $result }
     }
-    return @{ Success = $false; Message = "Das funktioniert nicht."; CompanionContext = "adventure_blocked" }
+    return @{ Success = $false; Message = (Get-AdventureMessage "use_fail"); CompanionContext = "adventure_blocked" }
 }
 
 # === HELP TEXT ===
@@ -571,9 +609,9 @@ function Show-AdventureRoom($Room) {
 
     # Oxygen warning in EVA
     if ($Room.Id -eq "eva" -and $script:AdvState.Oxygen -le 5) {
-        Write-Host "  WARNUNG: Sauerstoff niedrig! $($script:AdvState.Oxygen)/10" -ForegroundColor Red
+        Write-Host "  $(Get-AdventureMessage "oxygen_low") $($script:AdvState.Oxygen)/10" -ForegroundColor Red
     } elseif ($Room.Id -eq "eva") {
-        Write-Host "  Sauerstoff: $($script:AdvState.Oxygen)/10" -ForegroundColor Yellow
+        Write-Host "  $(Get-AdventureMessage "oxygen_status" @($script:AdvState.Oxygen))" -ForegroundColor Yellow
     }
 
     Write-Host $bot -ForegroundColor Cyan

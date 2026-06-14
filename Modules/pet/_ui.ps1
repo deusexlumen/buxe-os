@@ -309,6 +309,21 @@ $script:CPMetaLines = @{
         "Du kombinierst Dinge wie ein wahrer Adventure-Profi. +1 Respekt."
         "Das haette nicht funktionieren duerfen. Aber es war lustig."
     )
+    adventure_death_eva = @(
+        "Oh. Ohne Anzug. Das ist wie ein rm -rf / im Weltraum."
+        "Du bist jetzt ein Eiswürfel. Kein Game Over, nur Game-Over-Angst."
+        "Respawn steht bereit. Die Station lacht nicht. Sie ist nur enttäuscht."
+    )
+    adventure_death_oxygen = @(
+        "Sauerstoff aus. Du schläfst jetzt. Virtuell. Für immer. Naja, bis 'load'."
+        "Atmen ist wichtig. Das hast du gerade gelernt."
+        "Dein Savegame ist noch warm. Drück 'load', bevor es kalt wird."
+    )
+    adventure_death_hollow = @(
+        "Die Leere hat dich. Sie ist warm. Fast wie ein Windows-Update-Reboot."
+        "Du bist eins mit dem Void. Kein Licht. Nur... Code."
+        "Respawn-Punkt unten. Wie praktisch. Typisch Adventure."
+    )
     adventure_airlock = @(
         "Eine Luftschleuse. Der Weltraum wartet. Und er ist kalt."
         "Raumanzug anlegen. Bitte. Ich habe keinen Bock auf Weltraum-Begraebnisse."
@@ -927,6 +942,9 @@ function Get-CompanionLine($Companion, $Context = "default") {
         "adventure_gag" { $lines = $script:CPMetaLines.adventure_gag }
         "adventure_hint" { $lines = $script:CPMetaLines.adventure_hint }
         "adventure_absurd" { $lines = $script:CPMetaLines.adventure_absurd }
+        "adventure_death_eva" { $lines = $script:CPMetaLines.adventure_death_eva }
+        "adventure_death_oxygen" { $lines = $script:CPMetaLines.adventure_death_oxygen }
+        "adventure_death_hollow" { $lines = $script:CPMetaLines.adventure_death_hollow }
         "adventure_airlock" { $lines = $script:CPMetaLines.adventure_airlock }
         "adventure_eva" { $lines = $script:CPMetaLines.adventure_eva }
         "adventure_engine" { $lines = $script:CPMetaLines.adventure_engine }
