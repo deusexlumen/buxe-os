@@ -356,16 +356,21 @@ function Process-AdventureCommand($Cmd) {
         }
         "examine" {
             if ($room.Objects[$Cmd.Noun]) {
-                $result = @{ Success = $true; Message = $room.Objects[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
+                $obj = $room.Objects[$Cmd.Noun]
+                $examineText = if ($obj.Examine) { $obj.Examine } else { $obj.Description }
+                $result = @{ Success = $true; Message = $examineText; CompanionContext = "adventure_examine" }
             } elseif ($room.NPCs[$Cmd.Noun]) {
-                $result = @{ Success = $true; Message = $room.NPCs[$Cmd.Noun].Description; CompanionContext = "adventure_examine" }
+                $npc = $room.NPCs[$Cmd.Noun]
+                $examineText = if ($npc.Examine) { $npc.Examine } else { $npc.Description }
+                $result = @{ Success = $true; Message = $examineText; CompanionContext = "adventure_examine" }
             } elseif (Has-Item $Cmd.Noun) {
-                $foundDesc = $null
+                $item = $null
                 foreach ($r in $script:AdvRooms.Values) {
-                    if ($r.Objects[$Cmd.Noun]) { $foundDesc = $r.Objects[$Cmd.Noun].Description; break }
+                    if ($r.Objects[$Cmd.Noun]) { $item = $r.Objects[$Cmd.Noun]; break }
                 }
-                if ($foundDesc) {
-                    $result = @{ Success = $true; Message = $foundDesc; CompanionContext = "adventure_examine" }
+                if ($item) {
+                    $examineText = if ($item.Examine) { $item.Examine } else { $item.Description }
+                    $result = @{ Success = $true; Message = $examineText; CompanionContext = "adventure_examine" }
                 } else {
                     $result = @{ Success = $false; Message = (Get-AdventureMessage "not_here_examine"); CompanionContext = "adventure_confused" }
                 }

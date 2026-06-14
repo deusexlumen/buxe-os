@@ -9,13 +9,9 @@ function Invoke-Adventure {
     if (-not $script:AdvState) { $script:AdvState = Get-AdventureDefaults }
 
     try { Clear-Host } catch {}
-    Show-Frame "DIE VERLORENE STATION POLARIS" -Width 50 -Double
-    Write-Host ""
-    Write-Host "  Ein Text-Adventure im LucasArts-Stil." -ForegroundColor White
-    Write-Host "  Tippe 'help' oder 'h' für eine Befehlsübersicht." -ForegroundColor DarkGray
-    Write-Host "  Tippe 'quit' oder 'q' um zu beenden." -ForegroundColor DarkGray
-    Write-Host ""
-    Wait-Enter
+    Write-Host (Get-AdventureWorldMessage "intro_title") -ForegroundColor Cyan
+    Write-Host (Get-AdventureWorldMessage "intro_subtitle") -ForegroundColor Gray
+    Write-Host "$(Get-AdventureWorldMessage "intro_hint") 'quit' beendet das Spiel.`n" -ForegroundColor Gray
 
     $running = $true
     $firstRoom = $true
@@ -94,7 +90,7 @@ function Invoke-Adventure {
 
     Save-AdventureState
     try { Clear-Host } catch {}
-    Write-Host "  Adventure beendet. Bis zum naechsten Abenteuer!" -ForegroundColor Cyan
+    Write-Host "`n$(Get-AdventureWorldMessage "outro")" -ForegroundColor Cyan
     Start-Sleep -Milliseconds 500
 }
 
