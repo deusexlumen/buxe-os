@@ -163,6 +163,7 @@ function Get-AdventureMessage($Key, $Params = @()) {
         jump_useless       = "Das bringt hier nichts. Schwerkraft ist auch nur eine Convention."
         die_not_here       = "Nicht hier. Nicht jetzt. Speichere erst, wenn du unbedingt willst."
         void_not_here      = "Void ist kein Ort. Noch nicht. Du brauchst dafür mehr Absurdes."
+        oxygen_status      = "Sauerstoff: {0}/10"
         oxygen_low         = "O₂-Buffer läuft voll. Bald bootest du als Weltraum-Eiswürfel neu."
         death_eva          = "Oh. Du hast die Luftschleuse ohne Anzug geöffnet. Das ist wie Remove-Item ohne -WhatIf.`n`n*Ladegeräusch*`n`nDrück 'load', dann reden wir über Risikomanagement."
         death_oxygen       = "Sauerstoff = 0. Du bist jetzt ein kleiner, gefriergetrockneter Satellit. Kein Drama – dein Savegame ist noch warm.`n`nDrück 'load' für Take 2."
@@ -325,7 +326,7 @@ function Process-AdventureCommand($Cmd) {
             $script:AdvStateDirty = $true
             $newRoom = Get-Room $script:AdvState.CurrentRoom
             $oxMsg = ""
-            if ($newRoom.Id -eq "eva") { $oxMsg = " Sauerstoff: $($script:AdvState.Oxygen)/10" }
+            if ($newRoom.Id -eq "eva") { $oxMsg = " " + (Get-AdventureMessage "oxygen_status" @($script:AdvState.Oxygen)) }
             $result = @{ Success = $true; Message = $oxMsg; RoomChanged = $true; CompanionContext = $newRoom.CompanionContext }
             break
         }
@@ -610,7 +611,7 @@ function Show-AdventureRoom($Room) {
     if ($Room.Id -eq "eva" -and $script:AdvState.Oxygen -le 5) {
         Write-Host "  $(Get-AdventureMessage "oxygen_low") $($script:AdvState.Oxygen)/10" -ForegroundColor Red
     } elseif ($Room.Id -eq "eva") {
-        Write-Host "  Sauerstoff: $($script:AdvState.Oxygen)/10" -ForegroundColor Yellow
+        Write-Host "  $(Get-AdventureMessage "oxygen_status" @($script:AdvState.Oxygen))" -ForegroundColor Yellow
     }
 
     Write-Host $bot -ForegroundColor Cyan
