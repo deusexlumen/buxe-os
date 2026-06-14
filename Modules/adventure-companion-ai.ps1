@@ -372,51 +372,27 @@ function Invoke-CompanionEvent($Room) {
 
     # 10%: Companion findet etwas
     if ($roll -lt 10) {
-        $finds = @(
-            "Warte... da ist etwas unter dem Tisch. Ein Datenstick!",
-            "Ich habe einen Kratzer an der Wand entdeckt. Dahinter... ein Schalter?",
-            "*hust* Da liegt etwas. Sieht aus wie... ein altes Foto?",
-            "Meine Sensoren piepen. Hier ist etwas versteckt."
-        )
-        $found = $finds | Get-Random
-        $result = @{ Type = "find"; Context = "adventure_find"; Line = $found; BondBonus = 1 }
+        $result = @{ Type = "find"; Context = "adventure_find"; BondBonus = 1 }
     }
     # 5%: Atmosphaere-Event
     elseif ($roll -lt 15) {
-        $atmos = @(
-            "*Kratzen an der Wand*",
-            "*Ein Schatten bewegt sich im Nebenraum*",
-            "*Das Licht flackert. Ein Sekunde lang ist alles dunkel.*",
-            "*Ein Geraeusch wie fallende Datensaetze.*"
-        )
-        $result = @{ Type = "atmo"; Context = "adventure_atmo"; Line = ($atmos | Get-Random) }
+        $result = @{ Type = "atmo"; Context = "adventure_atmo" }
         Update-CompanionMood "enter_dark"
     }
     # 3%: Companion warnt
     elseif ($roll -lt 18) {
-        $warns = @(
-            "Ich habe ein schlechtes Gefuehl. Wir sollten zurueckgehen.",
-            "Meine Threat-Detection ist auf 87%. Das ist... hoch.",
-            "Hoerst du das? Nein? Gut. Denn es ist unheimlich.",
-            "Dieser Raum hat mehr Null-Pointer als mein Code. Vorsicht."
-        )
-        $result = @{ Type = "warn"; Context = "adventure_warn"; Line = ($warns | Get-Random) }
+        $result = @{ Type = "warn"; Context = "adventure_warn" }
         Update-CompanionMood "enter_dark"
     }
     # 2%: Easter Egg
     elseif ($roll -lt 20) {
         $hour = (Get-Date).Hour
+        $gold = 0
         if ($hour -ge 2 -and $hour -le 5) {
-            $result = @{ Type = "egg"; Context = "adventure_egg"; Line = "Es ist 3 Uhr morgens. Warum sind wir wach? Warum sind WIR wach?" }
+            $result = @{ Type = "egg"; Context = "adventure_egg" }
         } else {
-            $eggs = @(
-                "Ich habe eine versteckte Nachricht gefunden: 'SIE SIEHT UNS.' Ja, wieder.",
-                "Ein kleiner Bot laeuft vorbei und wirft uns 3 Gold zu. +3 Gold!",
-                "*ERROR 418* Ich bin eine Teekanne. Und du bist in einem Adventure."
-            )
-            $egg = $eggs | Get-Random
-            $bonus = if ($egg -match "3 Gold") { 3 } else { 0 }
-            $result = @{ Type = "egg"; Context = "adventure_egg"; Line = $egg; GoldBonus = $bonus }
+            if ((Get-Random -Maximum 3) -eq 0) { $gold = 3 }
+            $result = @{ Type = "egg"; Context = "adventure_egg"; GoldBonus = $gold }
         }
     }
 
@@ -648,7 +624,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     if ($Action -eq "go" -and $Result.RoomChanged) {
         $evt = Invoke-CompanionEvent $Room
         if ($evt) {
-            Show-AdventureCompanionDialog $cp $evt.Context -CustomLine $evt.Line
+            Show-AdventureCompanionDialog $cp $evt.Context
             return
         }
     }
