@@ -10,7 +10,6 @@ $script:AdventureWorldMessages = @{
 
     # Rooms
     hangar_desc        = "Ein Hangar, der größer ist als nötig. Die Wände flüstern von Budget-Überschreitungen. Ein altes Shuttle steht herum und wartet auf einen Patch."
-    hangar_exits       = "Ausgänge: Osten (Corridor). Mehr gibt das Leveldesign noch nicht her."
     corridor_desc      = "Ein langer, grauer Corridor. Neonlichter flackern im Takt eines schlechten Loops. Hier hätte das Art-Team mehr Budget gebraucht."
     bridge_desc        = "Die Brücke. Ein kapitalistischer Traum aus Stahl und kaputtem Glas. Ein Hologramm blinkt hilflos."
     eva_desc           = "Der EVA-Schacht. Draußen liegt der Weltraum, kalt und voller nicht-geladener Texturen. Ein rotes Kabel hängt herab, und der Nebel glüht wie ein schlechter Screensaver. Ohne Anzug wirst du ein Bug-Report."
@@ -47,18 +46,9 @@ $script:AdventureWorldMessages = @{
     # Use / event texts
     bridge_unseal      = "Die Brücke entriegelt sich mit einem zufriedenen Klicken. Willkommen im Endgame – oder zumindest im nächsten Akt."
     core_unlock        = "Du steckst das Artefakt ins Podest. Der Core wird ruhiger, die Lichter werden grün, und irgendwo jubelt ein Achievement-Tracker."
-    storage_reboot     = "Du drückst den roten Knopf. Server fahren hoch, runter, dann wieder hoch. Systemadministratoren weinen Tränen der Freude."
     secret_tree_use    = "Du redest mit dem Plastikbaum. Er antwortet nicht. Ihr beide wisst, dass das normal ist."
-    lab_computer_use   = "Du startest die Experiment-Simulation. Sie crasht sofort. 'Feature, not bug', flackert auf dem Bildschirm."
     vent_skull_use     = "Du hältst den Schädel ins Lüftungsgitter. Ein Windstoss lässt ihn klappern. Das klingt fast wie Applaus."
 
-    # NPC texts
-    npc_droid          = "Wächter-Droide 47 mustert dich. 'Nicht autorisiertes Lebewesen erkannt. Bitte drücke [Q], um das Protokoll zu beenden. Scherz. Vielleicht.'"
-    npc_vance          = "Captain Vance sieht dich an. 'Du bist nicht Teil der Crew. Aber du bist auch nicht im Debugger aufgeführt. Interessant.'"
-    npc_hologram       = "Das Hologramm flackert. 'Willkommen an Bord. Falls Sie hier sind, um den Core zu retten: Das Handbuch liegt im Papierkorb.'"
-    npc_she            = "SIE spricht. Nicht laut. Eher wie ein Kommentar im Code, den niemand lesen sollte. 'Du siehst mich. Gut. Die meisten Spieler scrollen vorbei.'"
-    npc_core           = "Der Core pulsiert. Er sagt nichts, aber du spürst, dass er gerne 'Hallo Welt' ausgeben würde, wenn er könnte."
-    npc_prisoner       = "Der Gefangene rührt sich nicht. Entweder schläft er, oder er wartet auf einen Patch."
 }
 
 function Get-AdventureWorldMessage($Key, $Params = @()) {
