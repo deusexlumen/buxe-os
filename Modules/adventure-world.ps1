@@ -47,10 +47,18 @@ $script:AdventureWorldMessages = @{
     # Use / event texts
     bridge_unseal      = "Die Brücke entriegelt sich mit einem zufriedenen Klicken. Willkommen im Endgame – oder zumindest im nächsten Akt."
     core_unlock        = "Du steckst das Artefakt ins Podest. Der Core wird ruhiger, die Lichter werden grün, und irgendwo jubelt ein Achievement-Tracker."
-    server_reboot      = "Du drückst den roten Knopf. Server fahren hoch, runter, dann wieder hoch. Systemadministratoren weinen Tränen der Freude."
+    storage_reboot     = "Du drückst den roten Knopf. Server fahren hoch, runter, dann wieder hoch. Systemadministratoren weinen Tränen der Freude."
     secret_tree_use    = "Du redest mit dem Plastikbaum. Er antwortet nicht. Ihr beide wisst, dass das normal ist."
     lab_computer_use   = "Du startest die Experiment-Simulation. Sie crasht sofort. 'Feature, not bug', flackert auf dem Bildschirm."
     vent_skull_use     = "Du hältst den Schädel ins Lüftungsgitter. Ein Windstoss lässt ihn klappern. Das klingt fast wie Applaus."
+
+    # NPC texts
+    npc_droid          = "Wächter-Droide 47 mustert dich. 'Nicht autorisiertes Lebewesen erkannt. Bitte drücke [Q], um das Protokoll zu beenden. Scherz. Vielleicht.'"
+    npc_vance          = "Captain Vance sieht dich an. 'Du bist nicht Teil der Crew. Aber du bist auch nicht im Debugger aufgeführt. Interessant.'"
+    npc_hologram       = "Das Hologramm flackert. 'Willkommen an Bord. Falls Sie hier sind, um den Core zu retten: Das Handbuch liegt im Papierkorb.'"
+    npc_she            = "SIE spricht. Nicht laut. Eher wie ein Kommentar im Code, den niemand lesen sollte. 'Du siehst mich. Gut. Die meisten Spieler scrollen vorbei.'"
+    npc_core           = "Der Core pulsiert. Er sagt nichts, aber du spürst, dass er gerne 'Hallo Welt' ausgeben würde, wenn er könnte."
+    npc_prisoner       = "Der Gefangene rührt sich nicht. Entweder schläft er, oder er wartet auf einen Patch."
 }
 
 function Get-AdventureWorldMessage($Key, $Params = @()) {
@@ -387,7 +395,7 @@ Register-UseHandler {
             $script:AdvRooms["corridor"].Exits["north"] = "bridge"
             $script:AdvState.Score += 15
             $script:AdvStateDirty = $true
-            return @{ Success = $true; Message = "Du steckst die Karte in den Leser. Die Tür zur Brücke öffnet sich mit einem Zischen."; CompanionContext = "adventure_unlock" }
+            return @{ Success = $true; Message = (Get-AdventureWorldMessage "bridge_unseal"); CompanionContext = "adventure_unlock" }
         }
     }
 
@@ -452,7 +460,7 @@ Register-UseHandler {
             $script:AdvState.Flags["game_won"] = $true
             $script:AdvState.Score += 100
             $script:AdvStateDirty = $true
-            return @{ Success = $true; Message = "Du legst das Artefakt auf das Podest. Der Kern pulsiert wild. Die Gestalt aus Licht tritt vor. 'Du hast verstanden. Die Station war ein Gefängnis. Und ich war die Wärterin. Du hast mich befreit.'`n`nDas Licht verschlingt dich. Aber es tut nicht weh. Es fühlt sich an wie... Zuhause.`n`n=== DAS WAHRE ENDE ===`nPunkte: $($script:AdvState.Score) / $($script:AdvState.MaxScore)`nZuege: $($script:AdvState.Moves)`nDu hast die Wahrheit gefunden."; CompanionContext = "adventure_victory" }
+            return @{ Success = $true; Message = (Get-AdventureWorldMessage "core_unlock"); CompanionContext = "adventure_victory" }
         }
     }
 
@@ -498,14 +506,14 @@ Register-UseHandler {
     }
     # Skull - Grim Fandango reference
     if ($Item -eq "skull" -and -not $Target) {
-        return @{ Success = $false; Message = "Du haeltst den Schaedel ans Ohr. 'Hallo? Manny?' Stille. Dann: 'Sprich mit dem Gluecksbeetle.' Warte, was?"; CompanionContext = "adventure_absurd" }
+        return @{ Success = $false; Message = (Get-AdventureWorldMessage "vent_skull_use"); CompanionContext = "adventure_absurd" }
     }
     if ($Item -eq "skull" -and $Target -eq "tree") {
         return @{ Success = $false; Message = "Du stellst den Schaedel unter den Plastikbaum. Es sieht aus wie eine sehr morbide Weihnachtsdekoration."; CompanionContext = "adventure_absurd" }
     }
     # Plastic tree - Monkey Island reference
     if ($Item -eq "tree" -and -not $Target) {
-        return @{ Success = $false; Message = "Du umarmst den kleinen Plastikbaum. Ich bin ein Pirat, ich mag Baumkaetzchen. Nein. Nein tust du nicht."; CompanionContext = "adventure_absurd" }
+        return @{ Success = $false; Message = (Get-AdventureWorldMessage "secret_tree_use"); CompanionContext = "adventure_absurd" }
     }
     if ($Item -eq "tree" -and $Target -eq "captain") {
         return @{ Success = $false; Message = "Du haeltst Kapitaen Vance den Plastikbaum hin. Er blinzelt. Das... das erinnert mich an etwas. Eine Insel? Ein Geheimnis?"; CompanionContext = "adventure_absurd" }
