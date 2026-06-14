@@ -572,27 +572,43 @@ function Test-AbsurdCombo($Item, $Target) {
 
 # === COMPANION DIALOG WRAPPER ===
 
-function Show-AdventureCompanionDialog($Context, $CustomLine = $null) {
-    try {
-        $pet = Get-PetState
-        $cp = $pet.Companion
-        if (-not $cp) { return }
+function Get-AdventureCompanionCategory($Context) {
+    switch -Regex ($Context) {
+        "^(adventure_take|adventure_drop|adventure_examine|adventure_unlock|adventure_victory|adventure_find)$" { return "Find" }
+        "^(adventure_blocked|adventure_confused|adventure_warn)$" { return "Warn" }
+        "^(adventure_absurd|adventure_egg)$" { return "Egg" }
+        "^(adventure_scared|adventure_save|adventure_load|adventure_atmo|adventure_death_.*)$" { return "Atmo" }
+        "^(adventure_hint)$" { return "Hint" }
+        default { return "Atmo" }
+    }
+}
 
-        $line = $CustomLine
-        if (-not $line) {
-            # Versuche Mood-basierten Context, dann Fallback
-            if (Get-Command Get-CompanionLine -ErrorAction SilentlyContinue) {
-                $moodCtx = Get-AdventureMoodContext
-                $line = Get-CompanionLine $cp $moodCtx
-            }
+function Show-AdventureCompanionDialog($Companion, $Context, $Fast = $false) {
+    if (-not $Companion) { return }
+    $category = Get-AdventureCompanionCategory $Context
+    $voice = $null
+    if ($script:CPAdventureVoice -and $script:CPAdventureVoice.ContainsKey($Companion.Name)) {
+        $voice = $script:CPAdventureVoice[$Companion.Name]
+    }
+    $lines = $null
+    if ($voice -and $voice.ContainsKey($category)) {
+        $lines = $voice[$category]
+    }
+    # Fallback zu alten generischen Arrays
+    if (-not $lines -or $lines.Count -eq 0) {
+        $lines = switch ($category) {
+            "RunningGag" { $script:RunningGagLines }
+            "Find" { $script:FindLines }
+            "Atmo" { $script:AtmoLines }
+            "Warn" { $script:WarnLines }
+            "Egg" { $script:EggLines }
+            "Hint" { $script:HintLines }
+            default { $script:AtmoLines }
         }
-
-        if ($line) {
-            $color = if ($script:CPColors) { $script:CPColors[$script:CPNames.IndexOf($cp.Name)] } else { "Cyan" }
-            if (-not $color -or $color -eq "") { $color = "Cyan" }
-            Write-Host "  [$($cp.Name)] >> $line" -ForegroundColor $color
-        }
-    } catch {}
+    }
+    if (-not $lines -or $lines.Count -eq 0) { return }
+    $line = $lines | Get-Random
+    Show-CompanionDialog $Companion $line -Fast:$Fast
 }
 
 # === MAIN HOOK ===
@@ -602,16 +618,20 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     # 1. Update Progress Tracking
     Update-AdventureProgress $Action $Room
 
+    # Get companion once for all possible dialog calls
+    $cp = $null
+    try { $pet = Get-PetState; $cp = $pet.Companion } catch {}
+
     # 2. Check Running Gags
     $gag = Test-RunningGag $Action $Target
     if ($gag.Triggered) {
-        Show-AdventureCompanionDialog $gag.Context $gag.Line
+        Show-AdventureCompanionDialog $cp $gag.Context
         return
     }
 
     # 3. Absurde Kombinationen wurden bereits von Process-AdventureCommand geprueft
     if ($Action -eq "use" -and $Target -and $Result.IsAbsurd) {
-        Show-AdventureCompanionDialog $Result.Context $Result.Line
+        Show-AdventureCompanionDialog $cp $Result.Context
         return
     }
 
@@ -619,7 +639,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     if ($Action -eq "go" -and $Result.RoomChanged) {
         $evt = Invoke-CompanionEvent $Room
         if ($evt) {
-            Show-AdventureCompanionDialog $evt.Context $evt.Line
+            Show-AdventureCompanionDialog $cp $evt.Context
             return
         }
     }
@@ -628,7 +648,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     if ($Action -eq "look" -or $Action -eq "go") {
         $hint = Get-CompanionHint $Room
         if ($hint) {
-            Show-AdventureCompanionDialog $hint.Context $hint.Line
+            Show-AdventureCompanionDialog $cp $hint.Context
             return
         }
     }
