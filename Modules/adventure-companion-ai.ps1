@@ -350,35 +350,10 @@ function Test-RunningGag($Action, $Target) {
     Set-CompanionAI "RunningGags" $ai.RunningGags
 
     $count = $ai.RunningGags[$key]
-    $ctx = ""
-    $line = $null
-
-    switch ($Action) {
-        "examine" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Ja, es ist immer noch da. Ueberraschung." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "WIRKLICH? NOCHMAL? Das Objekt hat sich nicht veraendert. Physik." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "Ich speichere das. In meinem 'Nutzer-verzweifelt'-Ordner." }
-        }
-        "go" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Wir drehen uns im Kreis. Wie mein Code." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "Dieser Raum sieht aus wie der letzte. Oh. Es IST der letzte." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "Bist du verloren? Oder verlierst du mich absichtlich?" }
-        }
-        "use" {
-            if ($count -eq 2) { $ctx = "adventure_gag"; $line = "Probiere es nochmal. Vielleicht funktioniert es beim 47. Mal." }
-            if ($count -eq 4) { $ctx = "adventure_gag"; $line = "Definition von Wahnsinn: Das Gleiche tun und andere Ergebnisse erwarten." }
-            if ($count -ge 6) { $ctx = "adventure_gag"; $line = "Ich werde nicht mehr zuschauen. Okay, ich gucke. Aber ich bewerte es. 2/10." }
-        }
-        "talk" {
-            if ($count -eq 3) { $ctx = "adventure_gag"; $line = "Er hat nichts Neues zu sagen. Trust me. Ich habe alles gecached." }
-            if ($count -eq 5) { $ctx = "adventure_gag"; $line = "Wir sind bei Dialog #5. Bald bekommen wir eine Trophaee fuer Ausdauer." }
-            if ($count -ge 7) { $ctx = "adventure_gag"; $line = "NPC: 'Hilf mir.' Du: 'Erzaehl mir mehr.' NPC: 'Bitte.' Du: 'Erzaehl mir mehr.'" }
-        }
-    }
-
-    if ($line) {
+    if ($count -ge 3) {
+        Set-CompanionAI "RunningGags" (@{})
         Update-CompanionMood "gag_trigger"
-        return @{ Triggered = $true; Context = $ctx; Line = $line }
+        return @{ Triggered = $true; Context = "adventure_gag" }
     }
     return @{ Triggered = $false }
 }
@@ -659,7 +634,7 @@ function Invoke-AdventureCompanionHook($Action, $Target, $Room, $Result) {
     # 2. Check Running Gags
     $gag = Test-RunningGag $Action $Target
     if ($gag.Triggered) {
-        Show-AdventureCompanionDialog $cp $gag.Context -CustomLine $gag.Line
+        Show-AdventureCompanionDialog $cp $gag.Context
         return
     }
 
