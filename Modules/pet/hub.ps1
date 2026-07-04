@@ -257,54 +257,33 @@ function pet {
             Write-Host ""
         }
         # Dynamic menu based on unlocked features
-        $opts = @(); $keys = @()
-        if (Is-FeatureUnlocked "talk") { $opts += "[1] Reden"; $keys += "1" }
-        if (Is-FeatureUnlocked "gift") { $opts += "[2] Geschenk"; $keys += "2" }
-        if (Is-FeatureUnlocked "combat") { $opts += "[3] Kampf"; $keys += "3" }
-        if (Is-FeatureUnlocked "work") { $opts += "[4] Arbeit"; $keys += "4" }
-        if (Is-FeatureUnlocked "train") { $opts += "[5] Training"; $keys += "5" }
-        if (Is-FeatureUnlocked "shop") { $opts += "[6] Shop"; $keys += "6" }
-        if (Is-FeatureUnlocked "cooking") { $opts += "[7] Kochen"; $keys += "7" }
-        if (Is-FeatureUnlocked "skilltree") { $opts += "[I] Skill-Baum"; $keys += "I" }
-        if (Is-FeatureUnlocked "shop") { $opts += "[K] Handwerk"; $keys += "K" }
-        if (Is-FeatureUnlocked "pvp") { $opts += "[8] PvP"; $keys += "8" }
-        if (Is-FeatureUnlocked "raid") { $opts += "[9] Raid"; $keys += "9" }
-        if (Is-FeatureUnlocked "breed") { $opts += "[B] Zucht"; $keys += "B" }
-        if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $opts += "[R] Rivale"; $keys += "R" }
-        if (Is-FeatureUnlocked "soul_link") { $opts += "[L] Soul Link"; $keys += "L" }
-        if ($pet.Meta.Level -ge 15) { $opts += "[T] Theme"; $keys += "T" }
-        if (Is-FeatureUnlocked "architect") { $opts += "[A] Architect"; $keys += "A" }
-        if (Is-FeatureUnlocked "awakening") { $opts += "[W] Erwachen"; $keys += "W" }
-        if (Is-FeatureUnlocked "fourth_wall") { $opts += "[F] Vierte Wand"; $keys += "F" }
-        if (Is-FeatureUnlocked "glitch") { $opts += "[X] Glitch"; $keys += "X" }
-        if ($pet.Meta.Level -ge 2) { $opts += "[G] Spiele"; $keys += "G" }
-        if ($pet.Meta.Level -ge 3) { $opts += "[S] Story"; $keys += "S" }
-        $opts += "[M] Erinnerungen"; $keys += "M"
-        $opts += "[C] Quests"; $keys += "C"
-        $opts += "[Z] Status"; $keys += "Z"
-        $opts += "[Q] Exit"; $keys += "Q"
-        # Display in rows of 3
-        for ($i = 0; $i -lt $opts.Count; $i += 3) {
-            $line = "  " + $opts[$i]
-            if ($i + 1 -lt $opts.Count) { $line += "    " + $opts[$i + 1] }
-            if ($i + 2 -lt $opts.Count) { $line += "    " + $opts[$i + 2] }
-            Write-Host $line -ForegroundColor White
-        }
-        Write-Host ""
-        $pattern = "^([" + ($keys -join "") + "])$"
-        $c = $null
-        while (-not $c) {
-            $raw = Read-Host "  Waehle"
-            if ($raw -eq 'Q' -or $raw -eq 'q') { $c = 'Q'; break }
-            if ($raw -match $pattern) { $c = $raw; break }
-            if ([string]::IsNullOrWhiteSpace($raw)) {
-                Write-Host "  Bitte waehlen: $($keys -join ', ') oder Q" -ForegroundColor DarkGray
-                Start-Sleep -Milliseconds 300
-            } else {
-                Write-Host "  Ungueltig. Gueltig: $($keys -join ', ') oder Q" -ForegroundColor Red
-                Start-Sleep -Milliseconds 300
-            }
-        }
+        $items = @()
+        if (Is-FeatureUnlocked "talk") { $items += @{ Key = "1"; Label = "Reden" } }
+        if (Is-FeatureUnlocked "gift") { $items += @{ Key = "2"; Label = "Geschenk" } }
+        if (Is-FeatureUnlocked "combat") { $items += @{ Key = "3"; Label = "Kampf" } }
+        if (Is-FeatureUnlocked "work") { $items += @{ Key = "4"; Label = "Arbeit" } }
+        if (Is-FeatureUnlocked "train") { $items += @{ Key = "5"; Label = "Training" } }
+        if (Is-FeatureUnlocked "shop") { $items += @{ Key = "6"; Label = "Shop" } }
+        if (Is-FeatureUnlocked "cooking") { $items += @{ Key = "7"; Label = "Kochen" } }
+        if (Is-FeatureUnlocked "skilltree") { $items += @{ Key = "I"; Label = "Skill-Baum" } }
+        if (Is-FeatureUnlocked "shop") { $items += @{ Key = "K"; Label = "Handwerk" } }
+        if (Is-FeatureUnlocked "pvp") { $items += @{ Key = "8"; Label = "PvP" } }
+        if (Is-FeatureUnlocked "raid") { $items += @{ Key = "9"; Label = "Raid" } }
+        if (Is-FeatureUnlocked "breed") { $items += @{ Key = "B"; Label = "Zucht" } }
+        if (Is-FeatureUnlocked "rival" -and $pet.Meta.RivalActive) { $items += @{ Key = "R"; Label = "Rivale" } }
+        if (Is-FeatureUnlocked "soul_link") { $items += @{ Key = "L"; Label = "Soul Link" } }
+        if ($pet.Meta.Level -ge 15) { $items += @{ Key = "T"; Label = "Theme" } }
+        if (Is-FeatureUnlocked "architect") { $items += @{ Key = "A"; Label = "Architect" } }
+        if (Is-FeatureUnlocked "awakening") { $items += @{ Key = "W"; Label = "Erwachen" } }
+        if (Is-FeatureUnlocked "fourth_wall") { $items += @{ Key = "F"; Label = "Vierte Wand" } }
+        if (Is-FeatureUnlocked "glitch") { $items += @{ Key = "X"; Label = "Glitch" } }
+        if ($pet.Meta.Level -ge 2) { $items += @{ Key = "G"; Label = "Spiele" } }
+        if ($pet.Meta.Level -ge 3) { $items += @{ Key = "S"; Label = "Story" } }
+        $items += @{ Key = "M"; Label = "Erinnerungen" }
+        $items += @{ Key = "C"; Label = "Quests" }
+        $items += @{ Key = "Z"; Label = "Status" }
+
+        $c = Show-MenuEx -Title "AKTIONEN" -Items $items
         if (-not $cp -and $c -eq '1') { New-Companion; continue }
         $cp = $pet.Companion
         # Flavor-Dialoge fuer Aktionen (einmalig statt in jedem Switch-Case)

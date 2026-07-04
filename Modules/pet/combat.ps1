@@ -141,7 +141,7 @@ function Test-ElementCombo($CombatState) {
 
 function Get-ScaledEnemyStats($Template, $PetLevel, [switch]$IsElite, [switch]$IsBoss) {
     $sc = 1 + ($PetLevel - 1) * 0.25
-    if ($IsBoss) { $sc += 0.5 }
+    if ($IsBoss) { $sc = 1 + ($PetLevel - 1) * 0.3 }
     if ($IsElite) { $sc *= 1.2 }
     $name = $Template.Name
     if ($IsElite) { $name = "ELITE $name" }
@@ -214,19 +214,19 @@ function Start-PetTutorialFight {
         
         # Tutorial: always win regardless of choice, but show correct logic
         if ($beats[$pm] -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (100 / (100 + $enemy.DEF))))
+            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
             $enemy.HP -= $dmg; $playerScore++
             Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
         } elseif ($pm -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5 * $playerMod) * (100 / (100 + $enemy.DEF))))
+            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5 * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
             $enemy.HP -= $dmg
-            $eDmg = [math]::Max(1, [math]::Round(($enemy.ATK * $enemyMod) * (100 / (100 + $stats.DEF))))
+            $eDmg = [math]::Max(1, [math]::Round(($enemy.ATK * $enemyMod) * (1 - ($stats.DEF / ($stats.DEF + 20)))))
             $p.HP -= $eDmg
             $playerScore++; $rivalScore++
             Write-Host "  Gleichstand! Beide treffen! -$dmg HP | -$eDmg HP!" -ForegroundColor Yellow
         } else {
             # Tutorial safety net: enemy "glitches" and misses
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (100 / (100 + $enemy.DEF))))
+            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
             $enemy.HP -= $dmg; $playerScore++
             Write-Host "  Der Gegner verpatzt seinen Zug! Treffer! -$dmg HP!" -ForegroundColor Green
         }
@@ -366,8 +366,9 @@ function Use-CompanionCombatAbility($cp, $p, $stats, $enemy) {
     Wait-Enter
 }
 
-function Get-CombatInitiative($playerStats, $enemyStats) {
-    $pInit = (Get-Random -Minimum 1 -Maximum 100) + $playerStats.SPD
+function Get-CombatInitiative($playerStats, $enemyStats, $playerStance = "Balanced") {
+    $stance = Get-StanceModifier $playerStance
+    $pInit = (Get-Random -Minimum 1 -Maximum 100) + ($playerStats.SPD * $stance.SPD)
     $eInit = (Get-Random -Minimum 1 -Maximum 100) + $enemyStats.SPD
     if ($pInit -eq $eInit) {
         return (Get-Random -Maximum 2) -eq 0
@@ -379,6 +380,8 @@ function New-CombatState($playerPet, $companion) {
     return @{
         Round = 1
         PlayerStance = "Balanced"
+        PlayerAction = $null
+        EnemyAction = $null
         StatusEffects = @()
         ComboHistory = @()
         CompanionCooldowns = @{}
@@ -388,6 +391,39 @@ function New-CombatState($playerPet, $companion) {
         FleeAttempted = $false
         Defending = $false
     }
+}
+
+function Get-EnemyAction($enemy, $combatState, $isBoss = $false) {
+    $behavior = "Random"
+    if ($isBoss -and $enemy.BossPattern) {
+        $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
+        if ($currentPhase) { $behavior = $currentPhase.Behavior }
+    }
+    $actions = @("A","V","S")
+    $weights = switch ($behavior) {
+        "Aggressive" { @(60, 20, 20) }
+        "Defensive"  { @(20, 60, 20) }
+        "Desperate"  { @(30, 10, 60) }
+        default        { @(33, 33, 34) }
+    }
+    $rand = Get-Random -Minimum 1 -Maximum 101
+    $cum = 0
+    for ($i = 0; $i -lt $actions.Count; $i++) {
+        $cum += $weights[$i]
+        if ($rand -le $cum) { return $actions[$i] }
+    }
+    return "A"
+}
+
+function Resolve-AVS($playerAction, $enemyAction) {
+    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
+    if ($playerAction -eq $enemyAction) {
+        return @{ Winner = "Tie"; PlayerMultiplier = 1.0; EnemyMultiplier = 1.0 }
+    }
+    if ($beats[$playerAction] -eq $enemyAction) {
+        return @{ Winner = "Player"; PlayerMultiplier = 1.5; EnemyMultiplier = 0.5 }
+    }
+    return @{ Winner = "Enemy"; PlayerMultiplier = 0.5; EnemyMultiplier = 1.5 }
 }
 
 function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
@@ -415,75 +451,110 @@ function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
     # Combat loop
     while ($playerPet.HP -gt 0 -and $enemy.HP -gt 0 -and -not $combatState.FleeAttempted) {
         Show-CombatScreen $playerPet $enemy $companion $combatState $stats $enemyStats $isBoss
-        
+
         # Limit Break check
-        $lbResult = Invoke-LimitBreak $playerPet $enemy $combatState $stats $companion
+        Invoke-LimitBreak $playerPet $enemy $combatState $stats $companion | Out-Null
         if ($combatState.FleeAttempted) { break }
-        
-        # Get player action
-        $validActions = "^(1|2|3|4|5|6|F1|F2|F3|F4)$"
+
+        # Get player action (A/V/S or stance switch)
+        $validActions = "^(A|V|S|F1|F2|F3|F4)$"
         $action = Read-Choice "Aktion" $validActions
 
-        # Defend-Flag vor Initiative setzen, damit Schadensreduktion unabhaengig von der Reihenfolge wirkt
-        $combatState.Defending = ($action -eq "2")
+        # Stance switching is a free pre-round adjustment; re-prompt for A/V/S
+        while ($action -match "^F[1-4]$") {
+            $combatState.PlayerStance = switch ($action) {
+                "F1" { "Aggressiv" }
+                "F2" { "Defensiv" }
+                "F3" { "Speed" }
+                "F4" { "Balanced" }
+            }
+            Write-Host "`n  Stance gewechselt: $($combatState.PlayerStance)" -ForegroundColor Cyan
+            Show-CombatScreen $playerPet $enemy $companion $combatState $stats $enemyStats $isBoss
+            $action = Read-Choice "Aktion" $validActions
+        }
 
-        # Determine initiative
-        $playerFirst = Get-CombatInitiative $stats $enemyStats
-        
+        if ($action -eq "Q") {
+            $combatState.FleeAttempted = $true
+            break
+        }
+
+        # Enemy chooses its A/V/S action
+        $enemyAction = Get-EnemyAction $enemy $combatState $isBoss
+        $combatState.PlayerAction = $action
+        $combatState.EnemyAction = $enemyAction
+
+        # Resolve A/V/S matchup
+        $avs = Resolve-AVS $action $enemyAction
+        $moves = @{ "A" = "Angriff"; "V" = "Vanguard"; "S" = "Stealth" }
+        Write-Host "`n  Du: $($moves[$action]) | Gegner: $($moves[$enemyAction])" -ForegroundColor DarkGray
+        if ($avs.Winner -eq "Player") {
+            Write-Host "  Du gewinnst das Tempo! +50% Schaden!" -ForegroundColor Green
+        } elseif ($avs.Winner -eq "Enemy") {
+            Write-Host "  Der Gegner gewinnt das Tempo! Du erleidest mehr Schaden!" -ForegroundColor Red
+        } else {
+            Write-Host "  Gleichstand! Keine Tempo-Boni." -ForegroundColor Yellow
+        }
+
+        # Telegraph boss charging attack every 3rd round
+        $charging = $false
+        if ($isBoss -and ($combatState.Round % 3) -eq 0) {
+            $charging = $true
+            Write-Host "  ! BOSS_OMEGA laedt einen Angriff auf! [V]anguard reduziert den Schaden massiv!" -ForegroundColor Magenta
+        }
+
+        # Determine initiative (SPD stance multiplier already applied inside)
+        $playerFirst = Get-CombatInitiative $stats $enemyStats $combatState.PlayerStance
+
         # Execute actions
         if ($playerFirst) {
-            $pResult = Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats
-            if ($pResult -and $pResult.ActionType -eq "6" -and $combatState.FleeAttempted) { break }
-            if ($pResult -and $pResult.ActionType -ne "3") {
-                if ($enemy.HP -gt 0) {
-                    $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss
-                    if ($eResult.Narrative) {
-                        Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
-                        Wait-Enter
-                    }
+            Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats $avs.PlayerMultiplier | Out-Null
+            if ($enemy.HP -gt 0 -and -not $combatState.FleeAttempted) {
+                $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss $avs.EnemyMultiplier $enemyAction $charging
+                if ($eResult.Narrative) {
+                    Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
                 }
             }
         } else {
-            $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss
+            $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss $avs.EnemyMultiplier $enemyAction $charging
             if ($eResult.Narrative) {
                 Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
-                Wait-Enter
             }
-            if ($playerPet.HP -gt 0) {
-                $pResult = Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats
-                if ($pResult -and $pResult.ActionType -eq "6" -and $combatState.FleeAttempted) { break }
+            if ($playerPet.HP -gt 0 -and -not $combatState.FleeAttempted) {
+                Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats $avs.PlayerMultiplier | Out-Null
             }
         }
-        
+
         # Apply status effects
         $seMessages = Apply-StatusEffects $combatState $playerPet $enemy $stats $enemyStats
         foreach ($msg in $seMessages) {
             Write-Host "  $msg" -ForegroundColor Yellow
         }
         if ($seMessages.Count -gt 0) { Wait-Enter }
-        
+
         # Decrement companion cooldowns
         foreach ($key in @($combatState.CompanionCooldowns.Keys)) {
             if ($combatState.CompanionCooldowns[$key] -gt 0) {
                 $combatState.CompanionCooldowns[$key]--
             }
         }
-        
-        # Defending flag gilt nur eine Runde
+
+        # Per-round flags reset
         $combatState.Defending = $false
-        
+        $combatState.PlayerAction = $null
+        $combatState.EnemyAction = $null
+
         # Log round
         $combatState.BattleLog += "R$($combatState.Round): $($playerPet.Name) vs $($enemy.Name)"
         $combatState.Round++
-        
+
         if ($playerPet.HP -le 0 -or $enemy.HP -le 0) { break }
-        
+
         if (-not $combatState.FleeAttempted) {
             Write-Host "`n  [Enter] fuer naechste Runde..." -ForegroundColor DarkGray
             Read-Host
         }
     }
-    
+
     Resolve-CombatEnd $playerPet $enemy $companion $combatState $stats $isBoss
 }
 
@@ -510,8 +581,9 @@ function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $player
     } elseif ($enemy.HP -le 0) {
         Show-PetFrame "SIEG" -Double | Out-Null
         $xp = if ($isBoss) { 50 + ($playerPet.Level * 10) } else { 20 + ($playerPet.Level * 5) }
-        $gold = Get-Random -Minimum 5 -Maximum 16
-        if ($isBoss) { $gold += 25 }
+        $level = $playerPet.Level
+        $gold = Get-Random -Minimum (10 + $level * 2) -Maximum (20 + $level * 3 + 1)
+        if ($isBoss) { $gold += 25 + $level * 3 }
         $playerPet.Wins++
         $playerPet.XP += $xp
         $playerPet.HP = [math]::Min($playerPet.HP + [math]::Round($playerStats.MaxHP * 0.2), $playerStats.MaxHP)
@@ -569,14 +641,14 @@ function Start-PetFight {
     if (-not $p) { New-Pet; return }
     
     # Combat entry fee (scales with pet level)
-    $entryFee = 5 + ($p.Level * 2)
+    $entryFee = 2 + $p.Level
     if ($pet.Economy.Gold -lt $entryFee) {
         Write-Host "`n  Nicht genug Gold fuer den Kampf! ($entryFee G benoetigt)" -ForegroundColor Red
         Wait-Enter; return
     }
     $pet.Economy.Gold -= $entryFee
     Save-PetState $pet
-    
+
     # Passive HP regeneration between fights (10% per hour, max 100%)
     $now = Get-Date
     if ($p.LastFightTime) {
@@ -586,8 +658,8 @@ function Start-PetFight {
     }
     $p.LastFightTime = $now.ToString("yyyy-MM-dd HH:mm")
     Save-PetState $pet
-    
-    $isBoss = ($p.Wins -gt 0 -and $p.Wins % 5 -eq 0)
+
+    $isBoss = ($p.Wins -gt 0 -and $p.Wins % 5 -eq 0 -and $p.Level -ge 5)
     Invoke-TacticalCombat $p $cp $isBoss
 }
 
@@ -640,8 +712,7 @@ function Show-CombatScreen($playerPet, $enemy, $companion, $combatState, $player
         $cdText = if ($cd -gt 0) { " [CD: $cd]" } else { "" }
         Write-Host "  Companion: $($companion.Name): $(Get-CompanionCommandName $companion.Name)$cdText" -ForegroundColor DarkGray
     }
-    $fleeChance = [math]::Min(95, [math]::Round(($playerStats.SPD / ($playerStats.SPD + $enemyStats.SPD)) * 100))
-    Write-Host "  Flee-Chance: $fleeChance%" -ForegroundColor DarkGray
+    Write-Host "  [Q] Flucht" -ForegroundColor DarkGray
     Write-Host ""
 }
 function Select-PlayerAttack($playerPet) {
@@ -676,119 +747,38 @@ function Get-CompanionCooldown($cpName) {
     }
 }
 
-function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats) {
-    $stanceMod = switch ($combatState.PlayerStance) {
-        "Aggressiv" { @{ ATK = 1.5; DEF = 0.5 } }
-        "Defensiv"  { @{ ATK = 0.5; DEF = 1.5 } }
-        "Speed"     { @{ ATK = 1.0; DEF = 1.0; SPD = 1.5 } }
-        default     { @{ ATK = 1.0; DEF = 1.0 } }
-    }
-    
+function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats, $avsMultiplier = 1.0) {
+    $stanceMod = Get-StanceModifier $combatState.PlayerStance
+    $moves = @{ "A" = "Angriff"; "V" = "Vanguard"; "S" = "Stealth" }
+
     $narrative = ""
     $damageDealt = 0
     $damageTaken = 0
     $effectApplied = $null
-    
+
     switch ($action) {
-        "1" { # Attack
-            $attackName = Select-PlayerAttack $playerPet
-            if (-not $attackName) { return $null }
-            $attack = $script:BPAttacks[$attackName]
-            $narrative = "Dein $($playerPet.Name) setzt $attackName ein!"
-            
-            $accRoll = Get-Random -Minimum 1 -Maximum 101
-            if ($accRoll -le $attack.Accuracy) {
-                Add-ComboElement $combatState $attack.Type
-                $combo = Test-ElementCombo $combatState
-
-                $playerMod = Get-ElementModifier $attack.Type $enemy.Type
-
-                # Status-Effekte in Schadensberechnung einfliessen lassen
-                $effectiveAtk = $playerStats.ATK
-                $atkUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "ATK-Up" } | Select-Object -First 1
-                if ($atkUp) { $effectiveAtk = [math]::Round($effectiveAtk * (1 + $atkUp.Value)) }
-
-                $effectiveDef = $enemy.DEF
-                $defDown = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "DEF-Down" } | Select-Object -First 1
-                if ($defDown) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 - $defDown.Value))) }
-
-                $baseDmg = $attack.Power + $effectiveAtk
-                $skillCritBonus = (Get-TotalPetSkillBonus -Branch 'Combat') * 20
-                $critUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "Crit-Up" } | Select-Object -First 1
-                $critChance = $stanceMod.Crit + $skillCritBonus + $playerStats.Crit
-                if ($critUp) { $critChance += [math]::Round($critUp.Value * 100) }
-                $critRoll = Get-Random -Minimum 1 -Maximum 101
-                $crit = ($critRoll -le [math]::Max(0, [math]::Round($critChance)))
-                $critMod = if ($crit) { 1.5 } else { 1.0 }
-                $comboMod = 1.0
-                if ($combo) {
-                    $comboMod = $combo.Multiplier
-                    $narrative += " [$($combo.Name)]!"
-                }
-                $dmg = [math]::Max(1, [math]::Round(($baseDmg * $stanceMod.ATK * $playerMod * $critMod * $comboMod) * (100 / (100 + $effectiveDef))))
-                $damageDealt = $dmg
-                $enemy.HP -= $dmg
-
-                if ($playerMod -gt 1.0) { $narrative += " Typ-Vorteil!" }
-                if ($playerMod -lt 1.0) { $narrative += " Typ-Nachteil..." }
-                if ($crit) { $narrative += " KRITISCH!" }
-                $narrative += " Treffer! -$dmg HP!"
-
-                if ($attack.Effect -and (Get-Random -Minimum 1 -Maximum 101) -le $attack.EffectChance) {
-                    $effectApplied = $attack.Effect
-                    $turns = if ($attack.Effect -eq "Freeze") { 1 } elseif ($attack.Effect -eq "Paralyze") { 2 } else { 3 }
-                    $val = if ($attack.Effect -eq "Poison") { 0.03 } elseif ($attack.Effect -eq "Burn") { 0.05 } else { 0 }
-                    $combatState.StatusEffects += @{
-                        Target = "enemy"; Type = $attack.Effect; Turns = $turns; Value = $val
-                    }
-                    $narrative += " [$($attack.Effect)!]"
-                }
-            } else {
-                $narrative += " Verfehlt!"
-            }
+        "A" { # Angriff: normaler Schaden
+            $narrative = "$($playerPet.Name) setzt $($moves[$action]) ein!"
+            $baseDmg = $playerStats.ATK
+            $critBonus = 0
+            $damageDealt = Invoke-PlayerAttack $playerPet $enemy $combatState $playerStats $enemyStats $baseDmg $critBonus $avsMultiplier $stanceMod ([ref]$narrative)
         }
-        "2" { # Defend
-            $narrative = "$($playerPet.Name) nimmt Defensiv-Stance ein! Einkommender Schaden halbiert!"
+        "V" { # Vanguard: 50% Schadensreduktion, 25% Konterchance
+            $combatState.Defending = $true
+            $narrative = "$($playerPet.Name) nimmt Vanguard-Stance ein! Einkommender Schaden -50%, 25% Konterchance!"
         }
-        "3" { # Switch
-            $narrative = "Du wechselst das Pet! (Diese Runde greift der Gegner frei an.)"
+        "S" { # Stealth: +30% Schaden, +10% Crit, +25% Schaden wenn getroffen
+            $narrative = "$($playerPet.Name) schaltet Stealth-Modus ein!"
+            $baseDmg = $playerStats.ATK * 1.3
+            $critBonus = 10
+            $damageDealt = Invoke-PlayerAttack $playerPet $enemy $combatState $playerStats $enemyStats $baseDmg $critBonus $avsMultiplier $stanceMod ([ref]$narrative)
         }
-        "4" { # Companion
-            if ($companion) {
-                $cd = if ($combatState.CompanionCooldowns.ContainsKey($companion.Name)) { $combatState.CompanionCooldowns[$companion.Name] } else { 0 }
-                if ($cd -gt 0) {
-                    $narrative = "$($companion.Name) ist noch auf Cooldown ($cd Runden)!"
-                } else {
-                    $narrative = Use-CompanionCommand $companion $playerPet $enemy $combatState $playerStats
-                    $combatState.CompanionCooldowns[$companion.Name] = Get-CompanionCooldown $companion.Name
-                }
-            } else {
-                $narrative = "Kein Companion verfuegbar!"
-            }
-        }
-        "5" { # Item
-            $narrative = Use-CombatItem $playerPet $combatState
-        }
-        "6" { # Flee
-            $fleeChance = [math]::Min(95, [math]::Round(($playerStats.SPD / ($playerStats.SPD + $enemyStats.SPD)) * 100))
-            $fleeRoll = Get-Random -Minimum 1 -Maximum 101
-            if ($fleeRoll -le $fleeChance) {
-                $narrative = "Flucht erfolgreich! Du bist entkommen!"
-                $combatState.FleeAttempted = $true
-            } else {
-                $narrative = "Flucht fehlgeschlagen! Der Gegner blockiert den Weg!"
-            }
-        }
-        "F1" { $combatState.PlayerStance = "Aggressiv"; $narrative = "Stance gewechselt: Aggressiv! ATK x1.5, DEF x0.5" }
-        "F2" { $combatState.PlayerStance = "Defensiv";  $narrative = "Stance gewechselt: Defensiv! DEF x1.5, ATK x0.5" }
-        "F3" { $combatState.PlayerStance = "Speed";     $narrative = "Stance gewechselt: Speed! SPD x1.5" }
-        "F4" { $combatState.PlayerStance = "Balanced"; $narrative = "Stance gewechselt: Balanced! Keine Modifikation." }
     }
-    
+
     if ($narrative) {
         Write-Host "`n  $narrative" -ForegroundColor White
     }
-    
+
     return @{
         DamageDealt = $damageDealt
         DamageTaken = $damageTaken
@@ -797,68 +787,103 @@ function Resolve-PlayerAction($action, $playerPet, $enemy, $companion, $combatSt
     }
 }
 
-function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $enemyStats, $isBoss) {
+function Invoke-PlayerAttack($playerPet, $enemy, $combatState, $playerStats, $enemyStats, $baseDmg, $critBonus, $avsMultiplier, $stanceMod, [ref]$narrativeRef) {
+    Add-ComboElement $combatState $playerPet.Type
+    $combo = Test-ElementCombo $combatState
+    $playerMod = Get-ElementModifier $playerPet.Type $enemy.Type
+
+    $effectiveAtk = $playerStats.ATK
+    $atkUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "ATK-Up" } | Select-Object -First 1
+    if ($atkUp) { $effectiveAtk = [math]::Round($effectiveAtk * (1 + $atkUp.Value)) }
+
+    $effectiveDef = $enemy.DEF
+    $defDown = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "DEF-Down" } | Select-Object -First 1
+    if ($defDown) { $effectiveDef = [math]::Max(1, [math]::Round($effectiveDef * (1 - $defDown.Value))) }
+
+    $skillCritBonus = (Get-TotalPetSkillBonus -Branch 'Combat') * 20
+    $critUp = $combatState.StatusEffects | Where-Object { $_.Target -eq "player" -and $_.Type -eq "Crit-Up" } | Select-Object -First 1
+    $critChance = $stanceMod.Crit + $skillCritBonus + $playerStats.Crit + $critBonus
+    if ($critUp) { $critChance += [math]::Round($critUp.Value * 100) }
+    $critRoll = Get-Random -Minimum 1 -Maximum 101
+    $crit = ($critRoll -le [math]::Max(0, [math]::Round($critChance)))
+    $critMod = if ($crit) { 1.5 } else { 1.0 }
+
+    $comboMod = 1.0
+    if ($combo) {
+        $comboMod = $combo.Multiplier
+        $narrativeRef.Value += " [$($combo.Name)]!"
+    }
+
+    $totalBase = $baseDmg * $stanceMod.ATK * $playerMod * $critMod * $comboMod * $avsMultiplier
+    $dmg = [math]::Max(1, [math]::Round($totalBase * (1 - ($effectiveDef / ($effectiveDef + 20)))))
+    $enemy.HP -= $dmg
+
+    if ($playerMod -gt 1.0) { $narrativeRef.Value += " Typ-Vorteil!" }
+    if ($playerMod -lt 1.0) { $narrativeRef.Value += " Typ-Nachteil..." }
+    if ($crit) { $narrativeRef.Value += " KRITISCH!" }
+    $narrativeRef.Value += " Treffer! -$dmg HP!"
+
+    return $dmg
+}
+
+function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $enemyStats, $isBoss, $avsMultiplier = 1.0, $chosenAction = $null, $charging = $false) {
     $narrative = ""
     $damageDealt = 0
-    
-    $behavior = "Random"
-    if ($isBoss -and $enemy.BossPattern) {
-        $currentPhase = $enemy.BossPattern.Phases | Where-Object { ($enemy.HP / $enemy.MaxHP * 100) -le $_.HPPercent } | Select-Object -First 1
-        if ($currentPhase) { $behavior = $currentPhase.Behavior }
-    }
-    
+
     $paraEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Paralyze" } | Select-Object -First 1
     if ($paraEffect -and (Get-Random -Maximum 2) -eq 0) {
         $narrative = "$($enemy.Name) ist paralysiert und kann nicht angreifen!"
         return @{ DamageDealt = 0; Narrative = $narrative }
     }
-    
+
     $freezeEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Freeze" } | Select-Object -First 1
     if ($freezeEffect) {
         $narrative = "$($enemy.Name) ist eingefroren und ueberspringt die Runde!"
         return @{ DamageDealt = 0; Narrative = $narrative }
     }
-    
+
     $stunEffect = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Stun" } | Select-Object -First 1
     if ($stunEffect) {
         $narrative = "$($enemy.Name) ist gestuned und kann nicht angreifen!"
         return @{ DamageDealt = 0; Narrative = $narrative }
     }
-    
-    $actions = @("A","V","S")
-    $weights = switch ($behavior) {
-        "Aggressive"   { @(60, 20, 20) }
-        "Defensive"    { @(20, 60, 20) }
-        "Desperate"    { @(30, 10, 60) }
-        default        { @(33, 33, 34) }
-    }
-    $rand = Get-Random -Minimum 1 -Maximum 101
-    $cum = 0
-    $chosenAction = "A"
-    for ($i = 0; $i -lt $actions.Count; $i++) {
-        $cum += $weights[$i]
-        if ($rand -le $cum) { $chosenAction = $actions[$i]; break }
-    }
-    
-    $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
 
-    # Silence blockiert Special-Attacken des Gegners
+    if (-not $chosenAction) { $chosenAction = Get-EnemyAction $enemy $combatState $isBoss }
+    $moves = @{ "A" = "Angriff"; "V" = "Vanguard"; "S" = "Stealth" }
+
+    # Silence blockiert Stealth-Attacken des Gegners
     $silence = $combatState.StatusEffects | Where-Object { $_.Target -eq "enemy" -and $_.Type -eq "Silence" } | Select-Object -First 1
     if ($silence -and $chosenAction -eq "S") {
         $chosenAction = "A"
-        $narrative = "$($enemy.Name) ist silenced! Special blockiert!"
+        $narrative = "$($enemy.Name) ist silenced! Stealth blockiert!"
     } else {
         $narrative = "$($enemy.Name) setzt $($moves[$chosenAction]) ein!"
     }
 
     if ($chosenAction -eq "A" -or $chosenAction -eq "S") {
         $enemyMod = Get-ElementModifier $enemy.Type $playerPet.Type
-        $multiplier = if ($chosenAction -eq "S") { 1.5 } else { 1.0 }
+        $multiplier = if ($chosenAction -eq "S") { 1.3 } else { 1.0 }
         $baseDmg = $enemyStats.ATK * $multiplier
 
-        # Defend-Flag halbiert einkommenden Schaden fuer eine Runde
+        # Boss charging attack: V reduziert um 75%, sonst 2x Schaden
+        $chargeMod = 1.0
+        if ($charging) {
+            if ($combatState.PlayerAction -eq "V") {
+                $chargeMod = 0.25
+                $narrative += " [Ladung abgefangen! -75% Schaden!]"
+            } else {
+                $chargeMod = 2.0
+                $narrative += " [LADUNGS-ANGRIFF! 2x Schaden!]"
+            }
+        }
+
+        # Vanguard des Spielers reduziert einkommenden Schaden um 50%
         $defendMod = 1.0
         if ($combatState.Defending -eq $true) { $defendMod = 0.5 }
+
+        # Stealth des Spielers erhoeht einkommenden Schaden um 25%
+        $stealthMod = 1.0
+        if ($combatState.PlayerAction -eq "S") { $stealthMod = 1.25 }
 
         # DEF-Up des Spielers verringert einkommenden Schaden
         $effectiveDef = $playerStats.DEF
@@ -870,7 +895,8 @@ function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $en
         $blocked = ($blockRoll -le $stance.Block)
         $blockMod = if ($blocked) { 0.0 } else { 1.0 }
 
-        $dmg = [math]::Max(0, [math]::Round(($baseDmg * $enemyMod * $defendMod * $blockMod) * (100 / (100 + $effectiveDef))))
+        $totalBase = $baseDmg * $enemyMod * $defendMod * $stealthMod * $chargeMod * $avsMultiplier * $blockMod
+        $dmg = [math]::Max(0, [math]::Round($totalBase * (1 - ($effectiveDef / ($effectiveDef + 20)))))
         $damageDealt = $dmg
         $playerPet.HP -= $dmg
         if ($blocked) {
@@ -878,10 +904,18 @@ function Resolve-EnemyAction($enemy, $playerPet, $combatState, $playerStats, $en
         } else {
             $narrative += " Treffer! -$dmg HP!"
         }
+
+        # Vanguard-Konter: 25% Chance bei Treffer Schaden zurueckzugeben
+        if ($combatState.PlayerAction -eq "V" -and $dmg -gt 0 -and (Get-Random -Minimum 1 -Maximum 101) -le 25) {
+            $counterBase = $playerStats.ATK * $stance.ATK * $enemyMod
+            $counterDmg = [math]::Max(1, [math]::Round($counterBase * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
+            $enemy.HP -= $counterDmg
+            $narrative += " KONTER! -$counterDmg HP!"
+        }
     } else {
-        $narrative += " Der Gegner nimmt Defensive-Stance ein!"
+        $narrative += " Der Gegner nimmt Vanguard-Stance ein!"
     }
-    
+
     return @{ DamageDealt = $damageDealt; Narrative = $narrative }
 }
 
@@ -1058,7 +1092,7 @@ function Invoke-LimitBreak($playerPet, $enemy, $combatState, $playerStats, $comp
     
     $baseDmg = ($script:BPAttacks[$attackName].Power + $playerStats.ATK) * 2.5
     $playerMod = Get-ElementModifier $playerPet.Type $enemy.Type
-    $dmg = [math]::Max(1, [math]::Round(($baseDmg * $playerMod * 2) * (100 / (100 + $enemy.DEF))))
+    $dmg = [math]::Max(1, [math]::Round(($baseDmg * $playerMod * 2) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
     $enemy.HP -= $dmg
     
     $narrative += " MEGA-Treffer! -$dmg HP! [Garantierter Status Effect!]"

@@ -67,26 +67,22 @@ function arcade {
         return
     }
     while ($true) {
-        Load-State
-        $a = $script:BuxeState.Arcade
-        try { Clear-Host } catch {}
-        Show-Frame "BUXE_ARCADE v24.5" -Double | Out-Null
-        Write-Host ""
-        Write-Host "  [1] Tetris          Best: $($a.Tetris.BestScore)" -ForegroundColor Cyan
-        Write-Host "  [2] Snake           Best: $($a.Snake.BestScore)" -ForegroundColor Green
-        Write-Host "  [3] Minesweeper     Best: $($a.Minesweeper.BestTime)s" -ForegroundColor Yellow
-        Write-Host "  [4] Breakout        Best: Lv.$($a.Breakout.BestLevel)" -ForegroundColor Magenta
-        Write-Host "  [5] Wordle          Streak: $($a.Wordle.Streak)" -ForegroundColor White
-        Write-Host "  [6] Monkeytype      WPM: $($a.MonkeyType.BestWPM)" -ForegroundColor Cyan
-        Write-Host "  [7] Zork            Rooms: $($a.Zork.RoomsExplored)" -ForegroundColor Green
-        Write-Host "  [8] Hangman         Won: $($a.Hangman.Won)" -ForegroundColor Yellow
-        Write-Host "  [9] 2048            Best: $($a.Game2048.BestScore)" -ForegroundColor Cyan
-        Write-Host "  [0] Dino Jump       Best: $($a.DinoJump.BestScore)" -ForegroundColor Green
-        Write-Host "  [M] Memory Match    Best: $($a.MemoryMatch.BestTime)s" -ForegroundColor Magenta
-        Write-Host "  [R] Reflex Test     Best: $($a.Reflex.BestAvg)ms" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "  [S] Stats Overview  |  [Q] Exit" -ForegroundColor DarkGray
-        $c = Read-Choice "Waehle" '^[1234567890RMSQ]$'
+        $items = @(
+            @{ Key = '1'; Label = 'Tetris'; Color = 'Cyan' },
+            @{ Key = '2'; Label = 'Snake'; Color = 'Green' },
+            @{ Key = '3'; Label = 'Minesweeper'; Color = 'Yellow' },
+            @{ Key = '4'; Label = 'Breakout'; Color = 'Magenta' },
+            @{ Key = '5'; Label = 'Wordle'; Color = 'White' },
+            @{ Key = '6'; Label = 'Monkeytype'; Color = 'Cyan' },
+            @{ Key = '7'; Label = 'Zork'; Color = 'Green' },
+            @{ Key = '8'; Label = 'Hangman'; Color = 'Yellow' },
+            @{ Key = '9'; Label = '2048'; Color = 'Cyan' },
+            @{ Key = '0'; Label = 'Dino Jump'; Color = 'Green' },
+            @{ Key = 'M'; Label = 'Memory Match'; Color = 'Magenta' },
+            @{ Key = 'R'; Label = 'Reflex Test'; Color = 'Cyan' },
+            @{ Key = 'S'; Label = 'Stats'; Color = 'DarkGray' }
+        )
+        $c = Show-MenuEx -Title "BUXE_ARCADE v24.5" -Items $items -Clear
         switch ($c) {
             '1' { tetris }
             '2' { snake }

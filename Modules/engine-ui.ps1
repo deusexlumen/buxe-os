@@ -56,6 +56,52 @@ function Show-Menu($Title, [array]$Options, [switch]$Clear) {
     return $bot
 }
 
+# === EXTENDED MENU (letter + number support) ===
+function Show-MenuEx($Title, [array]$Items, [switch]$Clear) {
+    if ($Clear) { try { Clear-Host } catch {} }
+    if ($Title) { Show-Frame $Title -Double | Out-Null } else { Show-Frame "MENU" -Double | Out-Null }
+    Write-Host ""
+
+    if ($Items -and $Items.Count -gt 0) {
+        $cellStrings = foreach ($it in $Items) { "  [$($it.Key)] $($it.Label)" }
+        $maxLen = ($cellStrings | Measure-Object -Property Length -Maximum).Maximum
+        $quitLen = "  [Q] Zurueck / Quit".Length
+        if ($quitLen -gt $maxLen) { $maxLen = $quitLen }
+        $colWidth = $maxLen + 2
+
+        $rows = [math]::Ceiling($Items.Count / 3)
+        for ($r = 0; $r -lt $rows; $r++) {
+            for ($c = 0; $c -lt 3; $c++) {
+                $idx = $r * 3 + $c
+                if ($idx -lt $Items.Count) {
+                    $it = $Items[$idx]
+                    $s = "  [$($it.Key)] $($it.Label)"
+                    $color = if ($it.Color) { $it.Color } else { "White" }
+                    Write-Host $s.PadRight($colWidth) -NoNewline -ForegroundColor $color
+                }
+            }
+            Write-Host ""
+        }
+    }
+
+    Write-Host "  [Q] Zurueck / Quit" -ForegroundColor DarkGray
+    Write-Host ""
+
+    $validKeys = @('Q')
+    if ($Items) {
+        $validKeys += foreach ($it in $Items) { ($it.Key -as [string]).ToUpper() }
+    }
+    $escaped = foreach ($k in $validKeys) { [regex]::Escape($k) }
+    $pattern = '^[' + ($escaped -join '') + ']$'
+
+    while ($true) {
+        $in = Read-Host "  Deine Wahl"
+        $sel = ($in -as [string]).ToUpper()
+        if ($sel -match $pattern) { return $sel }
+        Write-Host "  Ungueltige Eingabe." -ForegroundColor Red
+    }
+}
+
 # === INPUT ===
 function Wait-Enter {
     Write-Host "`n  [Enter] druecken zum Fortfahren..." -ForegroundColor DarkGray

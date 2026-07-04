@@ -4,8 +4,11 @@
 try {
 
 function Show-CombatScene($playerPet, $enemy, $companion, $combatState, $playerStats, $enemyStats, $isBoss) {
-    $w = [math]::Min(70, $Host.UI.RawUI.WindowSize.Width - 2)
-    $h = [math]::Min(22, $Host.UI.RawUI.WindowSize.Height - 2)
+    $w = 70; $h = 22
+    try {
+        $w = [math]::Min(70, $Host.UI.RawUI.WindowSize.Width - 2)
+        $h = [math]::Min(22, $Host.UI.RawUI.WindowSize.Height - 2)
+    } catch {}
     $scene = New-Scene $w $h
 
     $title = if ($isBoss) { "BOSS-KAMPF — Runde $($combatState.Round)" } else { "KAMPF — Runde $($combatState.Round)" }
@@ -69,7 +72,7 @@ function Show-CombatScene($playerPet, $enemy, $companion, $combatState, $playerS
     }
 
     # Action menu
-    Add-SceneText $scene 2 ($h - 5) "[1] Attack  [2] Defend  [3] Switch  [4] Companion  [5] Item  [6] Flee" 'White'
+    Add-SceneText $scene 2 ($h - 5) "[A]ngriff  [V]anguard  [S]tealth  [Q] Flucht" 'White'
     Add-SceneText $scene 2 ($h - 4) "[F1] Aggressiv  [F2] Defensiv  [F3] Speed  [F4] Balanced" 'DarkGray'
 
     Show-Scene $scene -Force

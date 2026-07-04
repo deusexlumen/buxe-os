@@ -51,22 +51,20 @@ function casino {
         }
     }
     while ($true) {
-        Clear-Screen "CASINO"
+        try { Clear-Host } catch {}
         Show-Bankroll
         Write-Host ""
-        Show-Menu "Casino" @(
-            "Blackjack",
-            "Roulette",
-            "Craps",
-            "Hi-Lo",
-            "Baccarat",
-            "Slot",
-            "Keno",
-            "Wheel of Fortune"
-        ) | Out-Null
-        Write-Host "  [S] Stats | [Q] Zurueck" -ForegroundColor DarkGray
-        
-        $c = Read-Choice "Waehle" '^[1-8SQ]$'
+        $c = Show-MenuEx -Title "CASINO" -Items @(
+            @{ Key = '1'; Label = 'Blackjack' },
+            @{ Key = '2'; Label = 'Roulette' },
+            @{ Key = '3'; Label = 'Craps' },
+            @{ Key = '4'; Label = 'Hi-Lo' },
+            @{ Key = '5'; Label = 'Baccarat' },
+            @{ Key = '6'; Label = 'Slot' },
+            @{ Key = '7'; Label = 'Keno' },
+            @{ Key = '8'; Label = 'Wheel of Fortune' },
+            @{ Key = 'S'; Label = 'Stats' }
+        )
         switch ($c) {
             '1' { blackjack }
             '2' { roulette }

@@ -107,17 +107,25 @@ function h {
     if ($b.Gold) { Write-Host "  |  Bank: $($b.Gold) G | Streak: $($b.DailyStreak)" -ForegroundColor Yellow }
     Write-Host "  +======================================+" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  [NAV]      .. ... .... tmp dl docs mkcd" -ForegroundColor DarkGray
+
+    Write-Host "  [GAMES]" -ForegroundColor Green
+    Write-Host "    Hubs:     casino | arcade | pet | adv | insult" -ForegroundColor White
+    Write-Host "    Casino:   blackjack | roulette | craps | hilo | baccarat | slot | keno | wheel" -ForegroundColor White
+    Write-Host "    Arcade:   tetris | snake | minesweeper | breakout | wordle | monkeytype | zork | hangman" -ForegroundColor White
+    Write-Host "    Strategy: poker | td | rogue" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  [NAV]      .. ... .... z zi tmp dl docs mkcd" -ForegroundColor DarkGray
     Write-Host "  [FILES]    ll la touch rmrf c which grep" -ForegroundColor DarkGray
     Write-Host "  [GIT]      g gs ga gc gp gl gco gb gd glog gcm gundo gunstage" -ForegroundColor DarkGray
     Write-Host "  [SYSTEM]   uptime weather ip port mem sudo reload profile sysinfo" -ForegroundColor DarkGray
     Write-Host "  [DEV]      kill-node kill-port size tmp-clean flush-dns empty-bin" -ForegroundColor DarkGray
     Write-Host "  [PNPM]     p pi pib ps pb pd pt pl po pr px pclean" -ForegroundColor DarkGray
-    Write-Host "  [BANK]     bank daily" -ForegroundColor DarkGray
+    Write-Host "  [BANK]     bank daily pet-transfer" -ForegroundColor DarkGray
     Write-Host "  [STATS]    status achievements ego" -ForegroundColor DarkGray
-    Write-Host "  [VOICE]    voices | svoice EN|ML # | Say text [-Wait] | clip-say" -ForegroundColor DarkGray
-    Write-Host "  [MISC]     capsule dp-on guide h" -ForegroundColor DarkGray
+    Write-Host "  [VOICE]    voices svoice EN|ML # Say text [-Wait] clip-say" -ForegroundColor DarkGray
+    Write-Host "  [MISC]     capsule dp-on dp-off guide h meta meta-debug" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "  Tip: status for overview. Games/Pet hidden -- type the name directly." -ForegroundColor DarkGray
+    Write-Host "  Tipp: 'guide' oeffnet das vollstaendige GUIDE.md im Notepad." -ForegroundColor Cyan
+    Write-Host "        'status' zeigt eine Uebersicht. 'sv_cheats' listet alle Cheats." -ForegroundColor DarkGray
     Write-Host ""
 }

@@ -78,7 +78,46 @@ function tmp-clean {
     Write-Host "`n  Temp bereinigt: $before -> $after Dateien/Ordner uebrig.`n" -ForegroundColor Green
 }
 function flush-dns { ipconfig /flushdns | Out-Null; Write-Host "`n  DNS-Cache geleert.`n" -ForegroundColor Green }
-function empty-bin { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host "`n  Papierkorb geleert.`n" -ForegroundColor Green }
+function empty-bin {
+    $isWindowsOS = ($env:OS -eq 'Windows_NT') -or ($IsWindows -eq $true)
+    if (-not $isWindowsOS) {
+        Write-Host "`n  empty-bin ist nur unter Windows verfuegbar.`n" -ForegroundColor Yellow
+        return
+    }
+
+    try {
+        $shell = New-Object -ComObject Shell.Application
+        $bin = $shell.Namespace(0xA)
+        $beforeCount = $bin.Items().Count
+
+        try {
+            Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+        } catch { }
+
+        $items = $bin.Items()
+        $count = $items.Count
+        if ($count -eq 0) {
+            if ($beforeCount -eq 0) {
+                Write-Host "`n  Papierkorb bereits leer.`n" -ForegroundColor DarkGray
+            } else {
+                Write-Host "`n  Papierkorb geleert.`n" -ForegroundColor Green
+            }
+        } else {
+            foreach ($item in $items) {
+                try { Remove-Item $item.Path -Recurse -Force -ErrorAction SilentlyContinue } catch { }
+            }
+            $remaining = $bin.Items().Count
+            if ($remaining -eq 0) {
+                Write-Host "`n  Papierkorb geleert.`n" -ForegroundColor Green
+            } else {
+                Write-Host "`n  Papierkorb konnte nicht vollstaendig geleert werden (noch $remaining Eintraege)." -ForegroundColor Yellow
+            }
+        }
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($shell) | Out-Null
+    } catch {
+        Write-Host "`n  Papierkorb konnte nicht geleert werden." -ForegroundColor Red
+    }
+}
 
 } catch {
     Write-Host "[engine-aliases-sys] CRITICAL ERROR: $($_)" -ForegroundColor Red
