@@ -21,3 +21,6 @@ SESSION_NOTES.md
 
 # Temporaere Dateien
 *.tmp
+
+# Kimi-interne Planungsdateien
+.kimi/plans/
