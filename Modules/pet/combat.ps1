@@ -140,8 +140,8 @@ function Test-ElementCombo($CombatState) {
 }
 
 function Get-ScaledEnemyStats($Template, $PetLevel, [switch]$IsElite, [switch]$IsBoss) {
-    $sc = 1 + ($PetLevel - 1) * 0.25
-    if ($IsBoss) { $sc = 1 + ($PetLevel - 1) * 0.3 }
+    $sc = 1 + ($PetLevel - 1) * 0.32
+    if ($IsBoss) { $sc = 1 + ($PetLevel - 1) * 0.38 }
     if ($IsElite) { $sc *= 1.2 }
     $name = $Template.Name
     if ($IsElite) { $name = "ELITE $name" }
@@ -366,6 +366,58 @@ function Use-CompanionCombatAbility($cp, $p, $stats, $enemy) {
     Wait-Enter
 }
 
+# BUXE_OS v25.0 -- Companion Pre-Fight Ability fuer Reducer (Phase 2)
+# Wandelt ATK/DEF/SPD-Buffs in Status-Effekte um, statt einen Snapshot zu mutieren.
+function Use-CompanionCombatAbilityV3($cp, $player, $enemy) {
+    if (-not $cp) { return }
+    try { Clear-Host } catch {}
+    Show-PetFrame "COMPANION UNTERSTUETZUNG" -Double | Out-Null
+    Write-Host ""
+    # Status-Effekte muessen als Generic.List vorliegen
+    if (-not ($player.Effects -is [System.Collections.Generic.List[object]])) { $player.Effects = [System.Collections.Generic.List[object]]::new() }
+    if (-not ($enemy.Effects -is [System.Collections.Generic.List[object]])) { $enemy.Effects = [System.Collections.Generic.List[object]]::new() }
+    switch ($cp.Name) {
+        "NEON" {
+            $player.Effects.Add(@{ Type = "ATK-Up"; Turns = 3; Intensity = $null })
+            Show-CompanionDialog $cp "*hackt deine Kampfroutinen* ATK +50% fuer 3 Runden!" -Fast
+        }
+        "RAVEN" {
+            $preDmg = [math]::Max(1, [math]::Round($player.ATK * 0.5))
+            $enemy.HP -= $preDmg
+            Show-CompanionDialog $cp "*ferngesteuertes Takedown* Gegner nimmt $preDmg Schaden bevor der Kampf beginnt!" -Fast
+        }
+        "PIXEL" {
+            $player.Effects.Add(@{ Type = "DEF-Up"; Turns = 3; Intensity = $null })
+            Show-CompanionDialog $cp "*baut schnell eine Schutzschicht* DEF +40% fuer 3 Runden!" -Fast
+        }
+        "LUNA" {
+            $heal = [math]::Round($player.MaxHP * 0.25)
+            $player.HP = [math]::Min($player.MaxHP, $player.HP + $heal)
+            Show-CompanionDialog $cp "*virtuelles Pflaster verteilt* +$heal HP geheilt!" -Fast
+        }
+        "IVY" {
+            $enemy.Effects.Add(@{ Type = "DEF-Down"; Turns = 3; Intensity = $null })
+            Show-CompanionDialog $cp "*löscht Gegner-Verteidigungsroutinen* Gegner-DEF -30% fuer 3 Runden!" -Fast
+        }
+        "VERA" {
+            Show-CompanionDialog $cp "*scannt Gegner-Verhalten* Ich sehe seinen naechsten Zug. Nicht wirklich. Aber fast." -Fast
+        }
+        "JINX" {
+            if ((Get-Random -Maximum 2) -eq 0) {
+                $player.Effects.Add(@{ Type = "ATK-Up"; Turns = 2; Intensity = $null })
+                Show-CompanionDialog $cp "*wirft einen digitalen Glueckswuerfel* ATK +50%! Heute ist mein Tag!" -Fast
+            } else {
+                # Chaos: Gegner bekommt zufaelligen DoT
+                $chaos = @("Burn","Poison","Paralyze") | Get-Random
+                $enemy.Effects.Add(@{ Type = $chaos; Turns = 2; Intensity = $null })
+                Show-CompanionDialog $cp "*wirft einen digitalen Glueckswuerfel* Gegner erhaelt $chaos! Chaos ist auch eine Strategie." -Fast
+            }
+        }
+    }
+    Write-Host ""
+    Wait-Enter
+}
+
 function Get-CombatInitiative($playerStats, $enemyStats, $playerStance = "Balanced") {
     $stance = Get-StanceModifier $playerStance
     $pInit = (Get-Random -Minimum 1 -Maximum 100) + ($playerStats.SPD * $stance.SPD)
@@ -429,133 +481,114 @@ function Resolve-AVS($playerAction, $enemyAction) {
 function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
     $stats = Get-EffectiveStats $playerPet $companion
     $playerPet.HP = [math]::Min($playerPet.HP, $stats.MaxHP)
-    
+
     $isElite = (-not $isBoss) -and ($playerPet.Level -ge 5) -and ((Get-Random -Maximum 100) -lt 30)
     if ($isBoss) {
         $et = @{ Name = "BOSS_OMEGA"; Type = "VIRUS"; HP = 150; MaxHP = 150; ATK = 20; DEF = 15; SPD = 10 }
-        $enemy = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsBoss
+        $enemyTemplate = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsBoss
     } else {
         $et = ($script:BPEnemies | Get-Random)
-        $enemy = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsElite:$isElite
+        $enemyTemplate = Get-ScaledEnemyStats -Template $et -PetLevel $playerPet.Level -IsElite:$isElite
     }
-    
-    $enemyStats = @{ MaxHP = $enemy.MaxHP; ATK = $enemy.ATK; DEF = $enemy.DEF; SPD = $enemy.SPD }
-    $combatState = New-CombatState $playerPet $companion
-    
-    # Pre-fight companion ability
+
+    # Reducer-kompatible Player/Enemy-Objekte
+    $player = @{
+        Name = $playerPet.Name; Type = $playerPet.Type; Level = $playerPet.Level
+        HP = $playerPet.HP; MaxHP = $stats.MaxHP
+        ATK = $stats.ATK; DEF = $stats.DEF; SPD = $stats.SPD; Crit = $stats.Crit
+        Attacks = $playerPet.Attacks; LimitBreakUnlocked = $playerPet.LimitBreakUnlocked
+        Effects = [System.Collections.Generic.List[object]]::new()
+    }
+    $enemy = @{
+        Name = $enemyTemplate.Name; Type = $enemyTemplate.Type; Level = $playerPet.Level
+        HP = $enemyTemplate.HP; MaxHP = $enemyTemplate.MaxHP
+        ATK = $enemyTemplate.ATK; DEF = $enemyTemplate.DEF; SPD = $enemyTemplate.SPD
+        Archetype = if ($isBoss) { "Berserker" } else { "Drone" }
+        IsBoss = [bool]$isBoss; IsElite = [bool]$isElite
+        BossPattern = $enemyTemplate.BossPattern
+        Effects = [System.Collections.Generic.List[object]]::new()
+    }
+
+    $state = New-CombatStateV3 -Player $player -Enemy $enemy
+
+    # Pre-fight companion ability (jetzt als Status-Effekte, keine Snapshot-Mutation)
     if ($companion) {
-        Use-CompanionCombatAbility $companion $playerPet $stats $enemy
-        $stats = Get-EffectiveStats $playerPet $companion
+        Use-CompanionCombatAbilityV3 $companion $player $enemy
     }
-    
-    # Combat loop
-    while ($playerPet.HP -gt 0 -and $enemy.HP -gt 0 -and -not $combatState.FleeAttempted) {
-        Show-CombatScreen $playerPet $enemy $companion $combatState $stats $enemyStats $isBoss
 
-        # Limit Break check
-        Invoke-LimitBreak $playerPet $enemy $combatState $stats $companion | Out-Null
-        if ($combatState.FleeAttempted) { break }
+    # Kampf-Loop
+    while ($state.Phase -eq "Active") {
+        $lbAvailable = ($player.LimitBreakUnlocked -and -not $state.LimitBreakUsed -and ($player.HP / $player.MaxHP) -le 0.25)
 
-        # Get player action (A/V/S or stance switch)
-        $validActions = "^(A|V|S|F1|F2|F3|F4)$"
-        $action = Read-Choice "Aktion" $validActions
+        Show-CombatV3 -State $state -companion $companion -isBoss $isBoss
 
-        # Stance switching is a free pre-round adjustment; re-prompt for A/V/S
-        while ($action -match "^F[1-4]$") {
-            $combatState.PlayerStance = switch ($action) {
-                "F1" { "Aggressiv" }
-                "F2" { "Defensiv" }
-                "F3" { "Speed" }
-                "F4" { "Balanced" }
-            }
-            Write-Host "`n  Stance gewechselt: $($combatState.PlayerStance)" -ForegroundColor Cyan
-            Show-CombatScreen $playerPet $enemy $companion $combatState $stats $enemyStats $isBoss
-            $action = Read-Choice "Aktion" $validActions
+        $baseValid = "A|V|S|M|Q|F1|F2|F3|F4"
+        if ($lbAvailable) { $baseValid += "|L" }
+        $validPattern = "^($baseValid)$"
+        $action = Read-Choice "Aktion" $validPattern
+
+        # Stance ist kostenlos
+        if ($action -match "^F[1-4]$") {
+            $stanceName = switch ($action) { "F1" { "Aggressiv" } "F2" { "Defensiv" } "F3" { "Speed" } "F4" { "Balanced" } }
+            $r = Invoke-CombatReducer -State $state -Action @{ Kind = "Stance"; Stance = $stanceName }
+            $state = $r.State
+            continue
         }
 
+        # Flucht
         if ($action -eq "Q") {
-            $combatState.FleeAttempted = $true
+            $r = Invoke-CombatReducer -State $state -Action @{ Kind = "Flee" }
+            $state = $r.State
+            Show-CombatV3 -State $state -Events $r.Events -companion $companion -isBoss $isBoss
+            Wait-Enter
             break
         }
 
-        # Enemy chooses its A/V/S action
-        $enemyAction = Get-EnemyAction $enemy $combatState $isBoss
-        $combatState.PlayerAction = $action
-        $combatState.EnemyAction = $enemyAction
-
-        # Resolve A/V/S matchup
-        $avs = Resolve-AVS $action $enemyAction
-        $moves = @{ "A" = "Angriff"; "V" = "Vanguard"; "S" = "Stealth" }
-        Write-Host "`n  Du: $($moves[$action]) | Gegner: $($moves[$enemyAction])" -ForegroundColor DarkGray
-        if ($avs.Winner -eq "Player") {
-            Write-Host "  Du gewinnst das Tempo! +50% Schaden!" -ForegroundColor Green
-        } elseif ($avs.Winner -eq "Enemy") {
-            Write-Host "  Der Gegner gewinnt das Tempo! Du erleidest mehr Schaden!" -ForegroundColor Red
-        } else {
-            Write-Host "  Gleichstand! Keine Tempo-Boni." -ForegroundColor Yellow
+        # Aktion an Reducer uebergeben
+        $reducerAction = @{ Kind = "Attack" }
+        if ($action -eq "M") {
+            $moveName = Select-PlayerAttack $playerPet
+            if (-not $moveName) { continue }
+            $reducerAction = @{ Kind = "Move"; MoveName = $moveName }
+        } elseif ($action -eq "L") {
+            $reducerAction = @{ Kind = "LimitBreak" }
+        } elseif ($action -eq "V") {
+            $reducerAction = @{ Kind = "Vanguard" }
+        } elseif ($action -eq "S") {
+            $reducerAction = @{ Kind = "Stealth" }
         }
 
-        # Telegraph boss charging attack every 3rd round
-        $charging = $false
-        if ($isBoss -and ($combatState.Round % 3) -eq 0) {
-            $charging = $true
-            Write-Host "  ! BOSS_OMEGA laedt einen Angriff auf! [V]anguard reduziert den Schaden massiv!" -ForegroundColor Magenta
-        }
+        $r = Invoke-CombatReducer -State $state -Action $reducerAction
+        $state = $r.State
 
-        # Determine initiative (SPD stance multiplier already applied inside)
-        $playerFirst = Get-CombatInitiative $stats $enemyStats $combatState.PlayerStance
-
-        # Execute actions
-        if ($playerFirst) {
-            Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats $avs.PlayerMultiplier | Out-Null
-            if ($enemy.HP -gt 0 -and -not $combatState.FleeAttempted) {
-                $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss $avs.EnemyMultiplier $enemyAction $charging
-                if ($eResult.Narrative) {
-                    Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
-                }
-            }
-        } else {
-            $eResult = Resolve-EnemyAction $enemy $playerPet $combatState $stats $enemyStats $isBoss $avs.EnemyMultiplier $enemyAction $charging
-            if ($eResult.Narrative) {
-                Write-Host "  $($eResult.Narrative)" -ForegroundColor Red
-            }
-            if ($playerPet.HP -gt 0 -and -not $combatState.FleeAttempted) {
-                Resolve-PlayerAction $action $playerPet $enemy $companion $combatState $stats $enemyStats $avs.PlayerMultiplier | Out-Null
-            }
-        }
-
-        # Apply status effects
-        $seMessages = Apply-StatusEffects $combatState $playerPet $enemy $stats $enemyStats
-        foreach ($msg in $seMessages) {
-            Write-Host "  $msg" -ForegroundColor Yellow
-        }
-        if ($seMessages.Count -gt 0) { Wait-Enter }
-
-        # Decrement companion cooldowns
-        foreach ($key in @($combatState.CompanionCooldowns.Keys)) {
-            if ($combatState.CompanionCooldowns[$key] -gt 0) {
-                $combatState.CompanionCooldowns[$key]--
-            }
-        }
-
-        # Per-round flags reset
-        $combatState.Defending = $false
-        $combatState.PlayerAction = $null
-        $combatState.EnemyAction = $null
-
-        # Log round
-        $combatState.BattleLog += "R$($combatState.Round): $($playerPet.Name) vs $($enemy.Name)"
-        $combatState.Round++
-
-        if ($playerPet.HP -le 0 -or $enemy.HP -le 0) { break }
-
-        if (-not $combatState.FleeAttempted) {
+        Show-CombatV3 -State $state -Events $r.Events -companion $companion -isBoss $isBoss
+        if ($state.Phase -eq "Active") {
             Write-Host "`n  [Enter] fuer naechste Runde..." -ForegroundColor DarkGray
             Read-Host
         }
     }
 
-    Resolve-CombatEnd $playerPet $enemy $companion $combatState $stats $isBoss
+    # HP zurueck ins Pet-Objekt synchronisieren (Reducer arbeitet auf lokaler Kopie)
+    $playerPet.HP = $player.HP
+
+    # Kampfende: Reward-Logik direkt aufrufen (Subscriber wuerden stale HP sehen)
+    $result = $state.Phase.ToString().ToLower()
+    Resolve-CombatEndV3 -playerPet $playerPet -companion $companion -isBoss $isBoss -result $result
+
+    # Memory-Events veroeffentlichen
+    $enemyName = $enemyTemplate.Name
+    if ($result -eq "won") {
+        Publish-BuxeEvent -Topic "combat.won" -Data @{ Enemy = $enemyName; IsBoss = $isBoss }
+    } elseif ($result -eq "lost") {
+        Publish-BuxeEvent -Topic "combat.lost" -Data @{ Enemy = $enemyName; IsBoss = $isBoss }
+    }
+    if (Get-Command Invoke-PetMemoryRecall -ErrorAction SilentlyContinue) { Invoke-PetMemoryRecall "Combat" }
+
+    # Finaler Screen nur bei Sieg/Niederlage (Flucht wurde bereits angezeigt)
+    if ($result -ne "fled") {
+        Show-CombatV3 -State $state -companion $companion -isBoss $isBoss -Final
+        Wait-Enter
+    }
 }
 
 function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $playerStats, $isBoss) {
@@ -632,6 +665,91 @@ function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $player
     $playerPet.FoodBuffs = @(); Save-PetState $pet
     Invoke-Layer47Check
     Wait-Enter
+}
+
+# BUXE_OS v25.0 -- Kampfende-Logik fuer den Reducer (Phase 2)
+# Wird von world-events.ps1 via combat.won/lost/fled Events aufgerufen.
+# KEIN UI-Blocking (kein Wait-Enter), nur State-Mutation + Ausgabe.
+function Resolve-CombatEndV3($playerPet, $companion, $isBoss, $result) {
+    $pet = Get-PetState
+    $playerStats = Get-EffectiveStats $playerPet $companion
+
+    switch ($result) {
+        "fled" {
+            try { Clear-Host } catch {}
+            Show-PetFrame "FLUCHT" -Double | Out-Null
+            Write-Host "`n  Du bist erfolgreich geflohen!" -ForegroundColor Yellow
+            $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.5)
+            Save-PetState $pet
+            return
+        }
+        "lost" {
+            try { Clear-Host } catch {}
+            Show-PetFrame "NIEDERLAGE" -Double | Out-Null
+            $playerPet.Losses++
+            $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.3)
+            Write-Host "`n  NIEDERLAGE..." -ForegroundColor Red
+            if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_loss") -NoWait }
+            Add-PetXP 5 "Fight Loss"
+        }
+        "won" {
+            try { Clear-Host } catch {}
+            Show-PetFrame "SIEG" -Double | Out-Null
+            $xp = if ($isBoss) { 50 + ($playerPet.Level * 10) } else { 20 + ($playerPet.Level * 5) }
+            $level = $playerPet.Level
+            $gold = Get-Random -Minimum (10 + $level * 2) -Maximum (20 + $level * 3 + 1)
+            if ($isBoss) { $gold += 25 + $level * 3 }
+            $playerPet.Wins++
+            $playerPet.XP += $xp
+            $playerPet.HP = [math]::Min($playerPet.HP + [math]::Round($playerStats.MaxHP * 0.2), $playerStats.MaxHP)
+            $pet.Economy.Gold += $gold
+
+            $lootChance = if ($isBoss) { 40 } else { 15 }
+            $lootText = ""
+            if ((Get-Random -Maximum 100) -lt $lootChance) {
+                $lootItems = @("Scrap Metal","Data Shard","Energy Cell")
+                if ($isBoss) { $lootItems += @("Rare Chip","Boss Core") }
+                $loot = $lootItems | Get-Random
+                $pet.Economy.Inventory += $loot
+                $lootText = " | Loot: $loot"
+            }
+
+            if ($companion) {
+                $companion.Sync++
+                if ($companion.Sync -in @(10,25,50,100)) {
+                    Write-Host "`n  SYNC LEVEL UP! $($companion.Sync) erreicht!" -ForegroundColor Magenta
+                }
+            }
+
+            Write-Host "`n  SIEG! +$xp XP | +$gold G$lootText" -ForegroundColor Green
+            Invoke-PetLevelUpCheck $playerPet
+            if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_win") -NoWait }
+            Add-PetXP ($xp / 2) "Fight Win"
+        }
+    }
+
+    # Equipment durability degradation (nur bei Sieg/Niederlage, nicht Flucht)
+    if ($result -in @("won","lost")) {
+        foreach ($slot in @("chip","armor","accessory")) {
+            $eq = $playerPet.Equipment.$slot
+            if ($eq) {
+                $durKey = "Dur_$slot"
+                if (-not $playerPet.$durKey) { $playerPet.$durKey = 10 }
+                $playerPet.$durKey--
+                if ($playerPet.$durKey -le 0) {
+                    $playerPet.Equipment.$slot = $null
+                    Write-Host "  $eq ist zerbrochen!" -ForegroundColor Red
+                    $playerPet.$durKey = 0
+                } else {
+                    Write-Host "  $eq Haltbarkeit: $($playerPet.$durKey)" -ForegroundColor DarkGray
+                }
+            }
+        }
+    }
+
+    $playerPet.FoodBuffs = @()
+    Save-PetState $pet
+    Invoke-Layer47Check
 }
 
 function Start-PetFight {

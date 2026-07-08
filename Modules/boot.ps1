@@ -19,7 +19,23 @@ function Invoke-BootSequence {
         $b.Loads++
         $b.LastBoot = Get-Date -Format "yyyy-MM-dd HH:mm"
         Save-State
-        
+
+        # Session-Zaehler fuer Akt-I-Trigger (lazy auf Pet.Meta)
+        if (Get-Command Get-PetState -ErrorAction SilentlyContinue) {
+            $pet = Get-PetState
+            if ($pet -and $pet.Meta) {
+                $pet.Meta.SessionCount++
+                if (-not $pet.Meta.Act1Done -and $pet.Meta.SessionCount -ge 47) {
+                    $cp = $pet.Companion
+                    $memCount = if ($pet.Memories) { $pet.Memories.Count } else { 0 }
+                    if ($cp -and $memCount -ge 3) {
+                        $pet.Meta.Act1Pending = $true
+                    }
+                }
+                Save-PetState $pet
+            }
+        }
+
         $hour = (Get-Date).Hour
         $greeting = if ($hour -ge 5 -and $hour -lt 12) { "Guten Morgen" } elseif ($hour -ge 12 -and $hour -lt 18) { "Guten Tag" } elseif ($hour -ge 18 -and $hour -lt 22) { "Guten Abend" } else { "Noch wach" }
         

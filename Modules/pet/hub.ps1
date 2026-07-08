@@ -769,6 +769,7 @@ function Invoke-PetGlitch {
     } else {
         $effect = "nothing"
         $pet.Meta.ActionCount++
+        if (Get-Command Add-PetMemoryEntry -ErrorAction SilentlyContinue) { Add-PetMemoryEntry "STILLE" @{ Detail = "nothing" } }
     }
 
     $pet.Meta.LastGlitchEffect = $effect

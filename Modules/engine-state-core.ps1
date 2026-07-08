@@ -324,6 +324,7 @@ $script:AchievementCatalog = @{
     'Dungeon Master' = @{ Gold = 300; XP = 50; Title = 'Dungeon Master' }
     'Casino King'  = @{ Gold = 500; XP = 0;  Title = 'Casino King' }
     'Layer 47'     = @{ Gold = 47;  XP = 47; Title = 'Layer Walker' }
+    'AKTE 47'      = @{ Gold = 470; XP = 47; Title = 'AKTE 47' }
 }
 
 function Unlock-Achievement($name) {

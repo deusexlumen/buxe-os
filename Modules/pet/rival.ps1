@@ -14,6 +14,7 @@ function Check-PetRival {
         $pet.Meta.RivalName = ($script:PetRivalNames | Get-Random) + "_" + (Get-Random -Maximum 999)
         $pet.Meta.RivalActive = $true
         Save-PetState $pet
+        Publish-BuxeEvent -Topic "rival.ambush" -Data @{ RivalName = $pet.Meta.RivalName }
         return $true
     }
     return $false
@@ -27,7 +28,10 @@ function Invoke-PetRivalBattle {
     if (-not $p) { Write-Host "Kein Pet!" -ForegroundColor Red; Start-Sleep -Seconds 1; return }
     try { Clear-Host } catch {}
     Show-PetFrame "RIVAL ENCOUNTER" -Double | Out-Null
-    Write-Host "`n  Ein Rivale namens $rn fordert dich heraus!" -ForegroundColor Red
+    $rivalWins = if ($pet.Meta.RivalWins) { $pet.Meta.RivalWins } else { 0 }
+    $ensembleLine = Get-EnsembleLine "RIVALE" (Get-RivaleBeat $rivalWins)
+    $rivalIntro = if ($ensembleLine -and $ensembleLine -notmatch '^\[PLACEHOLDER:') { $ensembleLine } else { "Ein Rivale namens $rn fordert dich heraus!" }
+    Write-Host "`n  $rivalIntro" -ForegroundColor Red
     # Generate rival stats based on pet level
     $rLvl = [math]::Max(1, $p.Level + (Get-Random -Minimum -2 -Maximum 3))
     $rStats = @{

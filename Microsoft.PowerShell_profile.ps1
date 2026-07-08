@@ -34,6 +34,7 @@ foreach ($cm in $criticalModules) {
 . "$modulesDir\engine-state-core.ps1"
 . "$modulesDir\engine-state-migration.ps1"
 . "$modulesDir\engine-state-advanced.ps1"
+. "$modulesDir\engine-bus.ps1"
 Load-State
 . "$modulesDir\engine-arg.ps1"
 . "$modulesDir\engine-ui.ps1"
@@ -68,13 +69,19 @@ Load-State
 # _init.ps1 must load first for deterministic order
 $petInit = "$modulesDir\pet\_init.ps1"
 if (Test-Path $petInit) { . $petInit }
-$petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Where-Object { $_.Name -ne "_init.ps1" } | Sort-Object Name
+$petModules = Get-ChildItem "$modulesDir\pet\*.ps1" | Where-Object { $_.Name -ne "_init.ps1" -and $_.Name -ne "combat-core.ps1" } | Sort-Object Name
 foreach ($pm in $petModules) {
     try { . $pm.FullName } catch { Write-Host "  [WARN] Pet module $($pm.Name) failed: $_" -ForegroundColor DarkGray }
 }
+# combat-core.ps1 muss nach combat.ps1 geladen sein (BPAttacks-Abhaengigkeit)
+$combatCorePath = "$modulesDir\pet\combat-core.ps1"
+if (Test-Path $combatCorePath) { try { . $combatCorePath } catch { Write-Host "  [WARN] combat-core failed: $_" -ForegroundColor DarkGray } }
 . "$modulesDir\fun.ps1"
 . "$modulesDir\handbook.ps1"
 . "$modulesDir\tts-engine.ps1"
+# World-Events verdrahtet alle Subsysteme ueber den Bus und muss als letztes Modul laden
+$worldEventsPath = "$modulesDir\world-events.ps1"
+if (Test-Path $worldEventsPath) { try { . $worldEventsPath } catch { Write-Host "  [WARN] world-events failed: $_" -ForegroundColor DarkGray } }
 
 # === BOOT SEQUENCE ===
 Invoke-BootSequence

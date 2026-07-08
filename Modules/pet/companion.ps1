@@ -93,6 +93,7 @@ function Invoke-CompanionAction($action) {
     $cp = $pet.Companion
     if (-not $cp) { New-Companion; return }
     $today = Get-Date -Format "yyyy-MM-dd"
+    $hour = (Get-Date).Hour
     if ($cp.LastLogin -ne $today) {
         $cp.LastLogin = $today
         $pet.Meta.TotalSessions++
@@ -105,6 +106,8 @@ function Invoke-CompanionAction($action) {
         }
         Save-PetState $pet
         Check-EasterEgg "login"
+        if (Get-Command Invoke-PetMemoryRecall -ErrorAction SilentlyContinue) { Invoke-PetMemoryRecall "Login" }
+        if ($hour -ge 2 -and $hour -le 4) { Publish-BuxeEvent -Topic "login.night" -Data @{ Hour = $hour } }
     }
     switch ($action.ToLower()) {
         "talk" {
@@ -120,6 +123,7 @@ function Invoke-CompanionAction($action) {
             $line = Get-CompanionLine $cp "talk"
             Show-CompanionDialog $cp $line
             Check-EasterEgg "talk"
+            if (Get-Command Invoke-PetMemoryRecall -ErrorAction SilentlyContinue) { Invoke-PetMemoryRecall "Talk" }
             $xpGain = if ($isFirstTalk) { 3 } else { 2 }
             Add-PetXP $xpGain "Talk"
             Check-QuestProgress "talk"
@@ -271,6 +275,7 @@ function Invoke-CompanionTalk {
     $cp = $pet.Companion
     if (-not $cp) { New-Companion; return }
     $today = Get-Date -Format "yyyy-MM-dd"
+    $hour = (Get-Date).Hour
     if ($cp.LastLogin -ne $today) {
         $cp.LastLogin = $today
         $pet.Meta.TotalSessions++
@@ -282,6 +287,8 @@ function Invoke-CompanionTalk {
             Update-ArgBondCheck $cp.Bond
         }
         Save-PetState $pet
+        if (Get-Command Invoke-PetMemoryRecall -ErrorAction SilentlyContinue) { Invoke-PetMemoryRecall "Login" }
+        if ($hour -ge 2 -and $hour -le 4) { Publish-BuxeEvent -Topic "login.night" -Data @{ Hour = $hour } }
     }
     $pet.Meta.Stats.TalkCount++
     $cp.Talks++
@@ -328,6 +335,7 @@ function Invoke-CompanionTalk {
         Check-EasterEgg "talk"
     }
     Save-PetState $pet
+    if (Get-Command Invoke-PetMemoryRecall -ErrorAction SilentlyContinue) { Invoke-PetMemoryRecall "Talk" }
     # Reaction from character-specific pool
     $pool = $script:CPReactionPools[$sel.ReactionPool][$cp.Name]
     if ($pool) { Show-CompanionDialog $cp ($pool | Get-Random) }

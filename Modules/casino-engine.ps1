@@ -161,46 +161,26 @@ function Invoke-CasinoGame {
             Set-CasinoStats $StatsKey $stats
         }
 
-        # === ARG v3.0 Casino Check ===
-        if (Get-Command Invoke-ArgCasinoCheck -ErrorAction SilentlyContinue) {
-            Invoke-ArgCasinoCheck
+        # === EVENT BUS: Subsysteme entkoppeln ===
+        # Alle Cross-Cutting-Concerns (Companion, ARG, Quests, Easter Eggs) reagieren via world-events.ps1.
+        # casino-engine kennt keine anderen Subsysteme mehr.
+        Publish-BuxeEvent -Topic "casino.round.end" -Data @{ Game = $GameName; Bet = $bet }
+        if ($result.Win -gt ($bet * 50)) {
+            Publish-BuxeEvent -Topic "casino.jackpot" -Data @{ Game = $GameName; Amount = $result.Win }
+        } elseif ($result.Win -gt 500) {
+            Publish-BuxeEvent -Topic "casino.bigwin" -Data @{ Game = $GameName; Amount = $result.Win }
+        } elseif ($result.Win -gt 0) {
+            Publish-BuxeEvent -Topic "casino.win" -Data @{ Game = $GameName; Amount = $result.Win }
+        } elseif ($result.Loss -gt 0) {
+            Publish-BuxeEvent -Topic "casino.loss" -Data @{ Game = $GameName; Amount = $result.Loss }
         }
-        
-        # Companion reactions (LucasArts-Style)
-        Load-State
-        $pet = if (Get-Command Get-PetState -ErrorAction SilentlyContinue) { Get-PetState } else { $null }
-        $cp = if ($pet) { $pet.Companion } else { $null }
-        if ($cp -and (Get-Command Show-CompanionDialog -ErrorAction SilentlyContinue)) {
-            if ($script:BuxeState.Bank.Gold -le 0) {
-                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bust") -Fast
-            } elseif ($result.Win -gt 500) {
-                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_bigwin") -Fast
-                Add-PetMemory "Casino Big Win! +$($result.Win) G" "GOLD"
-            } elseif ($result.Win -gt 0) {
-                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_win") -Fast
-            } elseif ($result.Loss -gt 0) {
-                Show-CompanionDialog $cp (Get-CompanionLine $cp "casino_loss") -Fast
-            }
-        }
-        
-        # Quest Progress
-        if (Get-Command Check-QuestProgress -ErrorAction SilentlyContinue) {
-            Check-QuestProgress "casino"
-        }
-        
-        # Easter Eggs
-        if (Get-Command Check-EasterEgg -ErrorAction SilentlyContinue) {
-            Check-EasterEgg "casino"
+        if ($script:BuxeState.Bank.Gold -le 0) {
+            Publish-BuxeEvent -Topic "casino.bust" -Data @{ Game = $GameName }
         }
         
         # Achievements werden vom Engine-Callback ausgewertet.
         if ($result.Achievement -and (Get-Command Unlock-Achievement -ErrorAction SilentlyContinue)) {
             Unlock-Achievement $result.Achievement
-        }
-        
-        # ARG v3.0: Action Tick fuer Matrix-Progression
-        if (Get-Command Invoke-ArgActionTick -ErrorAction SilentlyContinue) {
-            Invoke-ArgActionTick
         }
         
         Wait-Enter

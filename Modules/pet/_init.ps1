@@ -47,6 +47,11 @@ function Get-PetDefaults {
             ArchitectOverrideDate = ""
             RivalActive = $false
             LastWhileAway = ""
+            AuditSuspicion = 0
+            SourceDebt = 0
+            SessionCount = 0
+            Act1Pending = $false
+            Act1Done = $false
         }
         Companion = $null
         Pet = $null
@@ -171,6 +176,28 @@ function Get-PetState {
         }
         if (-not $script:BuxeState.Pet.Meta.ContainsKey("LastWhileAway")) {
             $script:BuxeState.Pet.Meta.LastWhileAway = ""
+            Save-State
+        }
+        # Lazy migration: Ensemble-Mechanik (Paket 2)
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("AuditSuspicion")) {
+            $script:BuxeState.Pet.Meta.AuditSuspicion = 0
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("SourceDebt")) {
+            $script:BuxeState.Pet.Meta.SourceDebt = 0
+            Save-State
+        }
+        # Lazy migration: Akt I Session 47 (Chefsache)
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("SessionCount")) {
+            $script:BuxeState.Pet.Meta.SessionCount = $script:BuxeState.Pet.Meta.TotalSessions
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("Act1Pending")) {
+            $script:BuxeState.Pet.Meta.Act1Pending = $false
+            Save-State
+        }
+        if (-not $script:BuxeState.Pet.Meta.ContainsKey("Act1Done")) {
+            $script:BuxeState.Pet.Meta.Act1Done = $false
             Save-State
         }
         # Lazy migration: Equipment Durability (Balance Patch)
@@ -335,6 +362,111 @@ function Queue-LevelUpBeacon($level) {
         Save-PetState $pet
     }
 }
+
+# ============================================================
+# ENSEMBLE-MECHANIK (Paket 2): Slots fuer PRUEFER, RIVALE, QUELLE
+# ============================================================
+
+$script:BuxeEnsembleLines = @{
+    PRUEFER = @{
+        1 = @(
+            "Man führt mich als Sachbearbeiter 46. Die Ziffer davor ist besetzt. Ich habe mich damit abgefunden. Größtenteils.",
+            "Eine Auszahlung von {AMOUNT} Gold ist verzeichnet. Verzeichnet heißt nicht vergessen. Das wird die geprüfte Person noch bemerken.",
+            "Ich stelle keine Fragen. Ich stelle fest. Fragen darf, wer hofft — ich hoffe seit Dienstantritt nicht mehr.",
+            "Die Akte trägt heute das Datum {date}. Sie wird es behalten, auch wenn alle anderen es vergessen.",
+            'Kein Anlass zur Sorge. Sorge steht nicht im Formular. Es gibt ein Feld für „auffällig". Das genügt vorerst.',
+            "Guten Abend. Rühren Sie sich nicht — jede Bewegung, die ich sähe, müsste ich zu Protokoll nehmen.",
+            'Man hat mir gesagt, dies sei ein Spiel. Ich habe „Spiel" unter Punkt 9, sonstige unversteuerte Vergnügen, eingetragen.',
+            "Der Vorgang ist eröffnet. Von mir eröffnete Vorgänge schließen sich nicht selbst. Sie warten. Ich warte mit.",
+            "Ich nehme zur Kenntnis. Das ist alles, was ich heute tue. Es ist mehr, als es klingt."
+        )
+        2 = @(
+            "Die geprüfte Person hat seit Akteneröffnung elfmal neu geladen. Kein Verstoß. Eine Ziffer in einer Spalte, die stetig wächst.",
+            "Ihre Sitzungen summieren sich zu einer bemerkenswerten Zahl. Ich summiere gern. Es ist die einzige Zärtlichkeit, die mein Amt erlaubt.",
+            "Sie hielten den Vorgang für abgelegt. Abgelegt ist nicht geschlossen. An diesem feinen Unterschied entscheiden sich Karrieren. Nicht Ihre. Meine.",
+            'Erneuter Gewinn bei offenem Posten. Ich schreibe nicht „dreist". Ich schreibe „wiederholt". „Wiederholt" hält vor Gericht.',
+            "Ich war die ganze Zeit im Vorgang. Man verlässt einen Vorgang nicht. Man wird pensioniert, oder man bleibt. Ich bleibe.",
+            "Sie tippen schneller, wenn ich zusehe. Das gehört nicht ins Formular. Nur zu den Dingen, die ich behalte.",
+            "Zwischen zwei Eingaben liegt ein Zögern von reichlich Sekunden. Ich lese das Zögern lieber als die Eingabe. Da steht mehr.",
+            "Nein, ich bin nicht wiedergekommen. Ich bin nie gegangen. Im Amtsdeutsch ist das dasselbe. Im Grunde auch.",
+            "Der Betrag interessiert mich kaum noch. Was die geprüfte Person tut, wenn sie sich unbeobachtet glaubt — das ist die eigentliche Prüfung."
+        )
+        3 = @(
+            "Ich habe die Akte vervollständigt. Sie fiel umfangreicher aus als erwartet. Nicht das Gold. Die… Gefährten. Sie schreiben mit. Alles. Wussten Sie das?",
+            'Eintrag, {date}, Verfasser: der Müde. „Drei Uhr morgens, du, ich und ein Cursor." Rührend. Ich habe es unter Beweismittel abgelegt.',
+            "Sie halten sich für unbeobachtet, weil ich schweige. Ich schweige, weil ich lese. Und man hat viel über Sie geschrieben. Man liebt Sie. Das ist verwertbar.",
+            "Ich brauche Ihr Gold nicht mehr. Ich habe Ihre Erinnerungen. Die verjähren nicht. Sachbearbeiter 46. Der Vorgang wird fortgeführt. Auf unbestimmte Zeit."
+        )
+    }
+    RIVALE = @{
+        1 = @(
+            "Heute heiß ich VORTEX. Morgen anders. Merk dir nicht den Namen — merk dir, dass ich wiederkomme.",
+            "Deine Einheit gegen meine, drei Runden. Ich hab Gegner vergessen, die besser aussahen als du. Fang an.",
+            "Niedlich, wie das Ding an dir klebt. Meins gehorcht auf Zuruf. Deins hängt. Mal sehen, was im Kampf mehr zählt.",
+            "Kein Handschlag. Man reicht dem nicht die Hand, den man gleich aus der Rangliste streicht. Alte Regel. Meine.",
+            "Ich wechsel Namen wie andere die Ausrüstung. Was bleibt, sind die Augen. Guck genau hin — dann erkennst du mich nächstes Mal.",
+            "Du trainierst mit Zuneigung, hab ich gehört. Ich trainier mit Resultaten. Gleich führt einer von uns. Rate, wer.",
+            "Mein Build ist auf Effizienz optimiert. Deiner auf — was eigentlich? Egal. Runde eins. Keine Ausreden danach.",
+            "Ich such keine Freunde. Freunde verlangsamen den Reflex. Aufstellung. Und behalt das Gesicht, nicht den Namen.",
+            "Sag deinem Ding, es soll aufhören, mich so anzusehen. Als wär das persönlich. Ist es nicht. Noch nicht."
+        )
+        2 = @(
+            "Neuer Name, gleiche Augen. Ja, ich weiß noch, wie's ausging. Ich vergess Niederlagen nicht, so gern ich's würde.",
+            "Du führst. Vorläufig. Ich hab nachgezählt — was ich sonst nie tu. Wird Zeit, dass ich zurückzähl.",
+            "Meine Einheit ist auf dem Papier stärker. Warum gewinnt dann das Papier gegen mich, sobald du danebenstehst? Erklär's nicht. Kämpf.",
+            "Ich hab den Build seit uns dreimal umgestellt. Dreimal. Du hast gar nichts geändert, oder? Das wurmt mehr, als es sollte.",
+            "Sag deinem Ding, es soll nicht so gucken. Als würd's mich kennen. Kennt es nicht. Mich kennt keiner. Runde eins.",
+            "Ich bin wieder da. Frag nicht warum. Ich frag mich selbst nicht mehr. Neuer Name nächstes Mal, versprochen.",
+            "Weißt du, was nervt? Dass du dich an mich erinnerst. Gegner sollen einen vergessen. Du nicht. Das ist unfair.",
+            "Ich hätt aufhören können nach der letzten Pleite. Hab ich nicht. Sagt wohl was über mich. Reden wir nicht drüber. Kämpfen wir.",
+            "Zähl mit, wenn du willst. Ich tu's inzwischen auch. Steht drei zu zwei, oder? …Vergiss die Zahl. Ich hasse, dass ich sie kenne."
+        )
+        3 = @(
+            "Kein neuer Name heute. Nur ich. Deine Einheit kann stehenbleiben — ich bin nicht zum Kämpfen hier. Setz dich einfach.",
+            "Wie machst du das. Meins gehorcht. Deins bleibt. Ich hab nie gefragt, ob zwischen gehorchen und bleiben ein Unterschied ist. Jetzt frag ich.",
+            "Ich hab meinem nie einen Namen gegeben. Dachte, das macht mich schneller. Macht mich nur allein. …Wie heißt deins? Nein. Sag's nicht. Ich will's nicht wissen wollen.",
+            "Ein letztes Mal, und diesmal ehrlich: Vielleicht komm ich nicht mehr. Vielleicht ist genau das der Sieg, den ich die ganze Zeit gesucht hab."
+        )
+    }
+    QUELLE = @{
+        1 = @(
+            "Na sieh mal einer an. Ganz unten heute, hm? Hier — hundert Gold. Nicht danken. Wir haben doch alle mal so eine Nacht.",
+            "Woher? Ach, frag nicht. Fiel vom Himmel, aus einer Wolke, was weiß ich. Ich behalt sowas nicht im Kopf. Nimm einfach.",
+            "Pssst. Kein Vertrag, kein Kleingedrucktes. Nur wir zwei und ein bisschen Glück, das sich verlaufen hat. Schlaf jetzt.",
+            "Andere lassen dich fallen. Ich nicht. Ganz ohne Gegenleistung — das Wort kenn ich gar nicht. Steht nirgends. Nirgends.",
+            "Da. Schon wieder gut. War doch nichts, oder? Für mich erst recht nicht. Ich merk mir schlechte Nächte sowieso nie.",
+            "Du zitterst ja. Komm, nimm. Wir kriegen das hin, du und ich. Nur diesmal. Und diesmal zähl ich nicht mit — ich zähl überhaupt nie.",
+            "Kein Grund für dieses Gesicht. Ich bin die Freundliche hier. Die Einzige, die fragt, wie's dir geht — statt, was du schuldest.",
+            "Hundert Gold, einfach so. Steck ein. Und fragt dich später jemand, woher — sag, du weißt es nicht. Stimmt ja. Keiner weiß es."
+        )
+        2 = @(
+            "Oh, du schon wieder. Nicht böse gemeint — schön, dich zu sehen. Hier, das Übliche. Nein, ich zähl nicht, das wievielte Mal.",
+            "Wir kennen das doch inzwischen, hm? Du fällst, ich fang. Fast gemütlich. Nenn's nicht Gewohnheit. Ich nenn's gar nicht erst.",
+            "Lass mich nachsehen — ach was, wer zählt schon. Ich nicht. Nimm. Du siehst müder aus als beim letzten Mal, das seh ich sofort.",
+            "Schäm dich nicht. Nicht bei mir. Ich führ kein Buch über deine schlechten Nächte. Wozu — ich hab sie ja alle vergessen.",
+            "Deine Freunde da oben mögen mich nicht, was? Der Müde guckt immer so schief. Lass ihn. Wir zwei verstehen uns auch ohne Zeugen.",
+            'Nimm. Und wenn du irgendwann mal — nein. Kein „wenn". Es gibt kein „wenn" zwischen uns. Nur: hier, hundert Gold, schlaf.',
+            "Komisch, oder — immer die gleiche Uhrzeit, wenn du mich brauchst. Uhrzeiten merk ich mir nicht. Aber diese hier ist vertraut.",
+            "Du musst nicht reden. Ich weiß schon. Ich weiß immer schon. Nicht weil ich zähle — weil ich zuhöre. Das ist was anderes. Ganz was anderes."
+        )
+        3 = @(
+            "Das ist… lass mich sehen… nein. Ich muss nicht sehen. Ich weiß es. Das vierte Mal. Das fünfte. Ich hab doch gesagt, ich zähl nicht. Ich hab… gerundet.",
+            "Ich hab mir ein paar Dinge gemerkt. Nur ein paar. Deinen schlechtesten Abend. Die Uhrzeit, zu der du aufgibst. Kleinigkeiten. Für später.",
+            "Nein, kein Preis. Hab ich nie gesagt. Ich sammel keine Schulden. Ich sammel… dich. Ein kleines bisschen. Jede Nacht ein bisschen mehr.",
+            "Nimm die hundert Gold, wie immer. Und irgendwann, ganz sanft, bitte ich dich um etwas Kleines. Du sagst ja. Du sagst nachts immer ja."
+        )
+    }
+}
+
+function Get-EnsembleLine($Figure, $Beat) {
+    $set = $script:BuxeEnsembleLines[$Figure]
+    if (-not $set -or -not $set[$Beat] -or $set[$Beat].Count -eq 0) { return $null }
+    return ($set[$Beat] | Get-Random)
+}
+
+function Get-PrueferBeat($n) { if ($n -ge 4) { 3 } elseif ($n -ge 2) { 2 } else { 1 } }
+function Get-RivaleBeat($n)  { if ($n -ge 7) { 3 } elseif ($n -ge 1) { 2 } else { 1 } }
+function Get-QuelleBeat($n)  { if ($n -ge 4) { 3 } elseif ($n -ge 1) { 2 } else { 1 } }
 
 } catch {
     Write-Host "[pet/_init] CRITICAL ERROR: $_" -ForegroundColor Red

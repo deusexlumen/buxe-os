@@ -374,8 +374,9 @@ Test-Assert "Companion gives hint when stuck (hasCompanion=$hasCompanion)" ($hin
 Test-Assert "Desktop Pet functions exist" ((Get-Command Get-DesktopPetComment -ErrorAction SilentlyContinue) -ne $null)
 
 # Test 28: Desktop Pet comment generation
-$comment = Get-DesktopPetComment "git push --force"
-Test-Assert "Desktop Pet detects force push" ($comment -ne $null)
+# Mehrfachaufruf, da Force-Push ein Risiko-Befehl ist und nur LUNA einen 80%-Override hat.
+$comments = @(); for ($i = 0; $i -lt 10; $i++) { $comments += Get-DesktopPetComment "git push --force" }
+Test-Assert "Desktop Pet detects force push" (($comments | Where-Object { $_ -ne $null }).Count -gt 0)
 
 # Test 29: Insult Swordfighting functions exist
 Test-Assert "Insult game function exists" ((Get-Command Invoke-InsultGame -ErrorAction SilentlyContinue) -ne $null)

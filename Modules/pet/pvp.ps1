@@ -100,9 +100,11 @@ function Start-PetPvP {
         if ($pet.Pet.PvPPoints -ge $script:PetRankThresholds[$i]) { $newRank = $script:PetRanks[$i]; break }
     }
     if ($newRank -ne $pet.Pet.Rank) {
-        Write-Host "  RANK UP! $($pet.Pet.Rank) -> $newRank!" -ForegroundColor Magenta
+        $oldRank = $pet.Pet.Rank
+        Write-Host "  RANK UP! $oldRank -> $newRank!" -ForegroundColor Magenta
         $pet.Pet.Rank = $newRank
         if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "pvp_rankup") -Fast }
+        Publish-BuxeEvent -Topic "pvp.rankup" -Data @{ OldRank = $oldRank; NewRank = $newRank; Points = $pet.Pet.PvPPoints }
     }
     Save-PetState $pet
     Invoke-Layer47Check

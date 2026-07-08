@@ -131,6 +131,7 @@ function Invoke-PetRaidBattle($pet, $p) {
         if ($p.HP -le 0) {
             Write-Host "`n  RAID GESCHEITERT bei Phase $phase!" -ForegroundColor Red
             if ($cp) { Show-CompanionDialog $cp (Get-CompanionLine $cp "raid_fail") -Fast }
+            Publish-BuxeEvent -Topic "raid.lost" -Data @{ Phase = $phase }
             $p.HP = [math]::Round((Get-EffectiveStats $p).MaxHP * 0.3)
             break
         } else {
@@ -141,6 +142,7 @@ function Invoke-PetRaidBattle($pet, $p) {
             if ($phase -eq 3) {
                 Write-Host "  *** RAID COMPLETE! ***" -ForegroundColor Magenta
                 Add-PetXP 100 "Raid Complete"
+                Publish-BuxeEvent -Topic "raid.won" -Data @{ Phase = $phase; Tokens = $tokens }
                 if ($pet.Companion) { Show-CompanionDialog $pet.Companion (Get-CompanionLine $pet.Companion "raid_complete") -Fast }
             } else { Start-Sleep -Seconds 1 }
         }

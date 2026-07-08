@@ -631,10 +631,11 @@ Test-Assert "Wheel state defaults" ($defaults.Casino.Wheel.Spins -eq 0 -and $def
 # === DESKTOP PET TESTS ===
 Write-Host "`n  Testing Desktop Pet..." -ForegroundColor Yellow
 . "$modDir\desktop-pet.ps1" 2>$null
-$comment = Get-DesktopPetComment "git push"
-Test-Assert "Desktop Pet comment for git push" ($comment -ne $null)
-$comment = Get-DesktopPetComment "rm -rf /"
-Test-Assert "Desktop Pet comment for rm -rf" ($comment -ne $null)
+# Probier mehrfach, da die Stimmen-Chance pro Companion variiert (z. B. JINX 35%, LUNA 80%).
+$comments = @(); for ($i = 0; $i -lt 10; $i++) { $comments += Get-DesktopPetComment "git push" }
+Test-Assert "Desktop Pet comment for git push" (($comments | Where-Object { $_ -ne $null }).Count -gt 0)
+$comments = @(); for ($i = 0; $i -lt 10; $i++) { $comments += Get-DesktopPetComment "rm -rf /" }
+Test-Assert "Desktop Pet comment for rm -rf" (($comments | Where-Object { $_ -ne $null }).Count -gt 0)
 $comment = Get-DesktopPetComment "this-command-does-not-exist"
 Test-Assert "Desktop Pet default comment chance" ($comment -eq $null -or $comment -ne $null)  # 10% chance
 
