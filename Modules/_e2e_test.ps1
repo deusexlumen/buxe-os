@@ -493,12 +493,16 @@ $pet.Pet = @{
 Save-PetState $pet
 
 Assert (Get-Command Invoke-TacticalCombat -ErrorAction SilentlyContinue) "E2E: Invoke-TacticalCombat exists"
-Assert (Get-Command Show-CombatScreen -ErrorAction SilentlyContinue) "E2E: Show-CombatScreen exists"
+Assert (Get-Command Show-CombatScene -ErrorAction SilentlyContinue) "E2E: Show-CombatScene exists"
 Assert (Get-Command Invoke-CombatReducer -ErrorAction SilentlyContinue) "E2E: Invoke-CombatReducer exists"
 Assert ((Get-DamageV3 -ATK 30 -DEF 60 -AttackerLevel 5) -lt (Get-DamageV3 -ATK 30 -DEF 5 -AttackerLevel 5)) "E2E: Get-DamageV3 faellt mit steigender DEF"
-Assert (Get-Command Resolve-PlayerAction -ErrorAction SilentlyContinue) "E2E: Resolve-PlayerAction exists"
-Assert (Get-Command Resolve-EnemyAction -ErrorAction SilentlyContinue) "E2E: Resolve-EnemyAction exists"
-Assert (Get-Command Apply-StatusEffects -ErrorAction SilentlyContinue) "E2E: Apply-StatusEffects exists"
+Assert (Get-Command Resolve-AvsRound -ErrorAction SilentlyContinue) "E2E: Resolve-AvsRound exists"
+$e2eSe = @{ Name = "E2EFOE"; HP = 100; MaxHP = 100; Effects = [System.Collections.Generic.List[object]]::new() }
+Add-StatusEffectV3 -Target $e2eSe -Type "Poison" | Out-Null
+Invoke-StatusTick -Combatant $e2eSe | Out-Null
+Assert ($e2eSe.HP -lt 100) "E2E: Status-Tick zieht HP ab"
+$e2eRound = Resolve-AvsRound -PlayerMove A -EnemyMove V -PlayerStats @{ ATK = 20; DEF = 10 } -EnemyStats @{ ATK = 15; DEF = 8 } -PlayerLevel 5
+Assert ($e2eRound.Outcome -eq "Win" -and $e2eRound.EnemyDamage -eq 0) "E2E: A schlaegt V, Gegner trifft nicht"
 
 Write-Host " OK" -ForegroundColor Green
 

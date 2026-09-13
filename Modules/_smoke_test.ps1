@@ -244,11 +244,15 @@ $rEnemy2  = @{ Name="TESTFOE"; Type="ICE";  Level=5; HP=100; MaxHP=100; ATK=15; 
 $rOut2 = Invoke-CombatReducer -State (New-CombatStateV3 -Player $rPlayer2 -Enemy $rEnemy2) -Action @{ Kind = "Attack" } -Rolls $rRolls
 Test-Assert "Reducer ist deterministisch bei gleichen Wuerfen" ($rOut2.State.Enemy.HP -eq $rOut.State.Enemy.HP)
 
-# Test New-CombatState
-$cs = New-CombatState $pet.Pet $pet.Companion
+# Test New-CombatStateV3 -- der State, auf dem der lebende Kampf laeuft
+$csPlayer = @{ Name="TESTPET"; Type="FIRE"; Level=5; HP=100; MaxHP=100; ATK=25; DEF=10; SPD=20; Crit=5; Attacks=@() }
+$csEnemy  = @{ Name="TESTFOE"; Type="ICE";  Level=5; HP=100; MaxHP=100; ATK=15; DEF=8;  SPD=5;  Archetype="Drone"; IsBoss=$false }
+$cs = New-CombatStateV3 -Player $csPlayer -Enemy $csEnemy
 Test-Assert "CombatState Round starts at 1" ($cs.Round -eq 1)
 Test-Assert "CombatState Stance starts Balanced" ($cs.PlayerStance -eq "Balanced")
-Test-Assert "CombatState StatusEffects empty" ($cs.StatusEffects.Count -eq 0)
+Test-Assert "CombatState Effects empty" ($cs.Player.Effects.Count -eq 0 -and $cs.Enemy.Effects.Count -eq 0)
+Test-Assert "CombatState Momentum starts at 0" ($cs.Momentum -eq 0)
+Test-Assert "CombatState Phase Active" ($cs.Phase -eq "Active")
 Test-Assert "CombatState LimitBreak not used" ($cs.LimitBreakUsed -eq $false)
 Test-Assert "CombatState ComboHistory empty" ($cs.ComboHistory.Count -eq 0)
 
@@ -259,13 +263,13 @@ Test-Assert "Stance Defensiv boosts DEF" ((Get-StanceModifier "Defensiv").DEF -g
 Test-Assert "Get-StanceDescription returns string" ((Get-StanceDescription "Speed").Length -gt 0)
 
 # Test Element Combo System
-$comboState = New-CombatState $pet.Pet $pet.Companion
+$comboState = New-CombatStateV3 -Player @{ Name="P"; HP=100; MaxHP=100; ATK=10; DEF=5; SPD=5 } -Enemy @{ Name="E"; HP=100; MaxHP=100; ATK=10; DEF=5; SPD=5 }
 Add-ComboElement $comboState "FIRE"
 Add-ComboElement $comboState "FIRE"
 Add-ComboElement $comboState "FIRE"
 $triad = Test-ElementCombo $comboState
 Test-Assert "Triad Surge combo recognized" ($triad -and $triad.Name -eq "Triad Surge")
-$comboState2 = New-CombatState $pet.Pet $pet.Companion
+$comboState2 = New-CombatStateV3 -Player @{ Name="P"; HP=100; MaxHP=100; ATK=10; DEF=5; SPD=5 } -Enemy @{ Name="E"; HP=100; MaxHP=100; ATK=10; DEF=5; SPD=5 }
 Add-ComboElement $comboState2 "FIRE"
 Add-ComboElement $comboState2 "ICE"
 Add-ComboElement $comboState2 "ELEC"
@@ -280,12 +284,19 @@ $elite = Get-ScaledEnemyStats -Template $template -PetLevel 5 -IsElite
 Test-Assert "Elite enemy flagged" ($elite.IsElite -eq $true)
 Test-Assert "Elite enemy stronger" ($elite.HP -gt $scaled.HP)
 
-# Test Status Effect Tick
-$seState = New-CombatState $pet.Pet $pet.Companion
-$enemy = @{ HP = 100; MaxHP = 100 }
-$seState.StatusEffects += @{ Target = "enemy"; Type = "Poison"; Turns = 2; Value = 0.05 }
-Apply-StatusEffects $seState $pet.Pet $enemy @{ MaxHP = 100 } @{ MaxHP = 100 } | Out-Null
-Test-Assert "Poison tick reduces enemy HP" ($enemy.HP -lt 100)
+# Test Status Effect Tick (V3-Engine)
+$seEnemy = @{ Name = "TESTFOE"; HP = 100; MaxHP = 100; Effects = [System.Collections.Generic.List[object]]::new() }
+Add-StatusEffectV3 -Target $seEnemy -Type "Poison" | Out-Null
+Test-Assert "Poison wird gesetzt" ($seEnemy.Effects.Count -eq 1)
+Invoke-StatusTick -Combatant $seEnemy | Out-Null
+Test-Assert "Poison tick reduces enemy HP" ($seEnemy.HP -lt 100)
+$seRegen = @{ Name = "TESTPET"; HP = 50; MaxHP = 100; Effects = [System.Collections.Generic.List[object]]::new() }
+Add-StatusEffectV3 -Target $seRegen -Type "Regen" | Out-Null
+Invoke-StatusTick -Combatant $seRegen | Out-Null
+Test-Assert "Regen tick heilt" ($seRegen.HP -gt 50)
+$seFreeze = @{ Name = "TESTFOE"; HP = 100; MaxHP = 100; Effects = [System.Collections.Generic.List[object]]::new() }
+Add-StatusEffectV3 -Target $seFreeze -Type "Freeze" | Out-Null
+Test-Assert "Freeze setzt Zug aus" ((Test-TurnSkip $seFreeze 50).Skip -eq $true)
 
 # Test Talents
 $testPet = Get-PetState
@@ -649,10 +660,11 @@ Test-Assert "Wheel state defaults" ($defaults.Casino.Wheel.Spins -eq 0 -and $def
 # === DESKTOP PET TESTS ===
 Write-Host "`n  Testing Desktop Pet..." -ForegroundColor Yellow
 . "$modDir\desktop-pet.ps1" 2>$null
-# Probier mehrfach, da die Stimmen-Chance pro Companion variiert (z. B. JINX 35%, LUNA 80%).
-$comments = @(); for ($i = 0; $i -lt 10; $i++) { $comments += Get-DesktopPetComment "git push" }
+# Probier 60x: die Stimmen-Chance faellt je nach Companion auf 35 %, bei 10 Versuchen
+# schlug der Test rechnerisch in 1,3 % der Laeufe fehl (0,65^10). 0,65^60 ist ~1e-11.
+$comments = @(); for ($i = 0; $i -lt 60; $i++) { $comments += Get-DesktopPetComment "git push" }
 Test-Assert "Desktop Pet comment for git push" (($comments | Where-Object { $_ -ne $null }).Count -gt 0)
-$comments = @(); for ($i = 0; $i -lt 10; $i++) { $comments += Get-DesktopPetComment "rm -rf /" }
+$comments = @(); for ($i = 0; $i -lt 60; $i++) { $comments += Get-DesktopPetComment "rm -rf /" }
 Test-Assert "Desktop Pet comment for rm -rf" (($comments | Where-Object { $_ -ne $null }).Count -gt 0)
 $comment = Get-DesktopPetComment "this-command-does-not-exist"
 Test-Assert "Desktop Pet default comment chance" ($comment -eq $null -or $comment -ne $null)  # 10% chance
