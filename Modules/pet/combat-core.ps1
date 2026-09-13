@@ -105,6 +105,11 @@ $script:AvsMovePower = @{
     # x2,46-2,53. Ein konstanter Faktor kann diese Spreizung nicht ausgleichen.
     # Folge im Spiel: unter Lv5 trifft der Spieler schwaecher, ab Lv5 haerter.
     Raid = @(43, 46, 49)
+    # Tutorial: der gescriptete Kampf hatte bisher eine eigene Tabelle (Sieg 1.0x
+    # statt 2.0x). Mit der gemeinsamen Tabelle wuerde SPAM_BOT seine 70 HP in drei
+    # Runden unterschreiten und negative HP anzeigen. MovePower 15 haelt die alte
+    # Schlagkraft (~11 Schaden pro Runde) und damit das Pacing des Tutorials.
+    Tutorial = 15
 }
 
 function Resolve-AvsRound {

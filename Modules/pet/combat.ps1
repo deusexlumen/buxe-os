@@ -191,7 +191,6 @@ function Start-PetTutorialFight {
     $enemy = @{ Name = "SPAM_BOT"; Type = "NORM"; HP = 70; MaxHP = 70; ATK = 10; DEF = 6; SPD = 8; Phase2Triggered = $false }
     
     $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
-    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
     $playerScore = 0; $rivalScore = 0
     
     # Scripted rounds: Player always wins
@@ -210,25 +209,28 @@ function Start-PetTutorialFight {
         Write-Host "`n  Du: $($moves[$pm]) | Gegner: $($moves[$rm])" -ForegroundColor DarkGray
         
         $playerMod = Get-ElementModifier $p.Type $enemy.Type
-        $enemyMod = Get-ElementModifier $enemy.Type $p.Type
         
-        # Tutorial: always win regardless of choice, but show correct logic
-        if ($beats[$pm] -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
-            $enemy.HP -= $dmg; $playerScore++
-            Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
-        } elseif ($pm -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5 * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
-            $enemy.HP -= $dmg
-            $eDmg = [math]::Max(1, [math]::Round(($enemy.ATK * $enemyMod) * (1 - ($stats.DEF / ($stats.DEF + 20)))))
-            $p.HP -= $eDmg
+        $tr = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+                -PlayerLevel $p.Level -EnemyLevel 1 -MovePower $script:AvsMovePower.Tutorial -TypeMod $playerMod
+        # Tutorial-Safety-Net: verlorene Runden werden zum Sieg erklaert. Das Netz
+        # liegt beim caller, die Regel bleibt im seam.
+        $glitched = ($tr.Outcome -eq "Loss")
+        if ($glitched) {
+            $tr = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+                    -PlayerLevel $p.Level -EnemyLevel 1 -MovePower $script:AvsMovePower.Tutorial `
+                    -TypeMod $playerMod -ForceOutcome "Win"
+        }
+        $enemy.HP -= $tr.PlayerDamage
+        $p.HP -= $tr.EnemyDamage
+        if ($glitched) {
+            $playerScore++
+            Write-Host "  Der Gegner verpatzt seinen Zug! Treffer! -$($tr.PlayerDamage) HP!" -ForegroundColor Green
+        } elseif ($tr.Outcome -eq "Tie") {
             $playerScore++; $rivalScore++
-            Write-Host "  Gleichstand! Beide treffen! -$dmg HP | -$eDmg HP!" -ForegroundColor Yellow
+            Write-Host "  Gleichstand! Beide treffen! -$($tr.PlayerDamage) HP | -$($tr.EnemyDamage) HP!" -ForegroundColor Yellow
         } else {
-            # Tutorial safety net: enemy "glitches" and misses
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * $playerMod) * (1 - ($enemy.DEF / ($enemy.DEF + 20)))))
-            $enemy.HP -= $dmg; $playerScore++
-            Write-Host "  Der Gegner verpatzt seinen Zug! Treffer! -$dmg HP!" -ForegroundColor Green
+            $playerScore++
+            Write-Host "  Treffer! -$($tr.PlayerDamage) HP!" -ForegroundColor Green
         }
         
         # Companion combat commentary
