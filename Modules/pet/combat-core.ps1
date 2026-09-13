@@ -99,6 +99,12 @@ $script:AvsMovePower = @{
     # PvP skaliert mit dem Rang: Basis + PerRank * rankIdx (Bronze=0 .. Master=5)
     PvPBase    = 35
     PvPPerRank = 1.6
+    # Raid pro Phase. ACHTUNG: Raid haelt den +-15 %-Korridor nicht ein (Phase 1/2/3
+    # erreichen bestenfalls 14,6 / 17,1 / 19,7 %). Grund ist die Kurvenform, nicht
+    # der Wert: die alte Kurve waechst von Lv1 bis Lv10 um x1,74-1,88, die neue um
+    # x2,46-2,53. Ein konstanter Faktor kann diese Spreizung nicht ausgleichen.
+    # Folge im Spiel: unter Lv5 trifft der Spieler schwaecher, ab Lv5 haerter.
+    Raid = @(43, 46, 49)
 }
 
 function Resolve-AvsRound {

@@ -1,4 +1,4 @@
-# BUXE_OS v24.2 — PET RAID v2.0
+﻿# BUXE_OS v24.2 — PET RAID v2.0
 
 try {
 
@@ -111,20 +111,16 @@ function Invoke-PetRaidBattle($pet, $p) {
             $pm = Read-Choice "Zug" '^[AVS]$'
             $rm = @("A","V","S") | Get-Random
             $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
-            $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
             Write-Host "`n  Du: $($moves[$pm]) | Boss: $($moves[$rm])" -ForegroundColor DarkGray
-            if ($pm -eq $rm) {
-                $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5) * (100 / (100 + $enemy.DEF))))
-                $enemy.HP -= $dmg; $p.HP -= [math]::Max(1, [math]::Round($enemy.ATK * (100 / (100 + $stats.DEF))))
-                Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow
-            } elseif ($beats[$pm] -eq $rm) {
-                $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 2) * (100 / (100 + $enemy.DEF))))
-                $enemy.HP -= $dmg
-                Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
-            } else {
-                $dmg = [math]::Max(1, [math]::Round($enemy.ATK * (100 / (100 + $stats.DEF))))
-                $p.HP -= $dmg
-                Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Red
+            $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+                        -PlayerLevel $p.Level -EnemyLevel ($phase * 3) `
+                        -MovePower $script:AvsMovePower.Raid[$phase - 1]
+            $enemy.HP -= $round.PlayerDamage
+            $p.HP -= $round.EnemyDamage
+            switch ($round.Outcome) {
+                "Tie"  { Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow }
+                "Win"  { Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
+                "Loss" { Write-Host "  Treffer! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
             }
             Start-Sleep -Milliseconds 500
         }

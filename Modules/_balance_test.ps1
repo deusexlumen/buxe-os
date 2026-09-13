@@ -17,6 +17,10 @@ function Test-Assert($name, $condition) {
 }
 
 $TOLERANCE = 0.15
+# Dokumentierte Ausnahme: Raid erreicht den Korridor mit keinem konstanten
+# MovePower (siehe Kommentar an $script:AvsMovePower). Die Grenze steht hier
+# trotzdem scharf, damit eine Verschlechterung auffaellt.
+$TOLERANCE_RAID = 0.20
 
 # === REFERENZ-PET UND GEGNER (identisch zu Scripts\measure-avs-baseline.ps1) ===
 function Get-RefPet($Level) {
@@ -64,6 +68,10 @@ $matchups = @(
        Gen = { param($lvl) Get-RefPvpEnemy 0 $lvl } }
     @{ Mode = "PvP Master"; MovePower = ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * 5)
        Gen = { param($lvl) Get-RefPvpEnemy 5 $lvl } }
+    @{ Mode = "Raid Phase 1"; MovePower = $script:AvsMovePower.Raid[0]; Tolerance = $TOLERANCE_RAID
+       Gen = { param($lvl) Get-RefRaidEnemy 1 $lvl } }
+    @{ Mode = "Raid Phase 3"; MovePower = $script:AvsMovePower.Raid[2]; Tolerance = $TOLERANCE_RAID
+       Gen = { param($lvl) Get-RefRaidEnemy 3 $lvl } }
 )
 
 foreach ($m in $matchups) {
@@ -73,8 +81,10 @@ foreach ($m in $matchups) {
         $base = Get-BaselineAvg $pet $foe
         $cur  = Get-CurrentAvg $pet $foe $m.MovePower
         $dev  = ($cur - $base) / $base
-        $ok   = [math]::Abs($dev) -le $TOLERANCE
-        Test-Assert ("{0} Lv{1}: {2:N2} -> {3:N2} ({4:P1})" -f $m.Mode, $lvl, $base, $cur, $dev) $ok
+        $tol  = if ($m.Tolerance) { $m.Tolerance } else { $TOLERANCE }
+        $ok   = [math]::Abs($dev) -le $tol
+        $note = if ($tol -ne $TOLERANCE) { " [Ausnahme +-$([int]($tol*100)) %]" } else { "" }
+        Test-Assert ("{0} Lv{1}: {2:N2} -> {3:N2} ({4:P1}){5}" -f $m.Mode, $lvl, $base, $cur, $dev, $note) $ok
     }
 }
 
