@@ -49,6 +49,9 @@ die Funktion aufrufen:
 . .\Modules\engine-state-core.ps1; . .\Modules\pet\_init.ps1; Get-PetState
 ```
 
+Es gibt **keinen Linter und kein Pester-Setup** — `Modules/Pester/` ist gitignorte
+Drittanbieter-Software, die drei Test-Skripte sind handgeschriebene `Test-Assert`-Loops.
+
 **Tests sind nicht hermetisch.** Sie laden die echten Module und schreiben in den echten
 State (`%LOCALAPPDATA%\buxe\buxe_state_v24.json`). Der Smoke-Test sichert und restauriert
 nur den Pet-Teil. Vorher sichern, wenn der eigene Spielstand wichtig ist.
@@ -132,7 +135,7 @@ Neue Spiel-Logik in diesem Stil schreiben: Kernel rein, UI aussen.
 `AGENTS.md` beschreibt v24 und kennt diese Module nicht: `engine-bus.ps1`,
 `engine-arg.ps1` (ARG "Meridian Signal", eigener State), `world-events.ps1`,
 `tts-engine.ps1` (TTS lebt nicht mehr nur im Profil), `pet/combat-core.ps1`,
-`pet/combat-ui.ps1`, `pet/skilltree.ps1`, `pet/memory.ps1`, `pet/companion-story.ps1`,
+`pet/combat-ui.ps1`, `pet/memory.ps1`, `pet/companion-story.ps1`,
 `pet/companion-story-data.ps1`, `pet/_hollow.ps1`, `pet/act1-session47.ps1`.
 Bei Architektur-Aussagen aus AGENTS.md gegen das Profil gegenpruefen.
 
