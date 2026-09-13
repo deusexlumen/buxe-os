@@ -2,10 +2,15 @@
 
 try {
 
+# Feste Begegnung: Boss-Werte skalieren NICHT mit dem Spielerlevel.
+# Vorher taten sie das mit 15 % pro Level und wuchsen damit schneller als das Pet --
+# die Siegquote lag in der Simulation bei 0 %, ueber alle Level und Ausruestungsstufen.
+# Werte gegenueber v24 gestutzt: HP x0,7, ATK x0,85. DEF unveraendert.
+# Belege und Zielkorridor: docs/superpowers/specs/2026-09-13-avs-baseline.md
 $script:PetRaidBosses = @(
-    @{ Name = "CYBER_GOLEM"; Type = "NORM"; HP = 300; ATK = 25; DEF = 20; SPD = 8 }
-    @{ Name = "NET_TITAN"; Type = "ELEC"; HP = 450; ATK = 35; DEF = 25; SPD = 12 }
-    @{ Name = "OMEGA_CORE"; Type = "HACK"; HP = 600; ATK = 45; DEF = 30; SPD = 15 }
+    @{ Name = "CYBER_GOLEM"; Type = "NORM"; HP = 210; ATK = 21; DEF = 20; SPD = 8 }
+    @{ Name = "NET_TITAN"; Type = "ELEC"; HP = 315; ATK = 30; DEF = 25; SPD = 12 }
+    @{ Name = "OMEGA_CORE"; Type = "HACK"; HP = 420; ATK = 38; DEF = 30; SPD = 15 }
 )
 $script:RaidShopItems = @(
     @{ Name = "Omega Chip"; Type = "Chip"; Cost = 15; Desc = "+10 ATK"; ATK = 10 }
@@ -89,8 +94,7 @@ function Invoke-PetRaidBattle($pet, $p) {
     $phase = 1; $tokens = 0
     while ($phase -le 3) {
         $boss = $script:PetRaidBosses[$phase - 1]
-        $sc = 1 + ($p.Level - 1) * 0.15
-        $enemy = @{ Name = $boss.Name; HP = [math]::Round($boss.HP * $sc); MaxHP = [math]::Round($boss.HP * $sc); ATK = [math]::Round($boss.ATK * $sc); DEF = [math]::Round($boss.DEF * $sc); SPD = [math]::Round($boss.SPD * $sc) }
+        $enemy = @{ Name = $boss.Name; HP = $boss.HP; MaxHP = $boss.HP; ATK = $boss.ATK; DEF = $boss.DEF; SPD = $boss.SPD }
     try { Clear-Host } catch {}
         Show-PetFrame "RAID PHASE $phase" -Double | Out-Null
         Write-Host "`n  $($enemy.Name) erscheint!" -ForegroundColor Red
@@ -112,15 +116,15 @@ function Invoke-PetRaidBattle($pet, $p) {
             $rm = @("A","V","S") | Get-Random
             $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
             Write-Host "`n  Du: $($moves[$pm]) | Boss: $($moves[$rm])" -ForegroundColor DarkGray
-            $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+            $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
                         -PlayerLevel $p.Level -EnemyLevel ($phase * 3) `
                         -MovePower $script:AvsMovePower.Raid[$phase - 1]
-            $enemy.HP -= $round.PlayerDamage
-            $p.HP -= $round.EnemyDamage
-            switch ($round.Outcome) {
+            $enemy.HP -= $avs.PlayerDamage
+            $p.HP -= $avs.EnemyDamage
+            switch ($avs.Outcome) {
                 "Tie"  { Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow }
-                "Win"  { Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
-                "Loss" { Write-Host "  Treffer! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
+                "Win"  { Write-Host "  Treffer! -$($avs.PlayerDamage) HP!" -ForegroundColor Green }
+                "Loss" { Write-Host "  Treffer! -$($avs.EnemyDamage) HP!" -ForegroundColor Red }
             }
             Start-Sleep -Milliseconds 500
         }

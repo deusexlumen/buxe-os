@@ -17,10 +17,6 @@ function Test-Assert($name, $condition) {
 }
 
 $TOLERANCE = 0.15
-# Dokumentierte Ausnahme: Raid erreicht den Korridor mit keinem konstanten
-# MovePower (siehe Kommentar an $script:AvsMovePower). Die Grenze steht hier
-# trotzdem scharf, damit eine Verschlechterung auffaellt.
-$TOLERANCE_RAID = 0.20
 
 # === REFERENZ-PET UND GEGNER (identisch zu Scripts\measure-avs-baseline.ps1) ===
 function Get-RefPet($Level) {
@@ -68,10 +64,6 @@ $matchups = @(
        Gen = { param($lvl) Get-RefPvpEnemy 0 $lvl } }
     @{ Mode = "PvP Master"; MovePower = ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * 5)
        Gen = { param($lvl) Get-RefPvpEnemy 5 $lvl } }
-    @{ Mode = "Raid Phase 1"; MovePower = $script:AvsMovePower.Raid[0]; Tolerance = $TOLERANCE_RAID
-       Gen = { param($lvl) Get-RefRaidEnemy 1 $lvl } }
-    @{ Mode = "Raid Phase 3"; MovePower = $script:AvsMovePower.Raid[2]; Tolerance = $TOLERANCE_RAID
-       Gen = { param($lvl) Get-RefRaidEnemy 3 $lvl } }
 )
 
 foreach ($m in $matchups) {
@@ -87,6 +79,57 @@ foreach ($m in $matchups) {
         Test-Assert ("{0} Lv{1}: {2:N2} -> {3:N2} ({4:P1}){5}" -f $m.Mode, $lvl, $base, $cur, $dev, $note) $ok
     }
 }
+
+# === RAID: SIEGQUOTE STATT RUNDENSCHADEN ===
+# Der Raid wird nicht am alten Rundenschaden gemessen. Grund: mit den v24-Werten
+# lag die simulierte Siegquote bei 0 % -- ueber jedes Level und jede Ausruestung.
+# Ein Korridor um eine unspielbare Referenz waere wertlos. Geprueft wird stattdessen
+# die Progressionskurve: ohne Ausruestung chancenlos, mit voller Ausruestung machbar.
+Write-Host ""
+. "$modDir\pet\raid.ps1"
+
+function Invoke-SimRaid($Pet, $Heals) {
+    $hp = $Pet.MaxHP; $used = 0; $rounds = 0
+    $moveSet = @("A","V","S")
+    for ($phase = 1; $phase -le 3; $phase++) {
+        $b = $script:PetRaidBosses[$phase - 1]
+        $enemy = @{ HP = $b.HP; MaxHP = $b.HP; ATK = $b.ATK; DEF = $b.DEF }
+        while ($hp -gt 0 -and $enemy.HP -gt 0) {
+            $rounds++
+            if ($rounds -gt 500) { return $false }
+            if ($used -lt $Heals -and $hp -lt ($Pet.MaxHP * 0.5)) {
+                $hp += [math]::Min([math]::Round($Pet.MaxHP * 0.2), $Pet.MaxHP - $hp); $used++
+            }
+            $r = Resolve-AvsRound -PlayerMove ($moveSet | Get-Random) -EnemyMove ($moveSet | Get-Random) `
+                    -PlayerStats $Pet -EnemyStats $enemy -PlayerLevel $Pet.Level -EnemyLevel ($phase * 3) `
+                    -MovePower $script:AvsMovePower.Raid[$phase - 1]
+            $enemy.HP -= $r.PlayerDamage
+            $hp -= $r.EnemyDamage
+        }
+        if ($hp -le 0) { return $false }
+    }
+    return $true
+}
+function Get-SimWinRate($Level, $GearAtk, $GearDef, $GearHp, $Heals, $Runs = 150) {
+    $pet = @{ Level = $Level; MaxHP = 100 + 10 * ($Level - 1) + $GearHp
+              ATK = 14 + 2 * ($Level - 1) + $GearAtk; DEF = 7 + 1 * ($Level - 1) + $GearDef }
+    $w = 0
+    for ($i = 0; $i -lt $Runs; $i++) { if (Invoke-SimRaid $pet $Heals) { $w++ } }
+    return $w / [double]$Runs
+}
+
+$rNoGear  = Get-SimWinRate -Level 10 -GearAtk 0  -GearDef 0 -GearHp 0  -Heals 0
+$rMidLv10 = Get-SimWinRate -Level 10 -GearAtk 10 -GearDef 5 -GearHp 30 -Heals 1
+$rMidLv15 = Get-SimWinRate -Level 15 -GearAtk 10 -GearDef 5 -GearHp 30 -Heals 1
+$rFullLv15= Get-SimWinRate -Level 15 -GearAtk 23 -GearDef 9 -GearHp 50 -Heals 2
+Test-Assert ("Raid ohne Ausruestung Lv10 chancenlos: {0:P0} (<= 10 %)" -f $rNoGear) ($rNoGear -le 0.10)
+Test-Assert ("Raid mittlere Ausruestung Lv10: {0:P0} (0-40 %)" -f $rMidLv10) ($rMidLv10 -le 0.40)
+Test-Assert ("Raid mittlere Ausruestung Lv15: {0:P0} (30-95 %)" -f $rMidLv15) ($rMidLv15 -ge 0.30 -and $rMidLv15 -le 0.95)
+Test-Assert ("Raid volle Ausruestung Lv15: {0:P0} (>= 75 %)" -f $rFullLv15) ($rFullLv15 -ge 0.75)
+Test-Assert "Raid-Bosse skalieren nicht mit dem Spielerlevel" (
+    (Get-SimWinRate -Level 15 -GearAtk 23 -GearDef 9 -GearHp 50 -Heals 2 -Runs 60) -ge
+    (Get-SimWinRate -Level 5  -GearAtk 23 -GearDef 9 -GearHp 50 -Heals 2 -Runs 60)
+)
 
 # === SIMULATION ===
 # 10.000 zufaellige A/V/S-Runden: die drei Ausgaenge muessen gleichverteilt sein,

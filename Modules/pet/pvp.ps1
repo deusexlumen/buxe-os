@@ -50,15 +50,15 @@ function Start-PetPvP {
         $pm = Read-Choice "Zug" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Gegner: $($moves[$rm])" -ForegroundColor DarkGray
-        $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+        $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
                     -PlayerLevel $p.Level -EnemyLevel ($rankIdx + 1) `
                     -MovePower ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * $rankIdx)
-        $enemy.HP -= $round.PlayerDamage
-        $p.HP -= $round.EnemyDamage
-        switch ($round.Outcome) {
+        $enemy.HP -= $avs.PlayerDamage
+        $p.HP -= $avs.EnemyDamage
+        switch ($avs.Outcome) {
             "Tie"  { Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow }
-            "Win"  { $ps++; Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
-            "Loss" { $es++; Write-Host "  Treffer erhalten! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
+            "Win"  { $ps++; Write-Host "  Treffer! -$($avs.PlayerDamage) HP!" -ForegroundColor Green }
+            "Loss" { $es++; Write-Host "  Treffer erhalten! -$($avs.EnemyDamage) HP!" -ForegroundColor Red }
         }
         Start-Sleep -Milliseconds 500
     }

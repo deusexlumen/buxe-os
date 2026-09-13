@@ -55,14 +55,14 @@ function Invoke-PetRivalBattle {
         $pm = Read-Choice "Zug [A/V/S]" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Rival: $($moves[$rm])" -ForegroundColor DarkGray
-        $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $rStats `
+        $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $rStats `
                     -PlayerLevel $p.Level -EnemyLevel $rLvl -MovePower $script:AvsMovePower.Rival
-        $rStats.HP -= $round.PlayerDamage
-        $p.HP -= $round.EnemyDamage
-        switch ($round.Outcome) {
-            "Tie"  { Write-Host "  Gleichstand! Beide treffen! -$($round.PlayerDamage) HP" -ForegroundColor Yellow }
-            "Win"  { $ps++; Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
-            "Loss" { $rs++; Write-Host "  Treffer erhalten! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
+        $rStats.HP -= $avs.PlayerDamage
+        $p.HP -= $avs.EnemyDamage
+        switch ($avs.Outcome) {
+            "Tie"  { Write-Host "  Gleichstand! Beide treffen! -$($avs.PlayerDamage) HP" -ForegroundColor Yellow }
+            "Win"  { $ps++; Write-Host "  Treffer! -$($avs.PlayerDamage) HP!" -ForegroundColor Green }
+            "Loss" { $rs++; Write-Host "  Treffer erhalten! -$($avs.EnemyDamage) HP!" -ForegroundColor Red }
         }
         Start-Sleep -Milliseconds 500
     }

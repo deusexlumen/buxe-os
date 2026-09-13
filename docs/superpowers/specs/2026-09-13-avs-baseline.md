@@ -89,6 +89,51 @@ unter Lv5 trifft der Spieler im Raid schwaecher als bisher, ab Lv5 haerter. Die
 Ueberschreitung steht als eigene Konstante `$TOLERANCE_RAID = 0.20` im Balance-Test
 und ist pro Zeile als `[Ausnahme]` markiert — der globale Korridor bleibt bei ±15 %.
 
-Offen, falls die Abweichung nicht gewollt ist: Zugstaerke level-abhaengig machen,
-Raid-Boss-Stats an die neue Kurve anpassen, oder die Abweichung annehmen (Punkt 2
-oben zeigt, dass Raid Phase 3 ohnehin neu austariert werden muss).
+---
+
+## Nachtrag: Raid neu austariert (2026-09-13)
+
+Der ±15 %-Korridor war fuer den Raid der falsche Massstab. Eine Simulation
+vollstaendiger Raid-Kaempfe (je 400 Laeufe, zufaellige Zuege) zeigte:
+
+| Ausruestung | Lv5 | Lv10 | Lv15 |
+|---|---|---|---|
+| ohne | 0 % | 0 % | 0 % |
+| mittel | 0 % | 0 % | 0 % |
+| voll + Sync | 0 % | 0 % | 0 % |
+
+**Siegquote 0 %, mit alter wie mit neuer Formel.** Der Kampf endete im Schnitt nach
+zehn Runden, meist noch in Phase 1. Der Spielstand bestaetigt es: `RaidBest` und
+`RaidTokens` sind nie gesetzt worden.
+
+Ursache ist nicht die Schadensformel, sondern die Skalierung: Boss-HP und -ATK
+wuchsen mit **15 % pro Spielerlevel**, das Pet aber nur um +2 ATK und +10 MaxHP
+pro Level. Der Boss zog dem Spieler mit jedem Level davon — Leveln machte den
+Raid schwerer, nicht leichter.
+
+**Aenderung:** Der Raid ist jetzt eine feste Begegnung. Boss-Werte skalieren nicht
+mehr mit dem Spielerlevel, und sie wurden gestutzt (HP ×0,7, ATK ×0,85, DEF
+unveraendert):
+
+| Boss | HP alt → neu | ATK alt → neu | DEF |
+|---|---|---|---|
+| CYBER_GOLEM | 300 → 210 | 25 → 21 | 20 |
+| NET_TITAN | 450 → 315 | 35 → 30 | 25 |
+| OMEGA_CORE | 600 → 420 | 45 → 38 | 30 |
+
+Damit entsteht erstmals eine Progressionskurve (150 Laeufe je Zelle, geprueft von
+`Modules/_balance_test.ps1`):
+
+| Ausruestung | Lv10 | Lv15 |
+|---|---|---|
+| ohne | 0 % | — |
+| mittel | 9 % | 57 % |
+| voll | — | 93 % |
+
+Der Balance-Test misst den Raid seitdem an der Siegquote statt am Rundenschaden,
+und `$TOLERANCE_RAID` ist entfallen: der globale Korridor gilt wieder fuer alle
+Modi, die daran sinnvoll messbar sind (Rival, PvP).
+
+Wer die alte Haerte zurueck will, dreht die Werte in `$script:PetRaidBosses`
+(`Modules/pet/raid.ps1`) hoch — der Balance-Test sagt sofort, was das mit der
+Siegquote macht.
