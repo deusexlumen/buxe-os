@@ -574,11 +574,17 @@ Assert ($raidAfter.Pet.RaidCleared -eq (Get-Date -Format "yyyy-MM-dd")) "E2E: Ra
 Assert ($raidAfter.Pet.HP -gt 0) "E2E: Pet ueberlebt den Raid-Abschluss mit HP > 0"
 Assert ($raidTurns -gt 4) "E2E: Raid lief $raidTurns Runden inkl. Q-Eingabe"
 
-# Spielstand zuruecksetzen, damit der Test den Raid nicht fuer heute verbraucht
+# Spielstand zuruecksetzen, damit der Test den Raid nicht fuer heute verbraucht.
+# Flush-State ist noetig: Save-State drosselt auf einen Schreibvorgang pro 500 ms,
+# und der Raid hat gerade selbst gespeichert -- ohne Flush verpufft dieser Save.
 $raidAfter.Pet.RaidCleared = $raidStateBefore.Cleared
 $raidAfter.Pet.RaidTokens = $raidStateBefore.Tokens
 $raidAfter.Pet.HP = $raidStateBefore.HP
 Save-PetState $raidAfter
+Flush-State
+$raidVerify = Get-Content (Join-Path $env:LOCALAPPDATA "buxe\buxe_state_v24.json") -Raw | ConvertFrom-Json
+Assert ($raidVerify.Pet.Pet.RaidCleared -eq $raidStateBefore.Cleared) "E2E: Raid-Test gibt den Tagesversuch wieder frei"
+Assert ($raidVerify.Pet.Pet.HP -eq $raidStateBefore.HP) "E2E: Raid-Test stellt die Pet-HP wieder her"
 Write-Host " OK" -ForegroundColor Green
 
 Write-Output ""

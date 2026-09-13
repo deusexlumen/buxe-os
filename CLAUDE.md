@@ -135,6 +135,11 @@ rufen sie auf und machen selbst nur HP-Buchfuehrung, Anzeige und Belohnung.
 - Nur `$script:`-Scope, nie `$global:`. Neue Felder in `Get-StateDefaults`
   (`engine-state-core.ps1`) bzw. `Get-PetDefaults` registrieren, sonst fehlen sie nach
   Migration.
+- **`Save-State` drosselt auf einen Schreibvorgang pro 500 ms.** Ein zweiter Save
+  innerhalb des Fensters schreibt nichts, sondern setzt nur ein Pending-Flag — der
+  naechste Save holt ihn nach. Wer unmittelbar nach einem fremden Save speichert
+  (Tests, Aufraeumcode, Endpunkte), verliert seinen Schreibvorgang stillschweigend.
+  Dafuer gibt es `Flush-State`: schreibt sofort, Drossel hin oder her.
 
 ## Konventionen, die Tests durchsetzen
 
