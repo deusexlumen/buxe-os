@@ -210,6 +210,8 @@ function Start-PetTutorialFight {
         
         $playerMod = Get-ElementModifier $p.Type $enemy.Type
         
+        # 'Q' aus Read-Choice: im Tutorial faengt das Safety-Net unten ohnehin alles ab
+        if ($pm -notmatch '^[AVS]$') { $pm = 'A' }
         $tr = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
                 -PlayerLevel $p.Level -EnemyLevel 1 -MovePower $script:AvsMovePower.Tutorial -TypeMod $playerMod
         # Tutorial-Safety-Net: verlorene Runden werden zum Sieg erklaert. Das Netz

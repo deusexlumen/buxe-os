@@ -55,8 +55,12 @@ function Invoke-PetRivalBattle {
         $pm = Read-Choice "Zug [A/V/S]" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Rival: $($moves[$rm])" -ForegroundColor DarkGray
-        $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $rStats `
-                    -PlayerLevel $p.Level -EnemyLevel $rLvl -MovePower $script:AvsMovePower.Rival
+        # 'Q' aus Read-Choice zaehlt wie bisher als verlorene Runde
+        $forced = if ($pm -match '^[AVS]$') { '' } else { 'Loss' }
+        $avs = Resolve-AvsRound -PlayerMove $(if ($forced) { 'A' } else { $pm }) -EnemyMove $rm `
+                    -PlayerStats $stats -EnemyStats $rStats `
+                    -PlayerLevel $p.Level -EnemyLevel $rLvl -ForceOutcome $forced `
+                    -MovePower $script:AvsMovePower.Rival
         $rStats.HP -= $avs.PlayerDamage
         $p.HP -= $avs.EnemyDamage
         switch ($avs.Outcome) {

@@ -116,8 +116,12 @@ function Invoke-PetRaidBattle($pet, $p) {
             $rm = @("A","V","S") | Get-Random
             $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
             Write-Host "`n  Du: $($moves[$pm]) | Boss: $($moves[$rm])" -ForegroundColor DarkGray
-            $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
-                        -PlayerLevel $p.Level -EnemyLevel ($phase * 3) `
+            # Read-Choice liefert bei Abbruch 'Q'. Wie bisher zaehlt das als verlorene
+            # Runde -- nur explizit, statt als ungueltiger Zug in die Regel zu laufen.
+            $forced = if ($pm -match '^[AVS]$') { '' } else { 'Loss' }
+            $avs = Resolve-AvsRound -PlayerMove $(if ($forced) { 'A' } else { $pm }) -EnemyMove $rm `
+                        -PlayerStats $stats -EnemyStats $enemy `
+                        -PlayerLevel $p.Level -EnemyLevel ($phase * 3) -ForceOutcome $forced `
                         -MovePower $script:AvsMovePower.Raid[$phase - 1]
             $enemy.HP -= $avs.PlayerDamage
             $p.HP -= $avs.EnemyDamage

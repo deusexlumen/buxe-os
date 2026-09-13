@@ -529,6 +529,58 @@ Assert (Get-Command Invoke-FourthWall -ErrorAction SilentlyContinue) "E2E: Invok
 Assert (Get-Command Invoke-PetGlitch -ErrorAction SilentlyContinue) "E2E: Invoke-PetGlitch exists"
 Write-Host " OK" -ForegroundColor Green
 
+# E2E: Raid-Kampf komplett durchspielen
+# Der Raid war der einzige Modus ohne E2E-Abdeckung -- genau deshalb blieb eine
+# Variablenkollision ($round vs. Ergebnis von Resolve-AvsRound) unbemerkt, die erst
+# zur Laufzeit gescheitert waere. Dieser Flow laeuft die echte Schleife durch.
+Write-Host "Testing Raid Battle Flow..." -NoNewline
+$raidPet = Get-PetState
+$raidStateBefore = @{
+    Cleared = $raidPet.Pet.RaidCleared
+    Tokens  = $raidPet.Pet.RaidTokens
+    HP      = $raidPet.Pet.HP
+}
+
+$origWaitEnterRaid = (Get-Command Wait-Enter).ScriptBlock
+$origReadChoiceRaid = (Get-Command Read-Choice).ScriptBlock
+Set-Item function:Wait-Enter { }
+Set-Item function:global:Start-Sleep { param($Milliseconds, $Seconds) }
+# Jede vierte Runde 'Q': Read-Choice liefert das bei Abbruch, und der Modus muss es
+# als verlorene Runde verbuchen statt es in den ValidateSet von Resolve-AvsRound zu geben.
+$global:_raidTurn = 0
+Set-Item function:Read-Choice {
+    param($Prompt, $ValidPattern, $QuitChar = 'Q')
+    $global:_raidTurn++
+    if ($global:_raidTurn % 4 -eq 0) { return "Q" }
+    return "A"
+}
+
+$raidError = $null
+try {
+    Invoke-PetRaidBattle $raidPet $raidPet.Pet
+} catch {
+    $raidError = $_
+}
+
+$raidTurns = $global:_raidTurn
+Remove-Item function:global:Start-Sleep -ErrorAction SilentlyContinue
+Set-Item function:Read-Choice $origReadChoiceRaid
+Set-Item function:Wait-Enter $origWaitEnterRaid
+Remove-Variable _raidTurn -Scope Global -ErrorAction SilentlyContinue
+
+Assert ($null -eq $raidError) "E2E: Raid-Kampf laeuft ohne Fehler durch ($raidError)"
+$raidAfter = Get-PetState
+Assert ($raidAfter.Pet.RaidCleared -eq (Get-Date -Format "yyyy-MM-dd")) "E2E: Raid markiert den heutigen Versuch"
+Assert ($raidAfter.Pet.HP -gt 0) "E2E: Pet ueberlebt den Raid-Abschluss mit HP > 0"
+Assert ($raidTurns -gt 4) "E2E: Raid lief $raidTurns Runden inkl. Q-Eingabe"
+
+# Spielstand zuruecksetzen, damit der Test den Raid nicht fuer heute verbraucht
+$raidAfter.Pet.RaidCleared = $raidStateBefore.Cleared
+$raidAfter.Pet.RaidTokens = $raidStateBefore.Tokens
+$raidAfter.Pet.HP = $raidStateBefore.HP
+Save-PetState $raidAfter
+Write-Host " OK" -ForegroundColor Green
+
 Write-Output ""
 if ($e2eErrors.Count -gt 0) {
     Write-Output "=== E2E FAILURES: $($e2eErrors -join ', ') ==="

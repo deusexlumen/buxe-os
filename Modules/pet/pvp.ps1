@@ -50,8 +50,11 @@ function Start-PetPvP {
         $pm = Read-Choice "Zug" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Gegner: $($moves[$rm])" -ForegroundColor DarkGray
-        $avs = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
-                    -PlayerLevel $p.Level -EnemyLevel ($rankIdx + 1) `
+        # 'Q' aus Read-Choice zaehlt wie bisher als verlorene Runde
+        $forced = if ($pm -match '^[AVS]$') { '' } else { 'Loss' }
+        $avs = Resolve-AvsRound -PlayerMove $(if ($forced) { 'A' } else { $pm }) -EnemyMove $rm `
+                    -PlayerStats $stats -EnemyStats $enemy `
+                    -PlayerLevel $p.Level -EnemyLevel ($rankIdx + 1) -ForceOutcome $forced `
                     -MovePower ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * $rankIdx)
         $enemy.HP -= $avs.PlayerDamage
         $p.HP -= $avs.EnemyDamage
