@@ -1,4 +1,4 @@
-# BUXE_OS v24.2 — PET RIVAL v2.0
+﻿# BUXE_OS v24.2 — PET RIVAL v2.0
 
 try {
 
@@ -46,7 +46,6 @@ function Invoke-PetRivalBattle {
     Write-Host "  Rivale Lv.$rLvl | HP:$($rStats.MaxHP) ATK:$($rStats.ATK) DEF:$($rStats.DEF) SPD:$($rStats.SPD)" -ForegroundColor DarkGray
     Write-Host "`n  3 Runden. A > V > S > A" -ForegroundColor DarkGray
     $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
-    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
     $ps = 0; $rs = 0
     for ($r = 1; $r -le 3; $r++) {
         try { Clear-Host } catch {}
@@ -56,18 +55,14 @@ function Invoke-PetRivalBattle {
         $pm = Read-Choice "Zug [A/V/S]" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Rival: $($moves[$rm])" -ForegroundColor DarkGray
-        if ($pm -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5) * (100 / (100 + $rStats.DEF))))
-            $rStats.HP -= $dmg; $p.HP -= [math]::Max(1, [math]::Round($rStats.ATK * (100 / (100 + $stats.DEF))))
-            Write-Host "  Gleichstand! Beide treffen! -$dmg HP" -ForegroundColor Yellow
-        } elseif ($beats[$pm] -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 2) * (100 / (100 + $rStats.DEF))))
-            $rStats.HP -= $dmg; $ps++
-            Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
-        } else {
-            $dmg = [math]::Max(1, [math]::Round($rStats.ATK * (100 / (100 + $stats.DEF))))
-            $p.HP -= $dmg; $rs++
-            Write-Host "  Treffer erhalten! -$dmg HP!" -ForegroundColor Red
+        $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $rStats `
+                    -PlayerLevel $p.Level -EnemyLevel $rLvl -MovePower $script:AvsMovePower.Rival
+        $rStats.HP -= $round.PlayerDamage
+        $p.HP -= $round.EnemyDamage
+        switch ($round.Outcome) {
+            "Tie"  { Write-Host "  Gleichstand! Beide treffen! -$($round.PlayerDamage) HP" -ForegroundColor Yellow }
+            "Win"  { $ps++; Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
+            "Loss" { $rs++; Write-Host "  Treffer erhalten! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
         }
         Start-Sleep -Milliseconds 500
     }
