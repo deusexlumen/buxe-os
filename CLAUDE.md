@@ -124,7 +124,8 @@ Neue Spiel-Logik in diesem Stil schreiben: Kernel rein, UI aussen.
   `pet/_ui.ps1` nutzt Unicode-Frames als bewusste Ausnahme.
 - Datei-Header: `# BUXE_OS v<ver> -- MODULNAME`.
 - Interaktive Flows: `Show-Frame` oben, `Wait-Enter` unten, `[Q]` = Quit/Back.
-- TUI-Spiele bauen Scenes (`New-Scene` / `Add-ToScene` / `Show-Scene`) statt direktem
+- TUI-Spiele bauen Scenes (`New-Scene` / `Add-SceneText` / `Add-SceneFrame` /
+  `Add-SceneBar` / `Add-SceneBlock` / `Show-Scene`) statt direktem
   `Write-Host`, Input via `Read-GameChoice`. Neuen Game-Flow immer mit
   `Enable-MockInput` / `Queue-MockInput` in `_e2e_test.ps1` eintragen.
 - Commits: Conventional Commits mit Scope (`feat(pet):`, `fix(adventure):`), deutsche
@@ -137,6 +138,10 @@ Neue Spiel-Logik in diesem Stil schreiben: Kernel rein, UI aussen.
 `tts-engine.ps1` (TTS lebt nicht mehr nur im Profil), `pet/combat-core.ps1`,
 `pet/combat-ui.ps1`, `pet/memory.ps1`, `pet/companion-story.ps1`,
 `pet/companion-story-data.ps1`, `pet/_hollow.ps1`, `pet/act1-session47.ps1`.
-Bei Architektur-Aussagen aus AGENTS.md gegen das Profil gegenpruefen.
+
+Ausserdem falsch: AGENTS.md (Zeilen 170, 182-183, 524) und der Kommentar in
+`engine-scene.ps1:107` nennen ein `Add-ToScene`. Diese Funktion existiert nicht —
+die echten Namen sind `Add-SceneElement` / `-SceneText` / `-SceneFrame` / `-SceneBar` /
+`-SceneBlock`. Bei Architektur-Aussagen aus AGENTS.md gegen das Profil gegenpruefen.
 
 `SESSION_NOTES.md` und `achievements.json` sind gitignored — kein geteilter Kontext.
