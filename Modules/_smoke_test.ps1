@@ -1,4 +1,4 @@
-# BUXE_OS v24.0 -- SMOKE TEST
+﻿# BUXE_OS v24.0 -- SMOKE TEST
 
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$modDir\engine-state-core.ps1"
@@ -222,9 +222,27 @@ Test-Assert "BPAttacks Neural Overload has Poison effect" ($script:BPAttacks["Ne
 Test-Assert "BossPatterns has BOSS_OMEGA" ($script:BossPatterns.ContainsKey("BOSS_OMEGA"))
 Test-Assert "BOSS_OMEGA has 3 phases" ($script:BossPatterns["BOSS_OMEGA"].Phases.Count -eq 3)
 
-# Test Get-CombatInitiative
-$init = Get-CombatInitiative @{ SPD = 10 } @{ SPD = 5 }
-Test-Assert "Get-CombatInitiative returns boolean" ($init -is [bool])
+# Test Get-DamageV3 -- Verhalten der Kernformel statt Existenz toter V2-Namen
+$dmgLowDef  = Get-DamageV3 -ATK 30 -DEF 5  -AttackerLevel 5
+$dmgHighDef = Get-DamageV3 -ATK 30 -DEF 60 -AttackerLevel 5
+Test-Assert "Get-DamageV3 faellt mit steigender DEF" ($dmgHighDef -lt $dmgLowDef)
+Test-Assert "Get-DamageV3 nie unter 1" ((Get-DamageV3 -ATK 1 -DEF 9999 -AttackerLevel 1) -ge 1)
+$dmgLvl1  = Get-DamageV3 -ATK 30 -DEF 40 -AttackerLevel 1
+$dmgLvl10 = Get-DamageV3 -ATK 30 -DEF 40 -AttackerLevel 10
+Test-Assert "Get-DamageV3 Softcap skaliert mit Angreifer-Level" ($dmgLvl10 -gt $dmgLvl1)
+
+# Test Invoke-CombatReducer -- eine Runde mit injizierten Wuerfen
+$rRolls = @{ AI = 1; PlayerSkip = 100; EnemySkip = 100; PlayerCrit = 100; Counter = 100; Accuracy = 1; Variance = 0.0; EnemyVariance = 0.0 }
+$rPlayer = @{ Name="TESTPET"; Type="FIRE"; Level=5; HP=100; MaxHP=100; ATK=25; DEF=10; SPD=20; Crit=5; Attacks=@() }
+$rEnemy  = @{ Name="TESTFOE"; Type="ICE";  Level=5; HP=100; MaxHP=100; ATK=15; DEF=8;  SPD=5;  Archetype="Drone"; IsBoss=$false }
+$rOut = Invoke-CombatReducer -State (New-CombatStateV3 -Player $rPlayer -Enemy $rEnemy) -Action @{ Kind = "Attack" } -Rolls $rRolls
+Test-Assert "Reducer liefert State und Events" (($null -ne $rOut.State) -and ($null -ne $rOut.Events))
+Test-Assert "Reducer fuegt Gegner Schaden zu" ($rOut.State.Enemy.HP -lt 100)
+Test-Assert "Reducer meldet A/V/S-Ausgang" (@($rOut.Events | Where-Object { $_.Topic -eq "combat.rps" }).Count -eq 1)
+$rPlayer2 = @{ Name="TESTPET"; Type="FIRE"; Level=5; HP=100; MaxHP=100; ATK=25; DEF=10; SPD=20; Crit=5; Attacks=@() }
+$rEnemy2  = @{ Name="TESTFOE"; Type="ICE";  Level=5; HP=100; MaxHP=100; ATK=15; DEF=8;  SPD=5;  Archetype="Drone"; IsBoss=$false }
+$rOut2 = Invoke-CombatReducer -State (New-CombatStateV3 -Player $rPlayer2 -Enemy $rEnemy2) -Action @{ Kind = "Attack" } -Rolls $rRolls
+Test-Assert "Reducer ist deterministisch bei gleichen Wuerfen" ($rOut2.State.Enemy.HP -eq $rOut.State.Enemy.HP)
 
 # Test New-CombatState
 $cs = New-CombatState $pet.Pet $pet.Companion

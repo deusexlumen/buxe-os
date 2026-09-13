@@ -1,4 +1,4 @@
-# BUXE_OS v24.0 -- END-TO-END TEST
+﻿# BUXE_OS v24.0 -- END-TO-END TEST
 $ErrorActionPreference = 'Stop'
 $profilePath = Join-Path $PSScriptRoot "..\Microsoft.PowerShell_profile.ps1"
 
@@ -494,7 +494,8 @@ Save-PetState $pet
 
 Assert (Get-Command Invoke-TacticalCombat -ErrorAction SilentlyContinue) "E2E: Invoke-TacticalCombat exists"
 Assert (Get-Command Show-CombatScreen -ErrorAction SilentlyContinue) "E2E: Show-CombatScreen exists"
-Assert (Get-Command Get-CombatInitiative -ErrorAction SilentlyContinue) "E2E: Get-CombatInitiative exists"
+Assert (Get-Command Invoke-CombatReducer -ErrorAction SilentlyContinue) "E2E: Invoke-CombatReducer exists"
+Assert ((Get-DamageV3 -ATK 30 -DEF 60 -AttackerLevel 5) -lt (Get-DamageV3 -ATK 30 -DEF 5 -AttackerLevel 5)) "E2E: Get-DamageV3 faellt mit steigender DEF"
 Assert (Get-Command Resolve-PlayerAction -ErrorAction SilentlyContinue) "E2E: Resolve-PlayerAction exists"
 Assert (Get-Command Resolve-EnemyAction -ErrorAction SilentlyContinue) "E2E: Resolve-EnemyAction exists"
 Assert (Get-Command Apply-StatusEffects -ErrorAction SilentlyContinue) "E2E: Apply-StatusEffects exists"

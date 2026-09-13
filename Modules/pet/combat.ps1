@@ -1,4 +1,4 @@
-# BUXE_OS v24.2 - PET COMBAT v2.1
+﻿# BUXE_OS v24.2 - PET COMBAT v2.1
 # RPS core + elemental types + companion skills + sync level + boss phases
 
 try {
@@ -322,50 +322,6 @@ function Get-EffectiveStats($p, $companion = $null) {
     return @{ MaxHP = $fMaxHP; ATK = $fATK; DEF = $fDEF; SPD = $fSPD; Crit = $fCrit }
 }
 
-function Use-CompanionCombatAbility($cp, $p, $stats, $enemy) {
-    if (-not $cp) { return }
-    try { Clear-Host } catch {}
-    Show-PetFrame "COMPANION UNTERSTUETZUNG" -Double | Out-Null
-    Write-Host ""
-    switch ($cp.Name) {
-        "NEON" {
-            $stats.ATK += [math]::Round($stats.ATK * 0.2)
-            Show-CompanionDialog $cp "*hackt deine Kampfroutinen* ATK +20% fuer diesen Kampf!"
-        }
-        "RAVEN" {
-            $enemy.HP -= [math]::Max(1, [math]::Round($stats.ATK * 0.5))
-            Show-CompanionDialog $cp "*ferngesteuertes Takedown* Gegner nimmt Schaden bevor der Kampf beginnt!"
-        }
-        "PIXEL" {
-            $stats.DEF += [math]::Round($stats.DEF * 0.25)
-            Show-CompanionDialog $cp "*baut schnell eine Schutzschicht* DEF +25% fuer diesen Kampf!"
-        }
-        "LUNA" {
-            $heal = [math]::Round($stats.MaxHP * 0.25)
-            $p.HP = [math]::Min($stats.MaxHP, $p.HP + $heal)
-            Show-CompanionDialog $cp "*virtuelles Pflaster verteilt* +$heal HP geheilt!"
-        }
-        "IVY" {
-            $enemy.DEF = [math]::Max(1, [math]::Round($enemy.DEF * 0.9))
-            Show-CompanionDialog $cp "*löscht Gegner-Verteidigungsroutinen* Enemy DEF -10%!"
-        }
-        "VERA" {
-            Show-CompanionDialog $cp "*scannt Gegner-Verhalten* Ich sehe seinen naechsten Zug. Nicht wirklich. Aber fast."
-        }
-        "JINX" {
-            if ((Get-Random -Maximum 2) -eq 0) {
-                $stats.ATK += [math]::Round($stats.ATK * 0.3)
-                Show-CompanionDialog $cp "*wirft einen digitalen Glueckswuerfel* ATK +30%! Heute ist mein Tag!"
-            } else {
-                $stats.SPD = [math]::Max(1, [math]::Round($stats.SPD * 0.8))
-                Show-CompanionDialog $cp "*wirft einen digitalen Glueckswuerfel* SPD -20%! Naja, Chaos ist auch eine Strategie."
-            }
-        }
-    }
-    Write-Host ""
-    Wait-Enter
-}
-
 # BUXE_OS v25.0 -- Companion Pre-Fight Ability fuer Reducer (Phase 2)
 # Wandelt ATK/DEF/SPD-Buffs in Status-Effekte um, statt einen Snapshot zu mutieren.
 function Use-CompanionCombatAbilityV3($cp, $player, $enemy) {
@@ -418,16 +374,6 @@ function Use-CompanionCombatAbilityV3($cp, $player, $enemy) {
     Wait-Enter
 }
 
-function Get-CombatInitiative($playerStats, $enemyStats, $playerStance = "Balanced") {
-    $stance = Get-StanceModifier $playerStance
-    $pInit = (Get-Random -Minimum 1 -Maximum 100) + ($playerStats.SPD * $stance.SPD)
-    $eInit = (Get-Random -Minimum 1 -Maximum 100) + $enemyStats.SPD
-    if ($pInit -eq $eInit) {
-        return (Get-Random -Maximum 2) -eq 0
-    }
-    return $pInit -gt $eInit
-}
-
 function New-CombatState($playerPet, $companion) {
     return @{
         Round = 1
@@ -465,17 +411,6 @@ function Get-EnemyAction($enemy, $combatState, $isBoss = $false) {
         if ($rand -le $cum) { return $actions[$i] }
     }
     return "A"
-}
-
-function Resolve-AVS($playerAction, $enemyAction) {
-    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
-    if ($playerAction -eq $enemyAction) {
-        return @{ Winner = "Tie"; PlayerMultiplier = 1.0; EnemyMultiplier = 1.0 }
-    }
-    if ($beats[$playerAction] -eq $enemyAction) {
-        return @{ Winner = "Player"; PlayerMultiplier = 1.5; EnemyMultiplier = 0.5 }
-    }
-    return @{ Winner = "Enemy"; PlayerMultiplier = 0.5; EnemyMultiplier = 1.5 }
 }
 
 function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
@@ -589,82 +524,6 @@ function Invoke-TacticalCombat($playerPet, $companion, $isBoss = $false) {
         Show-CombatV3 -State $state -companion $companion -isBoss $isBoss -Final
         Wait-Enter
     }
-}
-
-function Resolve-CombatEnd($playerPet, $enemy, $companion, $combatState, $playerStats, $isBoss) {
-    try { Clear-Host } catch {}
-    $pet = Get-PetState
-    
-    if ($combatState.FleeAttempted) {
-        Show-PetFrame "FLUCHT" -Double | Out-Null
-        Write-Host "`n  Du bist erfolgreich geflohen!" -ForegroundColor Yellow
-        $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.5)
-        Save-PetState $pet
-        Wait-Enter
-        return
-    }
-    
-    if ($playerPet.HP -le 0) {
-        Show-PetFrame "NIEDERLAGE" -Double | Out-Null
-        $playerPet.Losses++
-        $playerPet.HP = [math]::Round($playerStats.MaxHP * 0.3)
-        Write-Host "`n  NIEDERLAGE..." -ForegroundColor Red
-        if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_loss") -NoWait }
-        Add-PetXP 5 "Fight Loss"
-    } elseif ($enemy.HP -le 0) {
-        Show-PetFrame "SIEG" -Double | Out-Null
-        $xp = if ($isBoss) { 50 + ($playerPet.Level * 10) } else { 20 + ($playerPet.Level * 5) }
-        $level = $playerPet.Level
-        $gold = Get-Random -Minimum (10 + $level * 2) -Maximum (20 + $level * 3 + 1)
-        if ($isBoss) { $gold += 25 + $level * 3 }
-        $playerPet.Wins++
-        $playerPet.XP += $xp
-        $playerPet.HP = [math]::Min($playerPet.HP + [math]::Round($playerStats.MaxHP * 0.2), $playerStats.MaxHP)
-        $pet.Economy.Gold += $gold
-        
-        $lootChance = if ($isBoss) { 40 } else { 15 }
-        $lootText = ""
-        if ((Get-Random -Maximum 100) -lt $lootChance) {
-            $lootItems = @("Scrap Metal","Data Shard","Energy Cell")
-            if ($isBoss) { $lootItems += @("Rare Chip","Boss Core") }
-            $loot = $lootItems | Get-Random
-            $pet.Economy.Inventory += $loot
-            $lootText = " | Loot: $loot"
-        }
-        
-        if ($companion) {
-            $companion.Sync++
-            if ($companion.Sync -in @(10,25,50,100)) {
-                Write-Host "`n  SYNC LEVEL UP! $($companion.Sync) erreicht!" -ForegroundColor Magenta
-            }
-        }
-        
-        Write-Host "`n  SIEG! +$xp XP | +$gold G$lootText" -ForegroundColor Green
-        Invoke-PetLevelUpCheck $playerPet
-        if ($companion) { Show-CompanionDialog $companion (Get-CompanionLine $companion "fight_win") -NoWait }
-        Add-PetXP ($xp / 2) "Fight Win"
-    }
-    
-    # Equipment durability degradation
-    foreach ($slot in @("chip","armor","accessory")) {
-        $eq = $playerPet.Equipment.$slot
-        if ($eq) {
-            $durKey = "Dur_$slot"
-            if (-not $playerPet.$durKey) { $playerPet.$durKey = 10 }
-            $playerPet.$durKey--
-            if ($playerPet.$durKey -le 0) {
-                $playerPet.Equipment.$slot = $null
-                Write-Host "  $eq ist zerbrochen!" -ForegroundColor Red
-                $playerPet.$durKey = 0
-            } else {
-                Write-Host "  $eq Haltbarkeit: $($playerPet.$durKey)" -ForegroundColor DarkGray
-            }
-        }
-    }
-    
-    $playerPet.FoodBuffs = @(); Save-PetState $pet
-    Invoke-Layer47Check
-    Wait-Enter
 }
 
 # BUXE_OS v25.0 -- Kampfende-Logik fuer den Reducer (Phase 2)
