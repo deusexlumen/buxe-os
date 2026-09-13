@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -27,6 +27,7 @@ Dot-Sourcing aus `Microsoft.PowerShell_profile.ps1` geladen.
 & .\Modules\_smoke_test.ps1        # Engines, State, Pet, Adventure (~65 Checks)
 & .\Modules\_integration_test.ps1  # AST-Checks: Duplikate, script:-Konflikte (~30 Checks)
 & .\Modules\_e2e_test.ps1          # Laedt das ganze Profil + 17 Game-Flows via Mock-Input
+& .\Modules\_balance_test.ps1      # Kampf-Balance: Korridor, Raid-Siegquote, Simulation
 & .\Scripts\watch-test.ps1         # Watch-Loop: Smoke+Integration bei jeder Modul-Aenderung
 ```
 
@@ -37,6 +38,11 @@ Ausgabe pruefen:
 - Smoke: `"ALL TESTS PASSED"`
 - Integration: `"ALL INTEGRATION TESTS PASSED"`
 - E2E: `"=== ALL E2E CHECKS PASSED ==="` — nutzt zusaetzlich echtes `exit 1` bei Fehlern
+- Balance: `"ALL BALANCE TESTS PASSED"` — setzt ebenfalls einen echten Exit-Code
+
+`_balance_test.ps1` laeuft bewusst **nicht** im Watch-Loop: es simuliert tausende
+Kampfrunden und komplette Raids, das dauert Sekunden statt Millisekunden. Es ist
+ausserdem der einzige Test, der rein rechnet — kein Spielstand, kein Terminal.
 
 Ein Crash im Smoke-Test endet in `[CRITICAL]` und ueberspringt die Summary komplett —
 fehlende Pass-Zeile heisst also immer "nicht bestanden", nie "keine Ausgabe".
@@ -50,7 +56,7 @@ die Funktion aufrufen:
 ```
 
 Es gibt **keinen Linter und kein Pester-Setup** — `Modules/Pester/` ist gitignorte
-Drittanbieter-Software, die drei Test-Skripte sind handgeschriebene `Test-Assert`-Loops.
+Drittanbieter-Software, die vier Test-Skripte sind handgeschriebene `Test-Assert`-Loops.
 
 **Tests sind nicht hermetisch.** Sie laden die echten Module und schreiben in den echten
 State (`%LOCALAPPDATA%\buxe\buxe_state_v24.json`). Der Smoke-Test sichert und restauriert
@@ -99,6 +105,25 @@ Seit v25 rufen Subsysteme einander nicht mehr direkt auf:
   (`Invoke-CombatSimulation`). UI liegt getrennt in `pet/combat-ui.ps1`.
 
 Neue Spiel-Logik in diesem Stil schreiben: Kernel rein, UI aussen.
+
+## Kampfregeln liegen an genau einer Stelle
+
+`Resolve-AvsRound` (`combat-core.ps1`) loest eine A/V/S-Runde auf: Zuege und Stats
+rein, `@{ Outcome; PlayerDamage; EnemyDamage }` raus. Rein rechnend — kein
+`Write-Host`, kein State, kein HP-Abzug. Pet-Kampf, PvP, Raid, Rival und Tutorial
+rufen sie auf und machen selbst nur HP-Buchfuehrung, Anzeige und Belohnung.
+
+- Die A/V/S-Tabelle (Sieg 2.0×, Gleichstand 1.5× zu 1.0×, Niederlage 0 zu 1.0×)
+  steht im module, nicht bei den callern. Nicht duplizieren.
+- Kalibriert wird ein Modus ausschliesslich ueber `$script:AvsMovePower` —
+  Referenzwert 40. Herleitung und Messwerte:
+  `docs/superpowers/specs/2026-09-13-avs-baseline.md`.
+- Den Gegnerzug waehlt jeder Modus selbst; das ist die eine Sache, die echt
+  variiert (PvP wuerfelt, Tutorial ist gescriptet).
+- `-ForceOutcome` erzwingt den Rundenausgang. Das Tutorial-Safety-Net nutzt das:
+  Netz beim caller, Regel im module.
+- Wer Schadenszahlen aendert, laesst `_balance_test.ps1` laufen. Er prueft den
+  ±15 %-Korridor gegen die eingecheckte Baseline und die Raid-Siegquote.
 
 ## State
 
