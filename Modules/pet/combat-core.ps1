@@ -96,6 +96,9 @@ function Get-DamageV3 {
 # Ergaenzt wird hier, sobald ein weiterer Modus auf Resolve-AvsRound umgestellt ist.
 $script:AvsMovePower = @{
     Rival = 41
+    # PvP skaliert mit dem Rang: Basis + PerRank * rankIdx (Bronze=0 .. Master=5)
+    PvPBase    = 35
+    PvPPerRank = 1.6
 }
 
 function Resolve-AvsRound {

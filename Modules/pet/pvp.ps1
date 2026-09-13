@@ -1,4 +1,4 @@
-# BUXE_OS v24.2 — PET PvP v2.0
+﻿# BUXE_OS v24.2 — PET PvP v2.0
 
 try {
 
@@ -37,7 +37,6 @@ function Start-PetPvP {
     }
     $enemy.MaxHP = $enemy.HP
     $moves = @{ "A" = "Angriff"; "V" = "Verteidigung"; "S" = "Special" }
-    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
     $ps = 0; $es = 0
     for ($r = 1; $r -le 3; $r++) {
     try { Clear-Host } catch {}
@@ -51,18 +50,15 @@ function Start-PetPvP {
         $pm = Read-Choice "Zug" '^[AVS]$'
         $rm = @("A","V","S") | Get-Random
         Write-Host "`n  Du: $($moves[$pm]) | Gegner: $($moves[$rm])" -ForegroundColor DarkGray
-        if ($pm -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 1.5) * (100 / (100 + $enemy.DEF))))
-            $enemy.HP -= $dmg; $p.HP -= [math]::Max(1, [math]::Round($enemy.ATK * (100 / (100 + $stats.DEF))))
-            Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow
-        } elseif ($beats[$pm] -eq $rm) {
-            $dmg = [math]::Max(1, [math]::Round(($stats.ATK * 2) * (100 / (100 + $enemy.DEF))))
-            $enemy.HP -= $dmg; $ps++
-            Write-Host "  Treffer! -$dmg HP!" -ForegroundColor Green
-        } else {
-            $dmg = [math]::Max(1, [math]::Round($enemy.ATK * (100 / (100 + $stats.DEF))))
-            $p.HP -= $dmg; $es++
-            Write-Host "  Treffer erhalten! -$dmg HP!" -ForegroundColor Red
+        $round = Resolve-AvsRound -PlayerMove $pm -EnemyMove $rm -PlayerStats $stats -EnemyStats $enemy `
+                    -PlayerLevel $p.Level -EnemyLevel ($rankIdx + 1) `
+                    -MovePower ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * $rankIdx)
+        $enemy.HP -= $round.PlayerDamage
+        $p.HP -= $round.EnemyDamage
+        switch ($round.Outcome) {
+            "Tie"  { Write-Host "  Gleichstand! Beide treffen!" -ForegroundColor Yellow }
+            "Win"  { $ps++; Write-Host "  Treffer! -$($round.PlayerDamage) HP!" -ForegroundColor Green }
+            "Loss" { $es++; Write-Host "  Treffer erhalten! -$($round.EnemyDamage) HP!" -ForegroundColor Red }
         }
         Start-Sleep -Milliseconds 500
     }

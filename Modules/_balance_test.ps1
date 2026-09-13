@@ -1,4 +1,4 @@
-# BUXE_OS v25.0 -- BALANCE TEST
+﻿# BUXE_OS v25.0 -- BALANCE TEST
 # Prueft, ob die auf Resolve-AvsRound umgestellten Modi im Korridor der Baseline
 # bleiben (+-15 % Rundenschaden, siehe docs/superpowers/specs/2026-09-13-avs-baseline.md)
 # und ob simulierte Kaempfe plausibel ausgehen.
@@ -60,6 +60,10 @@ Write-Host "`n  BUXE_OS BALANCE TEST -- Korridor +-$([int]($TOLERANCE*100)) % ge
 # Nur Modi, die bereits auf Resolve-AvsRound laufen. Beim Umstellen hier ergaenzen.
 $matchups = @(
     @{ Mode = "Rival"; MovePower = $script:AvsMovePower.Rival; Gen = { param($lvl) Get-RefRivalEnemy $lvl } }
+    @{ Mode = "PvP Bronze"; MovePower = $script:AvsMovePower.PvPBase
+       Gen = { param($lvl) Get-RefPvpEnemy 0 $lvl } }
+    @{ Mode = "PvP Master"; MovePower = ($script:AvsMovePower.PvPBase + $script:AvsMovePower.PvPPerRank * 5)
+       Gen = { param($lvl) Get-RefPvpEnemy 5 $lvl } }
 )
 
 foreach ($m in $matchups) {
