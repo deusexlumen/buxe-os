@@ -1,4 +1,4 @@
-# BUXE_OS v25.0 -- COMBAT CORE (PURE KERNEL)
+﻿# BUXE_OS v25.0 -- COMBAT CORE (PURE KERNEL)
 # Reducer-Pattern: (State, Action) -> { State, Events }
 # ZERO UI. ZERO Read-Host. ZERO Save-State. ZERO Write-Host.
 # Vollstaendig headless testbar: 10.000 simulierte Kaempfe in <5 Sekunden.
@@ -69,7 +69,7 @@ function Get-DamageV3 {
     <#
     .SYNOPSIS
       Kern-Schadensformel v3. Rein, deterministisch bei gegebenem CritRoll.
-      DMG = (ATK^1.15 * Power/40) * Mods * (1 - DEF_eff)
+      DMG = (ATK^1.13 * Power/40) * Mods * (1 - DEF_eff)
       DEF_eff = DEF / (DEF + 15 + 2.5 * AttackerLevel)
     #>
     param(
@@ -88,6 +88,77 @@ function Get-DamageV3 {
     $defEff = $DEF / ($DEF + 15.0 + 2.5 * $AttackerLevel)
     $raw = $base * $TypeMod * $StanceMod * $AvsMod * $ComboMod * $momentumMod * $critMod * (1 + $Variance)
     return [math]::Max(1, [math]::Round($raw * (1.0 - $defEff)))
+}
+
+# Zugstaerke pro Modus -- der einzige Kalibrier-Hebel, mit dem ein Modus auf seine
+# gewohnten Schadenszahlen gebracht wird. Referenzwert 40, Herleitung siehe
+# docs/superpowers/specs/2026-09-13-avs-baseline.md (Korridor +-15 %).
+# Ergaenzt wird hier, sobald ein weiterer Modus auf Resolve-AvsRound umgestellt ist.
+$script:AvsMovePower = @{
+    Rival = 41
+}
+
+function Resolve-AvsRound {
+    <#
+    .SYNOPSIS
+      Loest eine A/V/S-Runde auf: Zuege rein, Schaden raus. Rein rechnend.
+      Kein Write-Host, kein Read-Host, kein State-Zugriff, kein HP-Abzug --
+      HP-Buchfuehrung, Anzeige und Belohnung bleiben beim Modus.
+    .DESCRIPTION
+      Die A/V/S-Tabelle lebt hier, nicht bei den callern:
+        Win  -> Spieler 2.0x, Gegner 0
+        Tie  -> Spieler 1.5x, Gegner 1.0x
+        Loss -> Spieler 0,    Gegner 1.0x
+      Kalibriert wird ein Modus ausschliesslich ueber -MovePower (Referenz 40).
+    .PARAMETER ForceOutcome
+      Erzwingt den Rundenausgang, unabhaengig von den Zuegen. Das Tutorial nutzt
+      das fuer sein Safety-Net; das Netz bleibt damit beim caller, nicht in der Regel.
+    .PARAMETER EnemyLevel
+      Level des Gegners fuer den DEF-Softcap seines eigenen Schlags.
+      0 (Vorgabe) heisst: Spielerlevel verwenden.
+    .OUTPUTS
+      @{ Outcome = "Win"|"Tie"|"Loss"; PlayerDamage = n; EnemyDamage = n }
+    #>
+    param(
+        [Parameter(Mandatory)][ValidateSet('A','V','S')][string]$PlayerMove,
+        [Parameter(Mandatory)][ValidateSet('A','V','S')][string]$EnemyMove,
+        [Parameter(Mandatory)]$PlayerStats,   # @{ ATK; DEF }
+        [Parameter(Mandatory)]$EnemyStats,    # @{ ATK; DEF }
+        [int]$PlayerLevel = 1,
+        [int]$EnemyLevel = 0,
+        [double]$MovePower = 40,
+        [ValidateSet('','Win','Tie','Loss')][string]$ForceOutcome = '',
+        [double]$TypeMod = 1.0,
+        [double]$Variance = 0.0
+    )
+
+    $beats = @{ "A" = "V"; "V" = "S"; "S" = "A" }
+    $outcome = if ($ForceOutcome) { $ForceOutcome }
+               elseif ($PlayerMove -eq $EnemyMove) { "Tie" }
+               elseif ($beats[$PlayerMove] -eq $EnemyMove) { "Win" }
+               else { "Loss" }
+
+    # A/V/S-Tabelle -- der einzige Ort, an dem diese Zahlen stehen
+    $avs = switch ($outcome) {
+        "Win"  { @{ Player = 2.0; Enemy = 0.0 } }
+        "Tie"  { @{ Player = 1.5; Enemy = 1.0 } }
+        "Loss" { @{ Player = 0.0; Enemy = 1.0 } }
+    }
+
+    $eLvl = if ($EnemyLevel -gt 0) { $EnemyLevel } else { $PlayerLevel }
+
+    $pDmg = 0
+    if ($avs.Player -gt 0) {
+        $pDmg = Get-DamageV3 -ATK $PlayerStats.ATK -MovePower $MovePower -DEF $EnemyStats.DEF `
+                             -AttackerLevel $PlayerLevel -AvsMod $avs.Player -TypeMod $TypeMod -Variance $Variance
+    }
+    $eDmg = 0
+    if ($avs.Enemy -gt 0) {
+        $eDmg = Get-DamageV3 -ATK $EnemyStats.ATK -MovePower $MovePower -DEF $PlayerStats.DEF `
+                             -AttackerLevel $eLvl -AvsMod $avs.Enemy -Variance $Variance
+    }
+
+    return @{ Outcome = $outcome; PlayerDamage = [int]$pDmg; EnemyDamage = [int]$eDmg }
 }
 
 function Get-EffectiveStatWithSE($BaseValue, $StatName, $Effects) {
