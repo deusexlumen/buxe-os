@@ -1,4 +1,4 @@
-# A/V/S Baseline — Rundenschaden vor dem Umbau
+﻿# A/V/S Baseline — Rundenschaden vor dem Umbau
 
 Gemessen am 2026-09-13 mit `Scripts\measure-avs-baseline.ps1` gegen den Stand vor
 `Resolve-AvsRound`. Referenz-Pet: GLITCH_WOLF, ohne Ausruestung, ohne Companion,
@@ -55,3 +55,40 @@ sich an einer Stelle beantworten statt an vier — das ist der eigentliche Gewin
 pwsh -NoProfile -File .\Scripts\measure-avs-baseline.ps1
 pwsh -NoProfile -File .\Scripts\measure-avs-baseline.ps1 -Json   # maschinenlesbar
 ```
+
+---
+
+## Ergebnis der Umstellung (2026-09-13)
+
+Alle vier Modi laufen ueber `Resolve-AvsRound`. Kalibrierung in
+`$script:AvsMovePower` (`Modules/pet/combat-core.ps1`), geprueft von
+`Modules/_balance_test.ps1`:
+
+| Modus | Zugstaerke | Abweichung Lv1 / Lv5 / Lv10 | Korridor |
+|-------|-----------|------------------------------|----------|
+| Rival | 41 | +4,4 % / -5,1 % / -1,6 % | gehalten |
+| PvP Bronze | 35 | -6,5 % / -1,5 % / +7,7 % | gehalten |
+| PvP Master | 43 (= 35 + 1,6 × 5) | -9,5 % / -3,4 % / +9,7 % | gehalten |
+| Raid Phase 1 | 43 | -14,6 % / 0,0 % / +13,0 % | gehalten |
+| Raid Phase 3 | 49 | -18,4 % / -1,9 % / +19,7 % | **verfehlt** |
+| Tutorial | 15 | Pacing erhalten (33 von 70 HP nach drei Runden) | eigene Regel |
+
+PvP brauchte eine Zugstaerke pro Rang (`35 + 1,6 × rankIdx`); ein fester Wert pro
+Modus riss auf Lv10 mit +19,8 % aus.
+
+**Raid haelt den Korridor nicht — mit keinem konstanten MovePower.** Grund ist die
+Kurvenform, nicht der Wert:
+
+| Matchup | Wachstum Lv1→Lv10 alt | neu |
+|---------|----------------------|-----|
+| Raid Phase 1 | ×1,88 | ×2,53 |
+| Raid Phase 3 | ×1,74 | ×2,46 |
+
+Ein konstanter Faktor kann diese Spreizung nicht ausgleichen. Im Spiel heisst das:
+unter Lv5 trifft der Spieler im Raid schwaecher als bisher, ab Lv5 haerter. Die
+Ueberschreitung steht als eigene Konstante `$TOLERANCE_RAID = 0.20` im Balance-Test
+und ist pro Zeile als `[Ausnahme]` markiert — der globale Korridor bleibt bei ±15 %.
+
+Offen, falls die Abweichung nicht gewollt ist: Zugstaerke level-abhaengig machen,
+Raid-Boss-Stats an die neue Kurve anpassen, oder die Abweichung annehmen (Punkt 2
+oben zeigt, dass Raid Phase 3 ohnehin neu austariert werden muss).
